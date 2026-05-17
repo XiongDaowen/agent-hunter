@@ -34,25 +34,26 @@ from hunter import (
     discover,
 )
 from report_gen import generate_report
+from logger import info, success, warning, error, step
 
 
 def run_discover():
     """搜索发现新 agent，自动 merge 到 agents/ 目录"""
-    print("🔍 搜索发现新 AI Agent 产品...\n")
+    step("搜索发现新 AI Agent 产品")
     new_agents = discover()
 
     if not new_agents:
-        print("  没有发现新 agent")
+        info("没有发现新 agent")
         return []
 
-    print(f"  合并 {len(new_agents)} 个新 agent...")
+    info(f"合并 {len(new_agents)} 个新 agent...")
     results = update_all(new_agents, force=True)
     created = sum(1 for r in results if r["action"] == "created")
     errors = [r for r in results if r["action"] == "error"]
-    print(f"  ✅ 新增: {created}")
+    success(f"新增: {created}")
     if errors:
         for e in errors:
-            print(f"  ❌ {e['agent_id']}: {e['errors']}")
+            error(f"{e['agent_id']}: {e['errors']}")
 
     return new_agents
 
@@ -61,22 +62,23 @@ def run_update(force: bool = False):
     """从 agents/ 目录读取所有 agent 并更新缓存"""
     agents = load_all_agents()
     if not agents:
-        print("⚠ agents/ 目录为空，没有数据可更新")
+        warning("agents/ 目录为空，没有数据可更新")
         return
 
-    print(f"{'强制' if force else '增量'}更新 {len(agents)} 个 agent 条目...")
+    action_type = "强制" if force else "增量"
+    step(f"{action_type}更新 {len(agents)} 个 agent 条目")
     results = update_all(agents, force=force)
     created = sum(1 for r in results if r["action"] == "created")
     updated = sum(1 for r in results if r["action"] == "updated")
     skipped = sum(1 for r in results if r["action"] == "skipped")
     errors = [r for r in results if r["action"] == "error"]
 
-    print(f"  ✅ 新增: {created}")
-    print(f"  🔄 更新: {updated}")
-    print(f"  ➖ 跳过: {skipped}")
+    success(f"新增: {created}")
+    info(f"更新: {updated}")
+    info(f"跳过: {skipped}")
     if errors:
         for e in errors:
-            print(f"  ❌ {e['agent_id']}: {e['errors']}")
+            error(f"{e['agent_id']}: {e['errors']}")
 
 
 def run_list():
@@ -88,17 +90,15 @@ def run_list():
         if agent:
             entry = meta.get(aid, {})
             status = "缓存" if entry else "未缓存"
-            print(f"  {aid:<30} [{agent.get('category', '?'):<8}] {agent['name']:<25} {status}")
-    print(f"\n  共 {len(ids)} 个 agent")
+            info(f"  {aid:<30} [{agent.get('category', '?'):<8}] {agent['name']:<25} {status}")
+    info(f"\n共 {len(ids)} 个 agent")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         # 默认: 搜索发现 → 更新 → 报告
         run_discover()
-        print()
         run_update()
-        print()
         generate_report()
     else:
         command = sys.argv[1]
@@ -114,13 +114,11 @@ if __name__ == "__main__":
             show_status()
         elif command == "force":
             run_discover()
-            print()
             run_update(force=True)
-            print()
             generate_report()
         elif command == "add":
             if len(sys.argv) < 3:
-                print("用法: python run.py add <file>")
+                error("用法: python run.py add <file>")
                 sys.exit(1)
             with open(sys.argv[2]) as f:
                 data = json.load(f)
@@ -129,9 +127,9 @@ if __name__ == "__main__":
             else:
                 results = update_all([data])
             for r in results:
-                print(f"  {r['action']}: {r['agent_id']}")
+                info(f"{r['action']}: {r['agent_id']}")
         elif command == "list":
             run_list()
         else:
-            print(f"未知命令: {command}")
-            print("支持: update, discover, report, status, add, list, force (空=全部)")
+            error(f"未知命令: {command}")
+            info("支持: update, discover, report, status, add, list, force (空=全部)")

@@ -1,0 +1,10 @@
+[Unit]
+Description=agent-hunter - AI Agent 产品追踪
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/path/to/agent-hunter
+ExecStart=/usr/bin/python3 run.py
+StandardOutput=append:/path/to/agent-hunter/logs/systemd.log
+StandardError=append:/path/to/agent-hunter/logs/systemd.log

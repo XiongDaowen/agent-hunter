@@ -23,6 +23,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from logger import info, success, warning, error, debug, step, sub_step
+
 # ── 路径与配置 ──────────────────────────────────────────────────────────
 
 BASE_DIR = Path(__file__).parent
@@ -268,7 +270,7 @@ def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 
     model = cfg.get("model", "MiniMax-M2.7")
 
     if not base_url or not api_key:
-        print("  ⚠ config.json 未配置 llm.base_url / llm.api_key")
+        warning("config.json 未配置 llm.base_url / llm.api_key")
         return None
 
     url = f"{base_url.rstrip('/')}/v1/messages"
@@ -299,7 +301,7 @@ def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 
             return choices[0].get("message", {}).get("content", "")
         return str(data)
     except Exception as e:
-        print(f"  ⚠ LLM 调用失败: {e}")
+        warning(f"LLM 调用失败: {e}")
         return None
 
 
@@ -344,7 +346,7 @@ def _search_360(query: str, limit: int = 6) -> list[dict]:
 
         return results
     except Exception as e:
-        print(f"  ⚠ 360搜索失败: {e}")
+        warning(f"360搜索失败: {e}")
         return []
 
 
@@ -364,10 +366,10 @@ def _search_duckduckgo(query: str, limit: int = 6) -> list[dict]:
                 })
         return results
     except ImportError:
-        print("  ⚠ 未安装 ddgs，运行: pip3 install ddgs")
+        warning("未安装 ddgs，运行: pip3 install ddgs")
         return []
     except Exception as e:
-        print(f"  ⚠ DuckDuckGo 搜索失败: {e}")
+        warning(f"DuckDuckGo 搜索失败: {e}")
         return []
 
 
@@ -447,20 +449,20 @@ def discover() -> list[dict]:
     raw_sources = []
 
     # ── 执行国内搜索（360搜索） ──
-    print("  🇨🇳 国内搜索源（360搜索）...")
+    step("国内搜索源（360搜索）")
     for target_cat, query in DOMESTIC_SEARCHES:
         if CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", True):
-            print(f"    360: {query[:50]}...")
+            sub_step(f"360: {query[:50]}...")
             sources = _search_360(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)
 
     # ── 执行国外搜索（DuckDuckGo） ──
-    print("  🌍 国外搜索源（DuckDuckGo）...")
+    step("国外搜索源（DuckDuckGo）")
     for target_cat, query in OVERSEAS_SEARCHES:
         if CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", True):
-            print(f"    DDG: {query[:50]}...")
+            sub_step(f"DDG: {query[:50]}...")
             sources = _search_duckduckgo(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
@@ -468,7 +470,7 @@ def discover() -> list[dict]:
 
     # ── 可选：Firecrawl 补充搜索 ──
     if CONFIG.get("search_sources", {}).get("domestic", {}).get("firecrawl", {}).get("enabled", False):
-        print("  🔥 Firecrawl 补充搜索...")
+        step("Firecrawl 补充搜索（国内）")
         for target_cat, query in DOMESTIC_SEARCHES[:3]:  # 只搜前3个节省额度
             sources = _search_firecrawl(query, limit=3)
             for s in sources:
@@ -476,6 +478,7 @@ def discover() -> list[dict]:
             raw_sources.extend(sources)
 
     if CONFIG.get("search_sources", {}).get("overseas", {}).get("firecrawl", {}).get("enabled", False):
+        step("Firecrawl 补充搜索（国外）")
         for target_cat, query in OVERSEAS_SEARCHES[:3]:
             sources = _search_firecrawl(query, limit=3)
             for s in sources:
@@ -490,7 +493,7 @@ def discover() -> list[dict]:
             seen_urls.add(s["url"])
             unique_sources.append(s)
 
-    print(f"  收集了 {len(unique_sources)} 个原始页面来源")
+    info(f"收集了 {len(unique_sources)} 个原始页面来源")
 
     if not unique_sources:
         return []
@@ -543,14 +546,14 @@ def discover() -> list[dict]:
 
         user_prompt = f"请分析以下网页搜索结果，识别并提取 AI Agent 产品信息：\n\n{sources_text}"
 
-        print(f"  第 {batch_start//batch_size + 1} 批: {len(batch)} 个来源 → LLM 分析...")
+        info(f"第 {batch_start//batch_size + 1} 批: {len(batch)} 个来源 → LLM 分析...")
         result_text = _llm_chat([
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ])
 
         if not result_text:
-            print("  ⚠ LLM 无返回，跳过本批")
+            warning("LLM 无返回，跳过本批")
             continue
 
         # 提取 JSON
@@ -615,14 +618,14 @@ def discover() -> list[dict]:
                 existing_names.add(name_lower)
 
         except (_json.JSONDecodeError, Exception) as e:
-            print(f"  ⚠ JSON 解析失败: {e}")
-            print(f"  原始输出: {result_text[:200]}")
+            warning(f"JSON 解析失败: {e}")
+            debug(f"原始输出: {result_text[:200]}")
             continue
 
     if new_entries:
-        print(f"  🔍 LLM 发现 {len(new_entries)} 个新 agent")
+        success(f"LLM 发现 {len(new_entries)} 个新 agent")
         for e in new_entries:
-            print(f"    ✨ {e['name']} [{e['category']}]")
+            info(f"  ✨ {e['name']} [{e['category']}]")
 
     return new_entries
 
@@ -639,10 +642,10 @@ if __name__ == "__main__":
         from report_gen import generate_report
         generate_report()
     elif command == "update":
-        print("请通过 load_agents() 传入 agent 数据后调用 update_all()")
-        print("或使用 'python hunter.py run'")
+        info("请通过 load_agents() 传入 agent 数据后调用 update_all()")
+        info("或使用 'python hunter.py run'")
     elif command == "run":
-        print("请通过主入口传入 agent 列表")
+        info("请通过主入口传入 agent 列表")
     elif command == "add" and len(sys.argv) >= 3:
         filepath = sys.argv[2]
         with open(filepath) as f:
@@ -655,9 +658,9 @@ if __name__ == "__main__":
             action = r["action"]
             aid = r["agent_id"]
             if action == "error":
-                print(f"  ❌ {aid}: 验证失败 - {r['errors']}")
+                error(f"{aid}: 验证失败 - {r['errors']}")
             else:
-                print(f"  {'✅' if action != 'skipped' else '➖'} {aid}: {action}")
+                success(f"{aid}: {action}") if action != "skipped" else info(f"{aid}: {action}")
     else:
         print_usage()
         sys.exit(1)

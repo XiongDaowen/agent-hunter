@@ -8,6 +8,8 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+from logger import success, warning
+
 BASE_DIR = Path(__file__).parent
 CONFIG_FILE = BASE_DIR / "config.json"
 
@@ -379,7 +381,7 @@ def generate_report():
             agents.append(agent)
 
     if not agents:
-        print("⚠ agents/ 目录为空，没有数据可生成报告")
+        warning("agents/ 目录为空，没有数据可生成报告")
         return
 
     # 按分类分组
@@ -444,7 +446,7 @@ def generate_report():
     with open(REPORT_FILE, "w") as f:
         f.write(html)
 
-    print(f"✅ 报告已生成: {REPORT_FILE} ({total} 个产品)")
+    success(f"报告已生成: {REPORT_FILE} ({total} 个产品)")
 
 
 if __name__ == "__main__":

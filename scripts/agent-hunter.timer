@@ -1,0 +1,9 @@
+[Unit]
+Description=agent-hunter 每日运行定时器
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
