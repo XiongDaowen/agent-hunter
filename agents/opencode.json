@@ -1,0 +1,33 @@
+{
+  "id": "opencode",
+  "name": "OpenCode",
+  "category": "TUI",
+  "description": "开源AI编码代理，支持终端、桌面和IDE多界面形态，提供交互式TUI体验。",
+  "features": [
+    "多AI提供商支持",
+    "交互式TUI界面",
+    "会话管理",
+    "终端/桌面/IDE多形态",
+    "支持主流模型"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "多模型支持(OpenAI/Anthropic/Gemini等)",
+    "跨平台终端界面",
+    "开源免费",
+    "灵活的会话管理"
+  ],
+  "position": "开源多模型AI编码终端Agent",
+  "website": "https://opencode.ai",
+  "docs_url": "https://opencode.ai/docs/",
+  "github_repo": "https://github.com/opencode-ai/opencode",
+  "pricing": "免费",
+  "tags": [
+    "AI Agent",
+    "TUI",
+    "开源",
+    "多模型支持"
+  ],
+  "last_verified": "2026-05-17"
+}

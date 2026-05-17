@@ -1,0 +1,30 @@
+{
+  "id": "autogpt-platform",
+  "name": "AutoGPT Platform",
+  "category": "GUI",
+  "description": "AutoGPT推出的可视化构建平台，支持通过界面创建和部署自主AI智能体。",
+  "features": [
+    "可视化构建器",
+    "自主智能体",
+    "无需编码",
+    "部署管理"
+  ],
+  "open_source": "partial",
+  "license": "未知",
+  "strengths": [
+    "可视化操作",
+    "降低使用门槛",
+    "活跃社区"
+  ],
+  "position": "可视化AI智能体构建与部署平台",
+  "website": "",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "autonomous-agent",
+    "visual-builder",
+    "no-code"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -32,6 +32,7 @@ from hunter import (
     load_agent,
     load_all_agents,
     discover,
+    refresh_agents,
 )
 from report_gen import generate_report
 from logger import info, success, warning, error, step
@@ -94,10 +95,17 @@ def run_list():
     info(f"\n共 {len(ids)} 个 agent")
 
 
+def run_refresh(batch_size: int = 5, max_batches: int = 3):
+    """刷新已有 agent 的信息"""
+    stats = refresh_agents(batch_size=batch_size, max_batches=max_batches)
+    return stats
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        # 默认: 搜索发现 → 更新 → 报告
+        # 默认: 搜索发现 → 刷新 → 更新 → 报告
         run_discover()
+        run_refresh(batch_size=5, max_batches=2)
         run_update()
         generate_report()
     else:
@@ -130,6 +138,12 @@ if __name__ == "__main__":
                 info(f"{r['action']}: {r['agent_id']}")
         elif command == "list":
             run_list()
+        elif command == "refresh":
+            batch = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+            batches = int(sys.argv[3]) if len(sys.argv) > 3 else 3
+            run_refresh(batch_size=batch, max_batches=batches)
+            print()
+            generate_report()
         else:
             error(f"未知命令: {command}")
-            info("支持: update, discover, report, status, add, list, force (空=全部)")
+            info("支持: update, discover, report, status, add, list, refresh, force (空=全部)")

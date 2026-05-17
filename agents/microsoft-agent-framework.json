@@ -1,0 +1,33 @@
+{
+  "id": "microsoft-agent-framework",
+  "name": "Microsoft Agent Framework",
+  "category": "SDK",
+  "description": "微软开源的智能体SDK和运行时，统一Semantic Kernel与AutoGen能力，支持构建企业级多智能体系统。",
+  "features": [
+    "企业级基础",
+    "多智能体编排",
+    "Semantic Kernel集成",
+    "AutoGen集成",
+    "生产就绪"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "微软企业级支持",
+    "统一两大框架优势",
+    "可扩展架构"
+  ],
+  "position": "企业级多智能体系统构建框架",
+  "website": "https://devblogs.microsoft.com/foundry/introducing-microsoft-agent-framework-the-open-source-engine-for-agentic-ai-apps/",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "免费",
+  "tags": [
+    "multi-agent",
+    "enterprise",
+    "microsoft",
+    "semantic-kernel",
+    "autogen"
+  ],
+  "last_verified": "2026-05-17"
+}

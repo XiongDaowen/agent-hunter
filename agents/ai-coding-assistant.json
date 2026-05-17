@@ -6,7 +6,10 @@
   "features": [
     "代码生成",
     "代码补全",
-    "对话"
+    "对话",
+    "Smart Project-Wide Search",
+    "Enhanced Codebase Mode",
+    "Claude Agent"
   ],
   "open_source": "no",
   "license": "专有",
@@ -15,14 +18,15 @@
     "轻量级"
   ],
   "position": "JetBrains 插件市场的 AI 助手",
-  "website": "https://plugins.jetbrains.com/plugin/20724-ai-coding-assistant",
+  "website": "https://plugins.jetbrains.com/plugin/22282-jetbrains-ai-assistant",
   "docs_url": "",
   "github_repo": "",
   "pricing": "免费",
   "tags": [
     "Plugin",
     "JetBrains",
-    "Marketplace"
+    "Marketplace",
+    "AI Assistant"
   ],
   "last_verified": "2026-05-17"
 }

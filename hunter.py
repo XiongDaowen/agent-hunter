@@ -629,6 +629,183 @@ def discover() -> list[dict]:
 
     return new_entries
 
+
+# ── 刷新已有 agent ────────────────────────────────────────────────────
+
+def _build_refresh_query(agent: dict) -> str:
+    """为已有 agent 构建刷新搜索查询"""
+    name = agent.get("name", "")
+    category = agent.get("category", "")
+    website = agent.get("website", "")
+
+    # 优先用官网域名搜索
+    domain = ""
+    if website:
+        try:
+            from urllib.parse import urlparse
+            domain = urlparse(website).netloc.replace("www.", "")
+        except Exception:
+            pass
+
+    if domain:
+        return f"{name} AI tool update 2025 2026 site:{domain}"
+    return f"{name} AI {category} update changelog 2025 2026"
+
+
+def _refresh_single_agent(agent: dict, sources: list[dict]) -> dict | None:
+    """用搜索结果刷新单个 agent 的信息，返回更新后的数据或 None"""
+    import json as _json
+
+    if not sources:
+        return None
+
+    # 构造来源文本
+    sources_text = ""
+    for i, s in enumerate(sources[:5], 1):  # 最多5个来源
+        sources_text += f"[{i}] {s['title']}\n    URL: {s['url']}\n    内容: {s.get('content', '')[:400]}\n\n"
+
+    old_data = json.dumps(agent, indent=2, ensure_ascii=False)
+
+    system_prompt = """你是一个 AI Agent 产品信息更新助手。你有某个产品的旧信息，以及最新的搜索结果。
+请对比新旧信息，只更新有变化的字段。输出完整的 JSON 对象（不是数组）。
+
+规则：
+1. 如果信息没有变化，保持原值
+2. 如果找到新信息（价格变动、新功能、新官网等），更新对应字段
+3. 不确定的字段保持原值
+4. 只输出严格有效的 JSON 对象，不要其他文字"""
+
+    user_prompt = f"""旧信息：
+{old_data}
+
+最新搜索结果：
+{sources_text}
+
+请输出更新后的完整 JSON 对象。"""
+
+    result_text = _llm_chat([
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ], temperature=0.05, max_tokens=2048)
+
+    if not result_text:
+        return None
+
+    try:
+        # 提取 JSON
+        cleaned = result_text.strip()
+        if "```json" in cleaned:
+            cleaned = cleaned.split("```json")[1]
+            if "```" in cleaned:
+                cleaned = cleaned.split("```")[0]
+        elif "```" in cleaned:
+            cleaned = cleaned.split("```")[1]
+            if "```" in cleaned:
+                cleaned = cleaned.split("```")[0]
+        cleaned = cleaned.strip()
+
+        parsed = _json.loads(cleaned)
+        if isinstance(parsed, list):
+            parsed = parsed[0] if parsed else None
+
+        if parsed:
+            # 保留原 id 和 last_verified
+            parsed["id"] = agent["id"]
+            parsed["last_verified"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            return parsed
+        return None
+    except (_json.JSONDecodeError, Exception) as e:
+        warning(f"刷新 {agent.get('name', '?')} 时 JSON 解析失败: {e}")
+        debug(f"原始输出: {result_text[:200]}")
+        return None
+
+
+def refresh_agents(batch_size: int = 5, max_batches: int = 3) -> dict:
+    """
+    刷新已有 agent 的信息。
+    每次只处理 batch_size 个 agent，避免 API 调用过多。
+    返回统计: {"total": int, "refreshed": int, "errors": int, "skipped": int}
+    """
+    import json as _json
+
+    agents = load_all_agents()
+    if not agents:
+        warning("agents/ 目录为空")
+        return {"total": 0, "refreshed": 0, "errors": 0, "skipped": 0}
+
+    # 按 last_verified 排序，优先刷新最久未更新的
+    agents.sort(key=lambda a: a.get("last_verified", "1970-01-01"))
+
+    # 只处理前 batch_size * max_batches 个
+    to_refresh = agents[:batch_size * max_batches]
+    total = len(to_refresh)
+
+    stats = {"total": total, "refreshed": 0, "errors": 0, "skipped": 0}
+
+    step(f"刷新 {total} 个 agent 的信息（每批 {batch_size} 个）")
+
+    for batch_idx in range(0, total, batch_size):
+        if batch_idx // batch_size >= max_batches:
+            break
+
+        batch = to_refresh[batch_idx:batch_idx + batch_size]
+        info(f"第 {batch_idx//batch_size + 1} 批: {len(batch)} 个 agent")
+
+        for agent in batch:
+            aid = agent.get("id", "?")
+            name = agent.get("name", "?")
+
+            # 构建搜索查询
+            query = _build_refresh_query(agent)
+            sub_step(f"[{aid}] {name}")
+            debug(f"  搜索: {query}")
+
+            # 搜索（360 + DuckDuckGo）
+            sources = []
+            if CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", True):
+                sources.extend(_search_360(query, limit=3))
+            if CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", True):
+                sources.extend(_search_duckduckgo(query, limit=3))
+
+            if not sources:
+                warning(f"  [{aid}] 无搜索结果，跳过")
+                stats["skipped"] += 1
+                continue
+
+            # 刷新信息
+            updated = _refresh_single_agent(agent, sources)
+            if updated:
+                # 对比是否有实际变化
+                old_json = json.dumps(agent, sort_keys=True, ensure_ascii=False)
+                new_json = json.dumps(updated, sort_keys=True, ensure_ascii=False)
+                if old_json != new_json:
+                    # 有变化，保存
+                    result = update_agent(aid, updated, force=True)
+                    if result["action"] in ("created", "updated"):
+                        success(f"  [{aid}] 已更新")
+                        stats["refreshed"] += 1
+                    else:
+                        stats["skipped"] += 1
+                else:
+                    # 无变化，只更新 last_verified
+                    agent["last_verified"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                    save_agent(aid, agent)
+                    meta = load_meta()
+                    meta[aid] = {
+                        "hash": file_hash(json.dumps(agent, indent=2, ensure_ascii=False) + "\n"),
+                        "last_updated": int(time.time()),
+                        "last_verified": agent["last_verified"],
+                    }
+                    save_meta(meta)
+                    info(f"  [{aid}] 无变化")
+                    stats["skipped"] += 1
+            else:
+                warning(f"  [{aid}] 刷新失败")
+                stats["errors"] += 1
+
+    success(f"刷新完成: 总计 {stats['total']} | 更新 {stats['refreshed']} | 跳过 {stats['skipped']} | 错误 {stats['errors']}")
+    return stats
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print_usage()
