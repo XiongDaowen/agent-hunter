@@ -18,10 +18,14 @@
     "工作流编排"
   ],
   "position": "轻量级 AI Agent 运行时框架",
-  "website": "https://github.com/microsoft/deepagent",
-  "docs_url": "",
-  "github_repo": "https://github.com/microsoft/deepagent",
+  "website": "https://github.com/bytedance/deer-flow",
+  "docs_url": "https://github.com/bytedance/deer-flow/blob/main/docs",
+  "github_repo": "https://github.com/bytedance/deer-flow",
   "pricing": "免费",
-  "tags": ["Runtime", "Agent", "Workflow"],
+  "tags": [
+    "Runtime",
+    "Agent",
+    "Workflow"
+  ],
   "last_verified": "2026-05-17"
 }
