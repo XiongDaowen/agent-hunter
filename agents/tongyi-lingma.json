@@ -1,0 +1,32 @@
+{
+  "id": "tongyi-lingma",
+  "name": "Tongyi Lingma（通义灵码）",
+  "category": "IDE",
+  "description": "阿里巴巴推出的 AI 编程助手，深度集成通义千问模型能力。",
+  "features": [
+    "通义千问模型驱动的代码补全",
+    "内联对话与代码生成",
+    "代码审查与优化建议",
+    "单元测试自动生成",
+    "中文文档生成"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "阿里云生态",
+    "中文能力",
+    "企业级支持"
+  ],
+  "position": "阿里巴巴通义千问系列的 AI 编程助手",
+  "website": "https://tongyi.aliyun.com/lingma",
+  "docs_url": "https://help.aliyun.com/lingma",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "IDE",
+    "Plugin",
+    "Alibaba",
+    "Code Assistant"
+  ],
+  "last_verified": "2026-05-17"
+}

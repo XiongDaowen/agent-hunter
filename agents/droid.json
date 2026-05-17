@@ -1,0 +1,27 @@
+{
+  "id": "droid",
+  "name": "Droid",
+  "category": "CLI",
+  "description": "Factory 推出的 AI 编程 CLI 工具，专注于解决本地开发环境问题。",
+  "features": [
+    "终端命令执行",
+    "AI 编程辅助",
+    "本地开发环境适配"
+  ],
+  "open_source": "unknown",
+  "license": "未知",
+  "strengths": [
+    "本地开发场景",
+    "终端集成"
+  ],
+  "position": "面向开发者的 AI 编程 CLI",
+  "website": "https://factory.ai",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "未知",
+  "tags": [
+    "CLI",
+    "AI Coding"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "firecrawl",
+  "name": "Firecrawl",
+  "category": "SDK",
+  "description": "专为 AI 代理和 LLM 设计的网页抓取 API 和 SDK，提供结构化网页数据提取，支持爬取、搜索和监控。",
+  "features": [
+    "结构化网页数据提取",
+    "爬取与网站地图生成",
+    "网页搜索能力",
+    "LLM 友好的 Markdown 输出",
+    "网页变更监控"
+  ],
+  "open_source": "yes",
+  "license": "AGPL-3.0 + 商业许可",
+  "strengths": [
+    "LLM 优化输出",
+    "托管 API",
+    "自托管可选"
+  ],
+  "position": "AI 代理获取网页数据的标准基础设施",
+  "website": "https://firecrawl.dev",
+  "docs_url": "https://docs.firecrawl.dev",
+  "github_repo": "https://github.com/nicklausw/firecrawl",
+  "pricing": "免费额度 + 付费",
+  "tags": [
+    "SDK",
+    "Web Scraping",
+    "API",
+    "Data Extraction"
+  ],
+  "last_verified": "2026-05-17"
+}

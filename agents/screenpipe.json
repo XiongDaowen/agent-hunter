@@ -1,0 +1,31 @@
+{
+  "id": "screenpipe",
+  "name": "Screenpipe",
+  "category": "SDK",
+  "description": "AI 驱动的屏幕和音频录制/索引工具，为 AI 代理提供本地上下文数据，支持实时屏幕捕获和检索。",
+  "features": [
+    "屏幕内容实时捕获",
+    "音频录制与转录",
+    "全文检索",
+    "OCR 识别",
+    "本地优先设计"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "本地数据索引",
+    "屏幕级上下文",
+    "隐私友好"
+  ],
+  "position": "AI 代理的本地上下文数据基础设施",
+  "website": "https://screenpi.pe",
+  "docs_url": "https://docs.screenpi.pe",
+  "github_repo": "https://github.com/mediar-ai/screenpipe",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "Screen Capture",
+    "Local Data"
+  ],
+  "last_verified": "2026-05-17"
+}

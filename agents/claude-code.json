@@ -1,0 +1,31 @@
+{
+  "id": "claude-code",
+  "name": "Claude Code",
+  "category": "CLI",
+  "description": "Anthropic 推出的 AI 编程助手，作为 CLI 工具集成到开发工作流中，提供代码理解、编辑和问题解答能力。",
+  "features": [
+    "深度代码理解",
+    "内联编辑与建议",
+    "项目级上下文感知",
+    "终端集成",
+    "Git 工作流集成"
+  ],
+  "open_source": "partial",
+  "license": "专有（部分开源组件）",
+  "strengths": [
+    "Anthropic 原生",
+    "代码理解深度",
+    "Claude 模型优势"
+  ],
+  "position": "Anthropic 的旗舰 AI 编程助手 CLI 工具",
+  "website": "https://docs.anthropic.com/en/docs/claude-code",
+  "docs_url": "https://docs.anthropic.com/en/docs/claude-code",
+  "github_repo": "",
+  "pricing": "付费（按 token 计费）",
+  "tags": [
+    "CLI",
+    "Code Assistant",
+    "Anthropic"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "swe-agent",
+  "name": "SWE-agent",
+  "category": "CLI",
+  "description": "Princeton 的 AI SWE 代理，专注 GitHub Issue 修复。",
+  "features": [
+    "自动修复 GitHub Issue",
+    "SWE-bench 评测领先",
+    "文件编辑与 Shell 执行",
+    "结构化 Agent 流程",
+    "可复现的实验框架"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "SWE-bench 表现优异",
+    "学术背景",
+    "Issue 修复专注"
+  ],
+  "position": "学术界 AI SWE 代理的代表",
+  "website": "https://swe-agent.com",
+  "docs_url": "https://princeton-nlp.github.io/SWE-agent",
+  "github_repo": "https://github.com/princeton-nlp/SWE-agent",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "SWE",
+    "Academic",
+    "GitHub"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "devin",
+  "name": "Devin",
+  "category": "GUI",
+  "description": "Cognition Labs 的 AI 软件工程师。",
+  "features": [
+    "自主 IDE 环境",
+    "内置浏览器",
+    "Shell 执行",
+    "GitHub Issue 自动处理",
+    "项目规划与执行报告"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "首个 AI 工程师产品",
+    "完整工作流",
+    "自动化程度高"
+  ],
+  "position": "AI 软件工程师品类的开创产品",
+  "website": "https://devin.ai",
+  "docs_url": "https://docs.devin.ai",
+  "github_repo": "",
+  "pricing": "付费",
+  "tags": [
+    "GUI",
+    "SWE Agent",
+    "Autonomous"
+  ],
+  "last_verified": "2026-05-17"
+}

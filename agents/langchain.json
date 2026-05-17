@@ -1,0 +1,32 @@
+{
+  "id": "langchain",
+  "name": "LangChain",
+  "category": "SDK",
+  "description": "最流行的 LLM 应用开发框架，提供 Agent、Chain、Tool 等抽象，支持 Python 和 TypeScript。",
+  "features": [
+    "Agent 框架",
+    "Chain/Graph 构建",
+    "工具集成生态",
+    "多模型支持",
+    "LangSmith 可观测性"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "生态最丰富",
+    "社区最大",
+    "企业支持"
+  ],
+  "position": "LLM 应用开发的事实标准框架",
+  "website": "https://langchain.com",
+  "docs_url": "https://docs.langchain.com",
+  "github_repo": "https://github.com/langchain-ai/langchain",
+  "pricing": "免费+付费 (LangSmith)",
+  "tags": [
+    "SDK",
+    "Framework",
+    "Agent",
+    "LLM"
+  ],
+  "last_verified": "2026-05-17"
+}

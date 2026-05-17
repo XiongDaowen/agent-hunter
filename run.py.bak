@@ -1,0 +1,66 @@
+def run_update(force: bool = False):
+    """执行更新"""
+    print(f"{'强制' if force else '增量'}更新 {len(SEED_AGENTS)} 个 agent 条目...")
+    results = update_all(SEED_AGENTS, force=force)
+    created = sum(1 for r in results if r["action"] == "created")
+    updated = sum(1 for r in results if r["action"] == "updated")
+    skipped = sum(1 for r in results if r["action"] == "skipped")
+    errors = [r for r in results if r["action"] == "error"]
+
+    print(f"  ✅ 新增: {created}")
+    print(f"  🔄 更新: {updated}")
+    print(f"  ➖ 跳过: {skipped}")
+    if errors:
+        for e in errors:
+            print(f"  ❌ {e['agent_id']}: {e['errors']}")
+
+
+def run_list():
+    """列出所有 agent"""
+    ids = list_agent_ids()
+    meta = load_meta()
+    for aid in ids:
+        agent = load_agent(aid)
+        if agent:
+            entry = meta.get(aid, {})
+            status = "缓存" if entry else "未缓存"
+            print(f"  {aid:<25} [{agent.get('category', '?'):<8}] {agent['name']:<20} {status}")
+    print(f"\n  共 {len(ids)} 个 agent")
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        # 默认: 更新 + 报告
+        run_update()
+        generate_report()
+    else:
+        command = sys.argv[1]
+        if command == "update":
+            force = "--force" in sys.argv or "-f" in sys.argv
+            run_update(force=force)
+        elif command == "report":
+            generate_report()
+        elif command == "status":
+            from hunter import show_status
+            show_status()
+        elif command == "add":
+            if len(sys.argv) < 3:
+                print("用法: python run.py add <file>")
+                sys.exit(1)
+            from hunter import update_all
+            with open(sys.argv[2]) as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                results = update_all(data)
+            else:
+                results = update_all([data])
+            for r in results:
+                print(f"  {r['action']}: {r['agent_id']}")
+        elif command == "list":
+            run_list()
+        elif command == "force":
+            run_update(force=True)
+            generate_report()
+        else:
+            print(f"未知命令: {command}")
+            print("支持: update, report, status, add, list, force (空=update+report)")

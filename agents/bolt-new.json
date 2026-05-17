@@ -1,0 +1,32 @@
+{
+  "id": "bolt-new",
+  "name": "Bolt.new",
+  "category": "GUI",
+  "description": "StackBlitz 浏览器内 AI 全栈开发工具。",
+  "features": [
+    "浏览器内全栈开发",
+    "自然语言生成应用",
+    "实时预览",
+    "一键部署",
+    "支持 npm 生态"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "完整浏览器体验",
+    "全栈生成",
+    "npm 生态兼容"
+  ],
+  "position": "浏览器内 AI 全栈开发的开创者",
+  "website": "https://bolt.new",
+  "docs_url": "https://stackblitz.com/docs",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "GUI",
+    "Web IDE",
+    "Full Stack",
+    "Rapid Prototyping"
+  ],
+  "last_verified": "2026-05-17"
+}

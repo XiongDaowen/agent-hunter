@@ -1,0 +1,31 @@
+{
+  "id": "craw-ai",
+  "name": "Crawl4AI",
+  "category": "SDK",
+  "description": "Crawl4AI 是一个专为 AI 代理设计的开源网页爬取和数据提取工具，提供结构化的数据输出，方便 LLM 消费。",
+  "features": [
+    "LLM 友好的结构化输出",
+    "支持 JavaScript 渲染",
+    "批量爬取与调度",
+    "数据提取管道",
+    "缓存与去重机制"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "专为 AI 代理设计",
+    "结构化输出",
+    "性能优异"
+  ],
+  "position": "AI 代理领域的首选网页爬取和数据处理 SDK",
+  "website": "https://crawl4ai.com",
+  "docs_url": "https://docs.crawl4ai.com",
+  "github_repo": "https://github.com/crawl4ai/crawl4ai",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "Web Scraping",
+    "Data Extraction"
+  ],
+  "last_verified": "2026-05-17"
+}

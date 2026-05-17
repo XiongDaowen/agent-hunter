@@ -1,0 +1,32 @@
+{
+  "id": "windsurf",
+  "name": "Windsurf",
+  "category": "IDE",
+  "description": "Codeium 推出的 AI-first IDE，强调流式 AI 协作体验，提供 Cascade 代理模式和深度代码理解。",
+  "features": [
+    "Cascade 代理模式",
+    "流式 AI 交互",
+    "多文件编辑",
+    "深度代码上下文理解",
+    "Git 集成"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "流式协作体验",
+    "Cascade 模式",
+    "Codeium 生态"
+  ],
+  "position": "Codeium 打造的 AI-first IDE，走流式协作路线",
+  "website": "https://windsurf.com",
+  "docs_url": "https://docs.windsurf.com",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "IDE",
+    "Editor",
+    "Cascade",
+    "Flow"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,28 @@
+{
+  "id": "ai-coding-assistant",
+  "name": "AI Coding Assistant",
+  "category": "Plugin",
+  "description": "JetBrains 插件市场中的 AI 编码助手插件，提供代码补全与生成。",
+  "features": [
+    "代码生成",
+    "代码补全",
+    "对话"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "JetBrains 市场",
+    "轻量级"
+  ],
+  "position": "JetBrains 插件市场的 AI 助手",
+  "website": "https://plugins.jetbrains.com/plugin/20724-ai-coding-assistant",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "免费",
+  "tags": [
+    "Plugin",
+    "JetBrains",
+    "Marketplace"
+  ],
+  "last_verified": "2026-05-17"
+}

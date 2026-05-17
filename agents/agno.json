@@ -1,0 +1,31 @@
+{
+  "id": "agno",
+  "name": "Agno",
+  "category": "SDK",
+  "description": "轻量级多模态 AI 代理框架（原 Phidata）。",
+  "features": [
+    "结构化输出验证",
+    "多模态代理支持",
+    "知识库集成",
+    "工具调用系统",
+    "支持自定义 Agent 行为"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "结构化输出",
+    "多模态",
+    "轻量级"
+  ],
+  "position": "轻量灵活的多模态 AI 代理框架",
+  "website": "https://agno.com",
+  "docs_url": "https://docs.agno.com",
+  "github_repo": "https://github.com/agno-agi/agno",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "Multi-Modal",
+    "Lightweight"
+  ],
+  "last_verified": "2026-05-17"
+}

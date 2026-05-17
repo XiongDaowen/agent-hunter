@@ -1,0 +1,32 @@
+{
+  "id": "goose",
+  "name": "Goose",
+  "category": "CLI",
+  "description": "Block 公司（原 Square）推出的开源自托管 AI 代理 CLI，提供代码编辑、任务自动化和工具调用能力。",
+  "features": [
+    "自托管 AI 代理",
+    "代码编辑与文件操作",
+    "Shell 命令执行",
+    "插件系统",
+    "多模型后端支持"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "企业级品质",
+    "自托管",
+    "Block 团队支持"
+  ],
+  "position": "企业级自托管 AI 代理 CLI 工具",
+  "website": "https://block.github.io/goose",
+  "docs_url": "https://block.github.io/goose/docs",
+  "github_repo": "https://github.com/block/goose",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Self-Hosted",
+    "Enterprise",
+    "Agent"
+  ],
+  "last_verified": "2026-05-17"
+}

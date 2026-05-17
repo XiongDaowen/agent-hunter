@@ -1,0 +1,31 @@
+{
+  "id": "crewai",
+  "name": "CrewAI",
+  "category": "SDK",
+  "description": "专为多 AI 代理协作设计的框架，支持定义角色、任务和团队，实现代理间的自动协作。",
+  "features": [
+    "多代理协作系统",
+    "角色定义与管理",
+    "任务规划与委派",
+    "工具集成",
+    "流程控制"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "多代理协作",
+    "角色化设计",
+    "易用性强"
+  ],
+  "position": "多 AI 代理协作框架的代表",
+  "website": "https://crewai.com",
+  "docs_url": "https://docs.crewai.com",
+  "github_repo": "https://github.com/crewAIInc/crewAI",
+  "pricing": "免费+付费",
+  "tags": [
+    "SDK",
+    "Multi-Agent",
+    "Collaboration"
+  ],
+  "last_verified": "2026-05-17"
+}

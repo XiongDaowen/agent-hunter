@@ -1,0 +1,32 @@
+{
+  "id": "codegpt",
+  "name": "CodeGPT",
+  "category": "Plugin",
+  "description": "多 IDE AI 编程助手插件。",
+  "features": [
+    "多 IDE 支持",
+    "代码补全与对话",
+    "Agent 模式",
+    "自定义 LLM 接入",
+    "代码审查与解释"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "多模型接入",
+    "IDE 覆盖广",
+    "Agent 模式"
+  ],
+  "position": "跨 IDE 的多模型 AI 编程助手",
+  "website": "https://www.codegpt.com",
+  "docs_url": "https://docs.codegpt.com",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "Plugin",
+    "Multi-IDE",
+    "Multi-Model",
+    "Agent"
+  ],
+  "last_verified": "2026-05-17"
+}

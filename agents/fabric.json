@@ -1,0 +1,31 @@
+{
+  "id": "fabric",
+  "name": "Fabric",
+  "category": "CLI",
+  "description": "AI 驱动的开源 CLI 框架，通过模式（Patterns）系统将 AI 能力模块化，用于各类文本处理和分析任务。",
+  "features": [
+    "Patterns 模块化系统",
+    "多模型支持",
+    "YouTube 内容处理",
+    "文本摘要与分析",
+    "社区 Pattern 分享"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "模式化设计",
+    "社区驱动",
+    "实用工具集"
+  ],
+  "position": "AI CLI 工具中模式化设计的典范",
+  "website": "https://fabric.so",
+  "docs_url": "https://docs.fabric.so",
+  "github_repo": "https://github.com/danielmiessler/fabric",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Patterns",
+    "Text Processing"
+  ],
+  "last_verified": "2026-05-17"
+}

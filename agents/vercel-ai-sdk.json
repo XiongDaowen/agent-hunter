@@ -1,0 +1,33 @@
+{
+  "id": "vercel-ai-sdk",
+  "name": "Vercel AI SDK",
+  "category": "SDK",
+  "description": "Web 前端 AI 应用开发的 SDK。",
+  "features": [
+    "React/Next.js 深度集成",
+    "流式 UI 渲染",
+    "统一多模型 API",
+    "Tool/Function Calling",
+    "生成 UI（Gen UI）"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "Vercel 生态",
+    "流式体验",
+    "前端优先"
+  ],
+  "position": "Web 前端 AI 应用开发的标准 SDK",
+  "website": "https://sdk.vercel.ai",
+  "docs_url": "https://sdk.vercel.ai/docs",
+  "github_repo": "https://github.com/vercel/ai",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "Vercel",
+    "Web",
+    "Streaming",
+    "React"
+  ],
+  "last_verified": "2026-05-17"
+}

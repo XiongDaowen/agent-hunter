@@ -1,0 +1,32 @@
+{
+  "id": "flowise",
+  "name": "Flowise",
+  "category": "GUI",
+  "description": "开源低代码 LLM 应用构建工具。",
+  "features": [
+    "拖拽式工作流构建",
+    "多模型与向量数据库支持",
+    "Agent 和工具链定义",
+    "RAG 管道可视化",
+    "自托管部署"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "低代码易用",
+    "自托管",
+    "社区活跃"
+  ],
+  "position": "AI 工作流低代码搭建的标杆",
+  "website": "https://flowiseai.com",
+  "docs_url": "https://docs.flowiseai.com",
+  "github_repo": "https://github.com/FlowiseAI/Flowise",
+  "pricing": "免费+付费",
+  "tags": [
+    "GUI",
+    "Low-Code",
+    "Workflow",
+    "RAG"
+  ],
+  "last_verified": "2026-05-17"
+}

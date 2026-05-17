@@ -1,0 +1,31 @@
+{
+  "id": "open-interpreter",
+  "name": "Open Interpreter",
+  "category": "CLI",
+  "description": "允许 LLM 在本地运行代码的 CLI 工具，支持 Python、JavaScript、Shell 等多种语言执行。",
+  "features": [
+    "本地代码执行",
+    "多语言支持",
+    "交互式会话",
+    "文件操作",
+    "互联网访问"
+  ],
+  "open_source": "yes",
+  "license": "AGPL-3.0",
+  "strengths": [
+    "本地执行",
+    "多语言",
+    "灵活性强"
+  ],
+  "position": "先驱级的 AI 代码执行代理 CLI 工具",
+  "website": "https://openinterpreter.com",
+  "docs_url": "https://docs.openinterpreter.com",
+  "github_repo": "https://github.com/OpenInterpreter/open-interpreter",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Code Execution",
+    "Local"
+  ],
+  "last_verified": "2026-05-17"
+}

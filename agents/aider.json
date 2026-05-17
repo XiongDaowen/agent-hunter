@@ -1,0 +1,32 @@
+{
+  "id": "aider",
+  "name": "Aider",
+  "category": "CLI",
+  "description": "开源的 AI 结对编程 CLI 工具。",
+  "features": [
+    "Git 感知的增量编辑",
+    "多模型支持",
+    "自动创建提交",
+    "代码审查与重构",
+    "架构模式理解"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "Git 深度集成",
+    "增量编辑精准",
+    "社区活跃"
+  ],
+  "position": "最受欢迎的 AI 结对编程 CLI 之一",
+  "website": "https://aider.chat",
+  "docs_url": "https://aider.chat/docs",
+  "github_repo": "https://github.com/Aider-AI/aider",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Pair Programming",
+    "Git",
+    "Code Generation"
+  ],
+  "last_verified": "2026-05-17"
+}

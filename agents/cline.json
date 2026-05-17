@@ -1,0 +1,31 @@
+{
+  "id": "cline",
+  "name": "Cline",
+  "category": "Plugin",
+  "description": "VS Code 上的 AI 代理插件，支持任务自动化和代码编辑，通过系统提示和工具调用完成复杂开发任务。",
+  "features": [
+    "VS Code 插件集成",
+    "自动化任务规划与执行",
+    "工具调用系统",
+    "终端命令执行",
+    "文件编辑与创建"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "VSCode 深度集成",
+    "任务自动化",
+    "活跃社区"
+  ],
+  "position": "VS Code 生态中最流行的 AI 代理插件之一",
+  "website": "https://cline.bot",
+  "docs_url": "https://docs.cline.bot",
+  "github_repo": "https://github.com/cline/cline",
+  "pricing": "免费",
+  "tags": [
+    "Plugin",
+    "VSCode",
+    "Task Automation"
+  ],
+  "last_verified": "2026-05-17"
+}

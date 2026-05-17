@@ -1,0 +1,31 @@
+{
+  "id": "openai-agents-sdk",
+  "name": "OpenAI Agents SDK",
+  "category": "SDK",
+  "description": "OpenAI 官方 AI 代理开发 SDK。",
+  "features": [
+    "Agent 循环与工具调用",
+    "Agent Handoff 委派",
+    "安全护栏（Guardrails）",
+    "内置可观测性追踪",
+    "与 OpenAI API 深度集成"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "OpenAI 官方",
+    "设计简洁",
+    "Handoff 优势"
+  ],
+  "position": "OpenAI 官方 AI 代理开发 SDK",
+  "website": "https://openai.com/index/openai-agents-sdk",
+  "docs_url": "https://platform.openai.com/docs/guides/agents",
+  "github_repo": "https://github.com/openai/openai-agents-python",
+  "pricing": "免费（按 API 用量计费）",
+  "tags": [
+    "SDK",
+    "OpenAI",
+    "Agent Framework"
+  ],
+  "last_verified": "2026-05-17"
+}

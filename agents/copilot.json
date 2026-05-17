@@ -1,0 +1,32 @@
+{
+  "id": "copilot",
+  "name": "GitHub Copilot",
+  "category": "Plugin",
+  "description": "GitHub 推出的 AI 编程助手，支持 VS Code、JetBrains、Neovim 等多种 IDE，提供代码补全、对话和代理功能。",
+  "features": [
+    "代码自动补全",
+    "Copilot Chat 对话模式",
+    "Copilot Agent 代理模式",
+    "多 IDE 支持",
+    "代码审查与建议"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "GitHub 生态",
+    "大规模用户基础",
+    "多 IDE 支持"
+  ],
+  "position": "全球用户最多的 AI 编程助手，行业标准",
+  "website": "https://github.com/features/copilot",
+  "docs_url": "https://docs.github.com/copilot",
+  "github_repo": "",
+  "pricing": "免费+付费 ($10-39/月)",
+  "tags": [
+    "Plugin",
+    "GitHub",
+    "Code Completion",
+    "Chat"
+  ],
+  "last_verified": "2026-05-17"
+}

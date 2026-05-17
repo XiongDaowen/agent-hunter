@@ -1,0 +1,29 @@
+{
+  "id": "jetbrains-ai-assistant",
+  "name": "JetBrains AI Assistant",
+  "category": "Plugin",
+  "description": "JetBrains 推出的 AI 编程助手，集成在 JetBrains IDE 中，提供代码补全、重构和解释。",
+  "features": [
+    "代码补全",
+    "代码重构",
+    "代码解释",
+    "AI 对话"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "JetBrains 原生",
+    "IDE 深度集成"
+  ],
+  "position": "JetBrains IDE 内置的 AI 编程助手",
+  "website": "https://www.jetbrains.com/ai/",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "付费",
+  "tags": [
+    "Plugin",
+    "JetBrains",
+    "IDE"
+  ],
+  "last_verified": "2026-05-17"
+}

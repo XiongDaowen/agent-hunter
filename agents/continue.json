@@ -1,0 +1,32 @@
+{
+  "id": "continue",
+  "name": "Continue",
+  "category": "Plugin",
+  "description": "开源的 AI 编程助手平台，支持 VS Code 和 JetBrains，可接入多种 LLM 后端，提供对话、代码补全和自定义 Agent。",
+  "features": [
+    "开源可自托管",
+    "多 LLM 后端支持",
+    "自定义 Agent 和规则",
+    "上下文提供者系统",
+    "VS Code + JetBrains 支持"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "完全开源",
+    "多模型接入",
+    "高度可定制"
+  ],
+  "position": "开源 AI 编程助手的首选，灵活性最高",
+  "website": "https://continue.dev",
+  "docs_url": "https://docs.continue.dev",
+  "github_repo": "https://github.com/continuedev/continue",
+  "pricing": "免费",
+  "tags": [
+    "Plugin",
+    "Open Source",
+    "Multi-LLM",
+    "VSCode"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "gpt-engineer",
+  "name": "GPT Engineer",
+  "category": "CLI",
+  "description": "AI 驱动 CLI 代码生成工具。",
+  "features": [
+    "对话式项目生成",
+    "文件结构自动规划",
+    "代码迭代优化",
+    "多语言支持",
+    "清晰的项目规范文件"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "对话式开发",
+    "完整项目生成",
+    "社区活跃"
+  ],
+  "position": "AI 项目生成 CLI 的先驱之一",
+  "website": "https://gptengineer.app",
+  "docs_url": "https://github.com/gpt-engineer-org/gpt-engineer",
+  "github_repo": "https://github.com/gpt-engineer-org/gpt-engineer",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Code Generation",
+    "Project Scaffold"
+  ],
+  "last_verified": "2026-05-17"
+}

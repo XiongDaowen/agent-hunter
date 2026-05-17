@@ -1,0 +1,32 @@
+{
+  "id": "autogen",
+  "name": "AutoGen",
+  "category": "SDK",
+  "description": "微软推出的多代理对话框架，支持灵活的代理拓扑和自动代码执行，强调代理间的对话式协作。",
+  "features": [
+    "多代理对话系统",
+    "自动代码执行",
+    "灵活的代理拓扑",
+    "人机协作模式",
+    "分布式代理支持"
+  ],
+  "open_source": "yes",
+  "license": "MIT (CC-BY-4.0 for docs)",
+  "strengths": [
+    "微软支持",
+    "对话式架构",
+    "代码执行"
+  ],
+  "position": "微软主导的多代理协作框架",
+  "website": "https://microsoft.github.io/autogen",
+  "docs_url": "https://microsoft.github.io/autogen/stable/",
+  "github_repo": "https://github.com/microsoft/autogen",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "Multi-Agent",
+    "Microsoft",
+    "Conversation"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "gemini-code-assist",
+  "name": "Google Gemini Code Assist",
+  "category": "GUI",
+  "description": "Google 推出的 AI 编程助手（原 Duet AI）。",
+  "features": [
+    "Gemini 模型驱动的代码补全",
+    "内联对话",
+    "代码审查与质量分析",
+    "Cloud Workstations 深度集成",
+    "企业级安全合规"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "Google Cloud 集成",
+    "企业级安全",
+    "Gemini 能力"
+  ],
+  "position": "Google Cloud 生态的 AI 编程助手",
+  "website": "https://cloud.google.com/code-assist",
+  "docs_url": "https://cloud.google.com/code-assist/docs",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "GUI",
+    "Plugin",
+    "Google Cloud",
+    "Gemini"
+  ],
+  "last_verified": "2026-05-17"
+}

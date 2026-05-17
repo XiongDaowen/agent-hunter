@@ -1,0 +1,31 @@
+{
+  "id": "lovable",
+  "name": "Lovable",
+  "category": "GUI",
+  "description": "AI 对话式 Web 应用生成器。",
+  "features": [
+    "自然语言生成完整应用",
+    "对话式迭代开发",
+    "Supabase 后端集成",
+    "可视化编辑器",
+    "一键部署"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "Supabase 原生集成",
+    "快速迭代",
+    "全栈生成"
+  ],
+  "position": "对话式 Web 应用生成器的代表",
+  "website": "https://lovable.dev",
+  "docs_url": "https://docs.lovable.dev",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "GUI",
+    "Web App Generator",
+    "Full Stack"
+  ],
+  "last_verified": "2026-05-17"
+}

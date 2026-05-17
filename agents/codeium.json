@@ -1,0 +1,31 @@
+{
+  "id": "codeium",
+  "name": "Codeium",
+  "category": "Plugin",
+  "description": "AI 编程助手平台，提供代码补全、对话和搜索功能，支持 70+ 语言和 40+ IDE。",
+  "features": [
+    "代码补全与生成",
+    "Codeium Chat",
+    "代码搜索",
+    "70+ 语言支持",
+    "40+ IDE 支持"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "IDE 支持最广",
+    "企业级",
+    "免费版慷慨"
+  ],
+  "position": "覆盖 IDE 最广的 AI 编程助手",
+  "website": "https://codeium.com",
+  "docs_url": "https://docs.codeium.com",
+  "github_repo": "",
+  "pricing": "免费+付费 (Free/Teams/Enterprise)",
+  "tags": [
+    "Plugin",
+    "Multi-IDE",
+    "Code Completion"
+  ],
+  "last_verified": "2026-05-17"
+}

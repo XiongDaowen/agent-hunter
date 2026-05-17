@@ -1,0 +1,31 @@
+{
+  "id": "augment",
+  "name": "Augment Code",
+  "category": "Plugin",
+  "description": "轻量级 AI 编程助手插件，支持多 IDE（VS Code、JetBrains），提供代码补全、对话和代码审查功能。",
+  "features": [
+    "多 IDE 支持",
+    "代码补全与建议",
+    "内联对话",
+    "代码审查",
+    "项目上下文理解"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "多 IDE 兼容",
+    "轻量级",
+    "代码审查能力"
+  ],
+  "position": "跨 IDE 的轻量 AI 编码助手",
+  "website": "https://augmentcode.com",
+  "docs_url": "https://docs.augmentcode.com",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "Plugin",
+    "Multi-IDE",
+    "Code Assistant"
+  ],
+  "last_verified": "2026-05-17"
+}

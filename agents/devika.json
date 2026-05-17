@@ -1,0 +1,31 @@
+{
+  "id": "devika",
+  "name": "Devika",
+  "category": "Other",
+  "description": "开源 AI 软件工程师代理。",
+  "features": [
+    "高级指令理解",
+    "自主研究与学习",
+    "代码编写与调试",
+    "浏览器信息检索",
+    "结构化的项目生成"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "开源轮子",
+    "Devina 类项目",
+    "研究能力"
+  ],
+  "position": "开源的 AI 软件工程师代理",
+  "website": "https://devika.ai",
+  "docs_url": "https://github.com/stitionai/devika",
+  "github_repo": "https://github.com/stitionai/devika",
+  "pricing": "免费",
+  "tags": [
+    "Other",
+    "SWE Agent",
+    "Open Source"
+  ],
+  "last_verified": "2026-05-17"
+}

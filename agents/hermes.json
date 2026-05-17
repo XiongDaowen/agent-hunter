@@ -1,0 +1,33 @@
+{
+  "id": "hermes",
+  "name": "Hermes Agent",
+  "category": "CLI",
+  "description": "Hermes 是一个功能丰富的 AI 代理 CLI 工具，支持多平台接入（Anthropic、Gemini、DeepSeek 等），提供网关、技能系统、知识记忆和 TUI 网关等高级功能。",
+  "features": [
+    "多模型/多平台适配器",
+    "网关系统支持 WhatsApp、Discord、Telegram",
+    "技能系统与插件",
+    "知识库与记忆管理",
+    "TUI 网关界面",
+    "会话压缩与上下文管理"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "多平台适配",
+    "网关架构",
+    "技能系统完善"
+  ],
+  "position": "功能全面的开源 AI 代理，从命令行到聊天平台全覆盖",
+  "website": "https://hermes-agent.io",
+  "docs_url": "https://docs.hermes-agent.io",
+  "github_repo": "https://github.com/hermes-agent/hermes",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Agent",
+    "Multi-Platform",
+    "Gateway"
+  ],
+  "last_verified": "2026-05-17"
+}

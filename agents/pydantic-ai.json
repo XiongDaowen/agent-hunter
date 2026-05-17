@@ -1,0 +1,32 @@
+{
+  "id": "pydantic-ai",
+  "name": "PydanticAI",
+  "category": "SDK",
+  "description": "Pydantic 团队推出的 AI 代理框架，利用 Pydantic 的类型系统提供类型安全的 LLM 交互和结构化输出。",
+  "features": [
+    "类型安全的 LLM 交互",
+    "结构化输出验证",
+    "依赖注入系统",
+    "流式响应支持",
+    "Pydantic 生态集成"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "类型安全",
+    "Pydantic 生态",
+    "结构化输出"
+  ],
+  "position": "类型安全优先的 AI 代理 SDK",
+  "website": "https://ai.pydantic.dev",
+  "docs_url": "https://ai.pydantic.dev",
+  "github_repo": "https://github.com/pydantic/pydantic-ai",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "Type-Safe",
+    "Pydantic",
+    "Structured Output"
+  ],
+  "last_verified": "2026-05-17"
+}

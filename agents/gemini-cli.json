@@ -1,0 +1,28 @@
+{
+  "id": "gemini-cli",
+  "name": "Gemini CLI",
+  "category": "CLI",
+  "description": "Google 推出的免费开源 AI 代理命令行工具，将 Gemini 大模型能力带入终端。",
+  "features": [
+    "终端代码生成",
+    "调试支持",
+    "多语言支持"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "Google 支持",
+    "开源免费"
+  ],
+  "position": "Google 的终端 AI 编码工具",
+  "website": "https://ai.google.dev/gemini-api/docs/code-execution",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Google",
+    "Gemini"
+  ],
+  "last_verified": "2026-05-17"
+}

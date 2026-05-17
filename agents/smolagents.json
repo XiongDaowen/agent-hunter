@@ -1,0 +1,32 @@
+{
+  "id": "smolagents",
+  "name": "Smolagents",
+  "category": "CLI",
+  "description": "Hugging Face 的极简 AI 代理框架。",
+  "features": [
+    "极简 API 设计",
+    "Hugging Face Hub 集成",
+    "代码代理（Code Agent）",
+    "多工具调用",
+    "轻量级部署"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "Hugging Face 生态",
+    "极简设计",
+    "教学友好"
+  ],
+  "position": "Hugging Face 的轻量 AI 代理框架",
+  "website": "https://huggingface.co/docs/smolagents",
+  "docs_url": "https://huggingface.co/docs/smolagents",
+  "github_repo": "https://github.com/huggingface/smolagents",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Framework",
+    "Hugging Face",
+    "Lightweight"
+  ],
+  "last_verified": "2026-05-17"
+}

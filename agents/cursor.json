@@ -1,0 +1,31 @@
+{
+  "id": "cursor",
+  "name": "Cursor",
+  "category": "IDE",
+  "description": "基于 VS Code 改造的 AI-first 代码编辑器，深度集成 AI 代理能力，提供内联对话、代码生成和智能重构。",
+  "features": [
+    "AI 驱动的代码编辑体验",
+    "内置对话式编程界面",
+    "多文件同时编辑",
+    "项目级代码理解",
+    "Agent 模式自动完成任务"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "VSCode 生态兼容",
+    "Agent 模式",
+    "Tab 补全质量高"
+  ],
+  "position": "AI 编程编辑器的行业标杆和引领者",
+  "website": "https://cursor.com",
+  "docs_url": "https://docs.cursor.com",
+  "github_repo": "",
+  "pricing": "免费+付费 (Pro $20/月)",
+  "tags": [
+    "IDE",
+    "Editor",
+    "AI-First"
+  ],
+  "last_verified": "2026-05-17"
+}

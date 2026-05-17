@@ -1,0 +1,32 @@
+{
+  "id": "zed-ai",
+  "name": "Zed AI",
+  "category": "IDE",
+  "description": "高性能编辑器 Zed 内置的 AI 功能，内联补全、对话和代理模式。",
+  "features": [
+    "高性能原生编辑器体验",
+    "AI 内联补全与对话",
+    "Agent 模式自动执行任务",
+    "多光标协作",
+    "终端集成"
+  ],
+  "open_source": "yes",
+  "license": "AGPL-3.0 + 商业许可",
+  "strengths": [
+    "极致性能",
+    "Rust 底层",
+    "原生 macOS 体验"
+  ],
+  "position": "高性能编辑器中的 AI 先锋",
+  "website": "https://zed.dev",
+  "docs_url": "https://zed.dev/docs",
+  "github_repo": "https://github.com/zed-industries/zed",
+  "pricing": "免费+付费",
+  "tags": [
+    "IDE",
+    "Editor",
+    "High Performance",
+    "Rust"
+  ],
+  "last_verified": "2026-05-17"
+}

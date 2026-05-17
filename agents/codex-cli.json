@@ -1,0 +1,31 @@
+{
+  "id": "codex-cli",
+  "name": "OpenAI Codex CLI",
+  "category": "CLI",
+  "description": "OpenAI 的命令行 AI 编码助手。",
+  "features": [
+    "自然语言生成代码",
+    "内联文件编辑",
+    "Shell 命令执行",
+    "多文件项目理解",
+    "Git 集成"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "OpenAI 模型",
+    "CLI 原生体验",
+    "开源"
+  ],
+  "position": "OpenAI 出品的 CLI 编码代理",
+  "website": "https://openai.com/codex",
+  "docs_url": "https://github.com/openai/codex",
+  "github_repo": "https://github.com/openai/codex",
+  "pricing": "付费（按 token 计费）",
+  "tags": [
+    "CLI",
+    "OpenAI",
+    "Code Generation"
+  ],
+  "last_verified": "2026-05-17"
+}

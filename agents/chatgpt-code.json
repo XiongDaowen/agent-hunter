@@ -1,0 +1,32 @@
+{
+  "id": "chatgpt-code",
+  "name": "ChatGPT Code / Canvas",
+  "category": "GUI",
+  "description": "OpenAI ChatGPT 内置的代码生成和编辑界面 Canvas。",
+  "features": [
+    "交互式代码编辑界面",
+    "多文件支持",
+    "内联代码审查与修改",
+    "Python 代码执行",
+    "版本回退"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "ChatGPT 用户覆盖广",
+    "零门槛",
+    "代码可视化"
+  ],
+  "position": "ChatGPT 内置的代码交互界面",
+  "website": "https://chatgpt.com",
+  "docs_url": "https://help.openai.com",
+  "github_repo": "",
+  "pricing": "免费+付费（Plus/Pro）",
+  "tags": [
+    "GUI",
+    "ChatGPT",
+    "Canvas",
+    "Code Editor"
+  ],
+  "last_verified": "2026-05-17"
+}

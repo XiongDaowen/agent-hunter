@@ -1,0 +1,32 @@
+{
+  "id": "tabby",
+  "name": "Tabby",
+  "category": "Plugin",
+  "description": "自托管的 AI 代码补全服务。",
+  "features": [
+    "自托管/本地部署",
+    "数据完全私有",
+    "多 IDE 兼容",
+    "模型可配置（支持自定义模型）",
+    "团队共享缓存"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "完全自托管",
+    "数据隐私优先",
+    "企业友好"
+  ],
+  "position": "自托管 AI 代码补全的首选方案",
+  "website": "https://tabby.tabbyml.com",
+  "docs_url": "https://tabby.tabbyml.com/docs",
+  "github_repo": "https://github.com/TabbyML/tabby",
+  "pricing": "免费",
+  "tags": [
+    "Plugin",
+    "Self-Hosted",
+    "Code Completion",
+    "Privacy"
+  ],
+  "last_verified": "2026-05-17"
+}

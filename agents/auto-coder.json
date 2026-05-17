@@ -1,0 +1,31 @@
+{
+  "id": "auto-coder",
+  "name": "AutoCoder",
+  "category": "CLI",
+  "description": "AutoCoder 是一款 AI 驱动的代码生成工具，通过命令行与 LLM 交互，实现自动化代码编写、重构和项目管理。",
+  "features": [
+    "基于项目上下文理解的代码生成",
+    "自动化代码重构",
+    "多文件编辑能力",
+    "版本控制集成",
+    "支持多种编程语言"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "代码理解精准",
+    "多文件协调",
+    "增量开发"
+  ],
+  "position": "实用的 AI 编码助手，专注于 CLI 场景下的代码自动化",
+  "website": "https://www.shenyanshe.com",
+  "docs_url": "https://github.com/allwefantasy/auto-coder",
+  "github_repo": "https://github.com/allwefantasy/auto-coder",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Code Generation",
+    "Development"
+  ],
+  "last_verified": "2026-05-17"
+}

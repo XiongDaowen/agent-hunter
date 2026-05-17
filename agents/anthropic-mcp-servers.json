@@ -1,0 +1,32 @@
+{
+  "id": "anthropic-mcp-servers",
+  "name": "Anthropic MCP Servers",
+  "category": "SDK",
+  "description": "Anthropic 官方 MCP 服务器集合。",
+  "features": [
+    "官方维护的 MCP 服务器集合",
+    "文件系统存取",
+    "Git/GitHub 操作",
+    "Slack 消息接口",
+    "参考实现与最佳实践"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "官方维护",
+    "参考实现",
+    "常用工具覆盖"
+  ],
+  "position": "MCP 协议的标准参考实现",
+  "website": "https://github.com/modelcontextprotocol",
+  "docs_url": "https://modelcontextprotocol.io/docs",
+  "github_repo": "https://github.com/modelcontextprotocol/servers",
+  "pricing": "免费",
+  "tags": [
+    "SDK",
+    "MCP",
+    "Tool Servers",
+    "Anthropic"
+  ],
+  "last_verified": "2026-05-17"
+}

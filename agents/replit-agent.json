@@ -1,0 +1,31 @@
+{
+  "id": "replit-agent",
+  "name": "Replit Agent",
+  "category": "IDE",
+  "description": "Replit 在浏览器 IDE 中的 AI 代理，自然语言生成完整应用。",
+  "features": [
+    "自然语言生成完整应用",
+    "云端开发环境",
+    "一键部署",
+    "实时预览",
+    "团队协作"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "零配置起步",
+    "云端开发",
+    "快速部署"
+  ],
+  "position": "浏览器 IDE 的 AI 代理先行者",
+  "website": "https://replit.com",
+  "docs_url": "https://docs.replit.com",
+  "github_repo": "",
+  "pricing": "免费+付费（Hacker/Pro）",
+  "tags": [
+    "IDE",
+    "Cloud",
+    "Rapid Prototyping"
+  ],
+  "last_verified": "2026-05-17"
+}

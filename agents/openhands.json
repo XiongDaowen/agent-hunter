@@ -1,0 +1,32 @@
+{
+  "id": "openhands",
+  "name": "OpenHands",
+  "category": "CLI",
+  "description": "开源的 AI 软件开发代理平台（原 OpenDevin）。",
+  "features": [
+    "全栈软件开发自动化",
+    "浏览器 GUI + CLI 双模式",
+    "沙盒安全执行环境",
+    "多模型后端支持",
+    "插件与扩展系统"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "社区活跃",
+    "全栈能力",
+    "沙盒安全"
+  ],
+  "position": "开源 AI 软件开发代理的标杆",
+  "website": "https://www.all-hands.dev",
+  "docs_url": "https://docs.all-hands.dev",
+  "github_repo": "https://github.com/All-Hands-AI/OpenHands",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "GUI",
+    "SWE Agent",
+    "Open Source"
+  ],
+  "last_verified": "2026-05-17"
+}

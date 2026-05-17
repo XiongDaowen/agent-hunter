@@ -1,0 +1,31 @@
+{
+  "id": "manus",
+  "name": "Manus",
+  "category": "Other",
+  "description": "通用 AI 代理平台，自主完成复杂任务。",
+  "features": [
+    "自主复杂任务执行",
+    "多工具调用（浏览器、代码、文件）",
+    "云端沙盒环境",
+    "异步任务处理",
+    "结果交付与汇报"
+  ],
+  "open_source": "partial",
+  "license": "部分开源",
+  "strengths": [
+    "任务复杂度高",
+    "自主性强",
+    "工具丰富"
+  ],
+  "position": "2025 年最受关注的通用 AI 代理产品",
+  "website": "https://manus.im",
+  "docs_url": "https://docs.manus.im",
+  "github_repo": "",
+  "pricing": "付费",
+  "tags": [
+    "Other",
+    "General Agent",
+    "Autonomous"
+  ],
+  "last_verified": "2026-05-17"
+}

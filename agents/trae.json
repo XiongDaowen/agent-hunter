@@ -1,0 +1,31 @@
+{
+  "id": "trae",
+  "name": "Trae",
+  "category": "IDE",
+  "description": "字节跳动推出的 AI-first IDE，基于 VS Code 改造，深度集成 AI 代理能力，支持 Builder 模式。",
+  "features": [
+    "Builder 模式：一句话构建完整项目",
+    "AI 驱动的代码编辑与对话",
+    "多文件智能编辑",
+    "集成终端与调试",
+    "支持多种编程语言"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "字节生态",
+    "Builder 模式",
+    "中文支持好"
+  ],
+  "position": "字节跳动打造的 AI-first IDE",
+  "website": "https://www.trae.com",
+  "docs_url": "https://docs.trae.com",
+  "github_repo": "",
+  "pricing": "免费",
+  "tags": [
+    "IDE",
+    "ByteDance",
+    "Builder"
+  ],
+  "last_verified": "2026-05-17"
+}

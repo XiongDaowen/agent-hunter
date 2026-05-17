@@ -1,0 +1,31 @@
+{
+  "id": "supermaven",
+  "name": "SuperMaven",
+  "category": "Plugin",
+  "description": "极速 AI 代码补全插件。",
+  "features": [
+    "毫秒级代码补全",
+    "超长上下文窗口",
+    "多 IDE 支持",
+    "代码理解精准",
+    "多语言支持"
+  ],
+  "open_source": "no",
+  "license": "专有",
+  "strengths": [
+    "超低延迟",
+    "大上下文",
+    "补全质量高"
+  ],
+  "position": "以极致速度著称的 AI 代码补全引擎",
+  "website": "https://supermaven.com",
+  "docs_url": "https://docs.supermaven.com",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "Plugin",
+    "Code Completion",
+    "Low-Latency"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "metagpt",
+  "name": "MetaGPT",
+  "category": "CLI",
+  "description": "多代理元编程框架，模拟软件公司角色。",
+  "features": [
+    "多角色软件公司模拟",
+    "需求文档自动生成",
+    "代码结构化产出",
+    "项目里程碑追踪",
+    "支持多语言项目"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "多角色协作",
+    "结构化产出",
+    "软件开发流程模拟"
+  ],
+  "position": "多代理元编程框架的标杆",
+  "website": "https://deepwisdom.ai",
+  "docs_url": "https://docs.deepwisdom.ai",
+  "github_repo": "https://github.com/geekan/MetaGPT",
+  "pricing": "免费",
+  "tags": [
+    "CLI",
+    "Multi-Agent",
+    "Meta-Programming"
+  ],
+  "last_verified": "2026-05-17"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "openclaw",
+  "name": "OpenClaw",
+  "category": "TUI",
+  "description": "OpenClaw 是一个开源的 AI 代理 TUI 框架，提供灵活的代理管理与交互界面，支持多模型接入和自定义工具链。",
+  "features": [
+    "基于 TUI 的代理交互界面",
+    "多模型接入（DeepSeek、OpenAI、Anthropic 等）",
+    "灵活的插件系统和技能管理",
+    "会话持久化与状态管理",
+    "代理可视化和调试工具"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "轻量级 TUI",
+    "插件生态丰富",
+    "多模型支持"
+  ],
+  "position": "新兴的 AI 代理 TUI 框架，面向开发者友好的终端交互体验",
+  "website": "https://openclaw.ai",
+  "docs_url": "https://docs.openclaw.ai",
+  "github_repo": "https://github.com/openclaw/openclaw",
+  "pricing": "免费",
+  "tags": [
+    "TUI",
+    "Agent Framework",
+    "Multi-Model"
+  ],
+  "last_verified": "2026-05-17"
+}

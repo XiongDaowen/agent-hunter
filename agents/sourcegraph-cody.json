@@ -1,0 +1,32 @@
+{
+  "id": "sourcegraph-cody",
+  "name": "Sourcegraph Cody",
+  "category": "Plugin",
+  "description": "以代码库理解见长的 AI 编程助手。",
+  "features": [
+    "代码库级上下文理解",
+    "Sourcegraph 代码搜索集成",
+    "自动代码解释与文档",
+    "单元测试生成",
+    "自定义命令"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "代码库理解",
+    "Sourcegraph 集成",
+    "企业搜索"
+  ],
+  "position": "以代码库搜索和理解见长的 AI 编程助手",
+  "website": "https://sourcegraph.com/cody",
+  "docs_url": "https://docs.sourcegraph.com/cody",
+  "github_repo": "https://github.com/sourcegraph/cody",
+  "pricing": "免费+付费",
+  "tags": [
+    "Plugin",
+    "Code Search",
+    "Enterprise",
+    "Multi-IDE"
+  ],
+  "last_verified": "2026-05-17"
+}

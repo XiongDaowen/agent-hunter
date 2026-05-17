@@ -1,0 +1,32 @@
+{
+  "id": "mcp",
+  "name": "MCP（Model Context Protocol）",
+  "category": "SDK",
+  "description": "Anthropic 开放协议标准。",
+  "features": [
+    "标准化工具/数据源接入",
+    "开放协议标准",
+    "多语言 SDK 支持",
+    "SSE + Stdio 传输",
+    "快速采用与工具生态"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "Anthropic 推动",
+    "行业标准趋势",
+    "生态快速扩张"
+  ],
+  "position": "AI 模型与工具集成的开放协议标准",
+  "website": "https://modelcontextprotocol.io",
+  "docs_url": "https://modelcontextprotocol.io/docs",
+  "github_repo": "https://github.com/modelcontextprotocol",
+  "pricing": "免费（开放标准）",
+  "tags": [
+    "SDK",
+    "Protocol",
+    "Standard",
+    "Tool Integration"
+  ],
+  "last_verified": "2026-05-17"
+}
