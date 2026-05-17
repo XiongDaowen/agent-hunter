@@ -226,20 +226,40 @@ with st.sidebar:
     st.subheader("⚡ 操作")
 
     if st.button("🔍 发现新 Agent", type="primary", use_container_width=True):
-        with st.spinner("正在搜索新 Agent..."):
+        with st.spinner("正在搜索新 Agent（这可能需要 1-3 分钟）..."):
             output = run_command("discover")
             st.success("发现完成！")
-            with st.expander("查看日志"):
-                st.code(output[:500])
+            # 解析输出，提取新增 agent 摘要
+            lines = output.split("\n")
+            new_agents_found = [l for l in lines if "✨" in l or "LLM 发现" in l]
+            if new_agents_found:
+                st.caption("📋 新增摘要")
+                for line in new_agents_found:
+                    st.write(line.strip())
+            st.caption(f"新增 {sum(1 for l in lines if 'created' in l and 'action' not in l)} 个，共处理 {sum(1 for l in lines if '收集了' in l)} 个来源")
+            with st.expander("📄 完整日志"):
+                st.code(output)
             st.cache_data.clear()
             st.rerun()
 
     if st.button("🔄 刷新已有 Agent", use_container_width=True):
-        with st.spinner("正在刷新..."):
+        with st.spinner("正在刷新（这可能需要 1-3 分钟）..."):
             output = run_command("refresh")
             st.success("刷新完成！")
-            with st.expander("查看日志"):
-                st.code(output[:500])
+            # 解析输出，提取变更摘要
+            lines = output.split("\n")
+            updated = [l for l in lines if "已更新" in l]
+            if updated:
+                st.caption(f"📋 更新摘要 ({len(updated)} 个)")
+                for line in updated:
+                    st.write(line.strip())
+            errors = [l for l in lines if "错误" in l or "失败" in l]
+            if errors:
+                st.caption(f"⚠️ 注意 ({len(errors)} 项)")
+                for line in errors:
+                    st.write(line.strip())
+            with st.expander("📄 完整日志"):
+                st.code(output)
             st.cache_data.clear()
             st.rerun()
 
@@ -247,6 +267,10 @@ with st.sidebar:
         with st.spinner("生成中..."):
             output = run_command("report")
             st.success("报告已生成！")
+            # 显示报告链接
+            report_path = BASE_DIR / "report" / "index.html"
+            if report_path.exists():
+                st.caption(f"📄 [打开报告](/{report_path.relative_to(BASE_DIR)}) — {report_path}")
 
 # ── 过滤 ────────────────────────────────────────────────────────────
 filtered = []
