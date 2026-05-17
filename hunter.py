@@ -661,19 +661,35 @@ def _refresh_single_agent(agent: dict, sources: list[dict]) -> dict | None:
 
     # 构造来源文本
     sources_text = ""
-    for i, s in enumerate(sources[:5], 1):  # 最多5个来源
-        sources_text += f"[{i}] {s['title']}\n    URL: {s['url']}\n    内容: {s.get('content', '')[:400]}\n\n"
+    for i, s in enumerate(sources[:8], 1):  # 最多8个来源，给 LLM 更多参考
+        sources_text += f"[{i}] {s['title']}\n    URL: {s['url']}\n    内容: {s.get('content', '')[:500]}\n\n"
 
     old_data = json.dumps(agent, indent=2, ensure_ascii=False)
 
     system_prompt = """你是一个 AI Agent 产品信息更新助手。你有某个产品的旧信息，以及最新的搜索结果。
-请对比新旧信息，只更新有变化的字段。输出完整的 JSON 对象（不是数组）。
 
-规则：
-1. 如果信息没有变化，保持原值
-2. 如果找到新信息（价格变动、新功能、新官网等），更新对应字段
-3. 不确定的字段保持原值
-4. 只输出严格有效的 JSON 对象，不要其他文字"""
+请根据搜索结果，输出完整的更新后 JSON 对象（不是数组）。重点任务：
+
+## 1. URL 准确性验证（最高优先级）
+- **website**: 搜索结果中提到的官网地址。如果搜索结果显示旧 website 指向了错误的页面（比如指向了其他项目的 GitHub 仓库、404 页面、或与产品名不符的域名），必须用正确的 URL 替换。优先使用产品官方域名（非 GitHub 的独立域名）。
+- **github_repo**: 产品实际的 GitHub 仓库地址。如果旧 github_repo 指向了错误的仓库（仓库名或组织名与产品不符），必须更正。从搜索结果中查找正确的 GitHub 链接。
+- **docs_url**: 产品文档地址。如果搜索结果中有文档链接，更新它。
+- 如果搜索结果明确显示某个 URL 已失效或错误，不要保留错误的旧值，用搜索到的正确值替换。如果搜索不到正确值，保留原值并标记为需人工审核（设为空字符串）。
+
+## 2. 描述信息更新
+- **description**: 根据最新搜索结果更新产品的一句话描述（30-120字中文），反映产品最新状态
+- **position**: 更新产品定位描述（10-30字），反映产品当前的市场定位
+- **features**: 如果发现新功能特性，添加到列表中（保持最多10个）
+- **strengths**: 如果发现新的核心优势，更新（保持最多5个）
+- **tags**: 根据最新信息更新标签（保持最多8个）
+- **pricing/license**: 如果价格或许可证有变化，更新
+
+## 3. 输出规则
+- 输出完整的 JSON 对象，包含所有字段
+- 没有变化的字段保持原值
+- 不确定的字段不要猜测，保持原值
+- id 字段必须保持原值不变
+- 只输出严格的 JSON，不要 markdown 代码块或其他文字"""
 
     user_prompt = f"""旧信息：
 {old_data}
@@ -686,7 +702,7 @@ def _refresh_single_agent(agent: dict, sources: list[dict]) -> dict | None:
     result_text = _llm_chat([
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
-    ], temperature=0.05, max_tokens=2048)
+    ], temperature=0.05, max_tokens=3072)
 
     if not result_text:
         return None
@@ -709,15 +725,53 @@ def _refresh_single_agent(agent: dict, sources: list[dict]) -> dict | None:
             parsed = parsed[0] if parsed else None
 
         if parsed:
-            # 保留原 id 和 last_verified
+            # 保留原 id
             parsed["id"] = agent["id"]
             parsed["last_verified"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            
+            # URL 后处理校验
+            parsed = _sanitize_urls(parsed, agent)
+            
             return parsed
         return None
     except (_json.JSONDecodeError, Exception) as e:
         warning(f"刷新 {agent.get('name', '?')} 时 JSON 解析失败: {e}")
         debug(f"原始输出: {result_text[:200]}")
         return None
+
+
+def _sanitize_urls(data: dict, old_data: dict) -> dict:
+    """校验和清理 URL 字段"""
+    import re
+    
+    website = (data.get("website") or "").strip()
+    github_repo = (data.get("github_repo") or "").strip()
+    docs_url = (data.get("docs_url") or "").strip()
+    name = data.get("name", "")
+    
+    # 1. 检查 website 是否仍是 GitHub URL（可能是 LLM 没找到独立官网）
+    if website and "github.com" in website and github_repo and website == github_repo:
+        # website 和 github_repo 完全相同且都是 GitHub 链接
+        # 如果旧数据也是这样，说明确实没有独立官网
+        old_website = (old_data.get("website") or "").strip()
+        old_github = (old_data.get("github_repo") or "").strip()
+        if old_website and "github.com" not in old_website:
+            # 旧数据有独立官网但 LLM 改成了 GitHub，恢复旧官网
+            data["website"] = old_website
+            warning(f"  [{name}] website 被错误改为 GitHub，已恢复: {old_website}")
+    
+    # 2. 基本 URL 格式校验
+    for field in ["website", "github_repo", "docs_url"]:
+        url = (data.get(field) or "").strip()
+        if url and not url.startswith("http"):
+            # 尝试修复没有协议的 URL
+            if "." in url:
+                data[field] = "https://" + url
+                warning(f"  [{name}] {field} 缺少协议，已自动补全: {data[field]}")
+            else:
+                # 无效 URL，清空
+                data[field] = ""
+                warning(f"  [{name}] {field} 格式无效，已清空: {url}")
 
 
 def refresh_agents(batch_size: int = 5, max_batches: int = 3) -> dict:
