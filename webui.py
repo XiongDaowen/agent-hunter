@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""agent-hunter WebUI — 基于 Streamlit 的可视化界面（美化版）"""
+"""agent-hunter WebUI — 基于 Streamlit 的可视化界面（分类导航版）"""
 
 import json
 import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
+from collections import Counter
 
 import streamlit as st
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # ── 配置 ──────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
@@ -24,117 +23,49 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── 自定义 CSS ───────────────────────────────────────────────────────
+# ── 暗色主题 CSS ──────────────────────────────────────────────────────
 st.markdown("""
 <style>
-    /* 全局样式 */
-    .main .block-container {
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-        max-width: 1400px;
-    }
-    
-    /* Hero Section */
-    .hero {
-        background: linear-gradient(135deg, #1a1d2e 0%, #2d1b4e 50%, #1a2d4e 100%);
-        border-radius: 16px;
-        padding: 3rem 2rem;
-        margin-bottom: 2rem;
-        text-align: center;
-        border: 1px solid #2a2f45;
-    }
-    .hero h1 {
-        font-size: 2.5rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #6c8cff, #a78bfa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.5rem;
-    }
-    .hero p {
-        color: #8b8fa8;
-        font-size: 1.1rem;
-    }
-    
-    /* 统计卡片 */
-    .stat-card {
-        background: linear-gradient(135deg, #1a1d2e, #1e2235);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #2a2f45;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    .stat-card:hover {
-        border-color: #6c8cff;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(108, 140, 255, 0.15);
-    }
-    .stat-card .icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .stat-card .value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #6c8cff;
-    }
-    .stat-card .label {
-        font-size: 0.85rem;
-        color: #8b8fa8;
-        margin-top: 0.25rem;
-    }
-    
-    /* Agent 卡片 */
-    .agent-card {
-        background: #1a1d2e;
-        border-radius: 12px;
-        padding: 1.25rem;
-        border: 1px solid #2a2f45;
-        margin-bottom: 1rem;
-        transition: all 0.2s ease;
-    }
-    .agent-card:hover {
-        border-color: #6c8cff;
-        box-shadow: 0 4px 16px rgba(108, 140, 255, 0.1);
-    }
-    
-    /* 标签 */
-    .tag {
-        display: inline-block;
-        background: rgba(108, 140, 255, 0.15);
-        color: #6c8cff;
-        padding: 0.2rem 0.6rem;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        margin-right: 0.4rem;
-        margin-bottom: 0.3rem;
-    }
-    
-    /* 开源状态标签 */
-    .badge-yes { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
-    .badge-partial { background: rgba(250, 204, 21, 0.15); color: #facc15; }
-    .badge-no { background: rgba(248, 113, 113, 0.15); color: #f87171; }
-    
-    /* 分类标题 */
-    .category-title {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #6c8cff;
-        margin: 2rem 0 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #2a2f45;
-    }
+    /* 全局暗色 */
+    .stApp { background: #0f172a; }
+    .stMainBlockContainer { padding-top: 0.5rem !important; }
     
     /* 侧边栏 */
-    .css-1d391kg, .css-1lcbmhc {
-        background: #1a1d2e;
-    }
+    section[data-testid="stSidebar"] { background: #1e293b; }
+    section[data-testid="stSidebar"] * { color: #e2e8f0 !important; }
+    section[data-testid="stSidebar"] input, section[data-testid="stSidebar"] select, section[data-testid="stSidebar"] textarea { color: #e2e8f0 !important; }
+    section[data-testid="stSidebar"] button { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+    section[data-testid="stSidebar"] button:hover { border-color: #60a5fa !important; color: #60a5fa !important; }
     
-    /* 隐藏 Streamlit 默认元素 */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    /* Pills 分类导航 */
+    [data-testid="stPills"] { margin-bottom: 0.5rem !important; }
+    [data-testid="stPills"] button { background: #1e293b !important; color: #94a3b8 !important; border: 1px solid #334155 !important; border-radius: 8px !important; padding: 0.5rem 1rem !important; transition: all 0.2s; }
+    [data-testid="stPills"] button:hover { border-color: #60a5fa !important; color: #e2e8f0 !important; }
+    [data-testid="stPills"] button[aria-selected="true"] { background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important; color: white !important; border-color: transparent !important; }
+    
+    /* 指标卡片 */
+    [data-testid="stMetric"] { background: rgba(255,255,255,0.03) !important; border: 1px solid #334155 !important; border-radius: 12px !important; padding: 1rem !important; }
+    [data-testid="stMetric"] label { color: #64748b !important; }
+    [data-testid="stMetricValue"] { color: #e2e8f0 !important; }
+    
+    /* 容器卡片 */
+    .stContainer { background: #1e293b !important; border: 1px solid #334155 !important; border-radius: 16px !important; padding: 1.5rem !important; }
+    
+    /* expander */
+    .stExpander { background: #1e293b !important; border: 1px solid #334155 !important; border-radius: 12px !important; }
+    
+    /* 进度条 */
+    .stProgress > div > div { background: linear-gradient(90deg, #3b82f6, #a78bfa) !important; }
+    
+    /* Tab */
+    .stTabs [data-baseweb="tab"] { background: #1e293b; color: #94a3b8; border-radius: 8px 8px 0 0; }
+    .stTabs [aria-selected="true"] { background: #334155; color: #60a5fa; }
+    
+    hr { border-color: #334155 !important; }
+    
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -156,6 +87,53 @@ def load_meta():
     return {}
 
 
+# 分类图标映射
+CATEGORY_ICONS = {
+    "IDE": "💻",
+    "CLI": "⌨️",
+    "TUI": "🖥️",
+    "GUI": "🎨",
+    "Plugin": "🔌",
+    "SDK": "📦",
+    "Runtime": "⚙️",
+    "Other": "🤖",
+}
+
+OS_STYLE = {
+    "yes": ("green", "🟢 开源"),
+    "partial": ("orange", "🟡 部分开源"),
+    "no": ("red", "🔴 闭源"),
+    "unknown": ("grey", "⚪ 未知"),
+}
+
+
+def agent_hot_score(a: dict) -> int:
+    """综合热度评分 (没有 github stars 数据时的替代方案)。
+    
+    评分维度:
+      - 开源状态: yes=5, partial=3, no=0
+      - 特性数量: 每个 +1
+      - 优势数量: 每个 +2
+      - 标签数量: 每个 +0.5
+      - 有 GitHub 链接: +3
+      - 有文档链接: +2
+      - 有官网: +1
+    """
+    score = 0
+    # 开源加分
+    os_map = {"yes": 5, "partial": 3, "no": 0, "unknown": 0}
+    score += os_map.get(a.get("open_source", "unknown"), 0)
+    # 内容丰富度
+    score += len(a.get("features", [])) * 1
+    score += len(a.get("strengths", [])) * 2
+    score += len(a.get("tags", [])) * 0.5
+    # 链接完整度
+    if a.get("github_repo"): score += 3
+    if a.get("docs_url"): score += 2
+    if a.get("website"): score += 1
+    return score
+
+
 def run_command(cmd: str) -> str:
     try:
         result = subprocess.run(
@@ -171,42 +149,82 @@ def run_command(cmd: str) -> str:
 agents = load_agents()
 meta = load_meta()
 
-# ── Hero Section ──────────────────────────────────────────────────────
+# ── Hero + 统计 ─────────────────────────────────────────────────────
 total = len(agents)
 open_count = sum(1 for a in agents if a.get("open_source") == "yes")
 partial_count = sum(1 for a in agents if a.get("open_source") == "partial")
 closed_count = sum(1 for a in agents if a.get("open_source") == "no")
 cat_count = len(set(a.get("category", "Other") for a in agents))
 
-st.markdown(f"""
-<div class="hero">
-    <h1>🤖 AI Agent 产品全景</h1>
-    <p>全球 AI Agent 产品检索与追踪 · 数据自动更新</p>
-    <p style="margin-top: 1rem; font-size: 0.9rem;">
-        📦 {total} 个产品 &nbsp;|&nbsp; 🏷 {cat_count} 个分类 &nbsp;|&nbsp; 
-        🟢 {open_count} 开源 &nbsp;|&nbsp; 🟡 {partial_count} 部分开源 &nbsp;|&nbsp; 
-        🔴 {closed_count} 闭源
-    </p>
+st.markdown("""
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); border-radius: 20px; padding: 2rem 2rem 0.5rem; margin-bottom: 1rem; text-align: center; border: 1px solid #334155;">
+    <h1 style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.3rem;">🤖 AI Agent 产品全景</h1>
+    <p style="color: #94a3b8; font-size: 1.1rem;">全球 AI Agent 产品检索与追踪 · 数据自动更新</p>
 </div>
 """, unsafe_allow_html=True)
 
-# ── 侧边栏 ────────────────────────────────────────────────────────────
+cols = st.columns(5)
+with cols[0]: st.metric("📦 产品总数", total)
+with cols[1]: st.metric("🏷️ 分类数", cat_count)
+with cols[2]: st.metric("🟢 开源", open_count)
+with cols[3]: st.metric("🟡 部分开源", partial_count)
+with cols[4]: st.metric("🔴 闭源", closed_count)
+
+# ── 分类统计 ──────────────────────────────────────────────────────
+cat_counts = {}
+for a in agents:
+    cat = a.get("category", "Other")
+    cat_counts[cat] = cat_counts.get(cat, 0) + 1
+
+sorted_cats = sorted(cat_counts.items(), key=lambda x: x[1], reverse=True)
+cat_line = " · ".join(f"{CATEGORY_ICONS.get(c, '🤖')} {c} ({n})" for c, n in sorted_cats)
+st.caption(cat_line)
+
+# ── 数据洞察 Tab ──────────────────────────────────────────────────
+license_counts = Counter(a.get("license", "未知") for a in agents)
+tag_counts = Counter()
+for a in agents:
+    for tag in a.get("tags", []):
+        tag_counts[tag] += 1
+
+open_pct = round(open_count / total * 100) if total else 0
+partial_pct = round(partial_count / total * 100) if total else 0
+closed_pct = round(closed_count / total * 100) if total else 0
+top_tags = tag_counts.most_common(8)
+
+st.markdown("---")
+st.subheader("📊 数据洞察")
+
+mi1, mi2, mi3, mi4 = st.columns(4)
+mi1.metric("开源占比", f"{open_pct}%")
+mi2.metric("部分开源", f"{partial_pct}%")
+mi3.metric("闭源", f"{closed_pct}%")
+top_lic = license_counts.most_common(1)[0] if license_counts else ("-", 0)
+mi4.metric("主流许可证", top_lic[0], help=f"共 {top_lic[1]} 个产品")
+
+if top_tags:
+    st.caption("🏷️ 热门标签")
+    tags_md = " · ".join(f"**{tag}** ({count})" for tag, count in top_tags)
+    st.markdown(tags_md)
+
+# ── 侧边栏 ──────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("### 🔍 筛选")
-    
-    search = st.text_input("搜索", placeholder="名称、描述、标签...")
-    
+    st.subheader("🔍 筛选与排序")
+
+    search = st.text_input("搜索", placeholder="名称、描述、标签...", label_visibility="collapsed")
+
     categories = sorted(set(a.get("category", "Other") for a in agents))
     selected_cats = st.multiselect("分类", categories, default=categories)
-    
+
     os_options = {"🟢 开源": "yes", "🟡 部分开源": "partial", "🔴 闭源": "no", "⚪ 未知": "unknown"}
     selected_os = st.multiselect("开源状态", list(os_options.keys()), default=list(os_options.keys()))
-    
-    sort_by = st.selectbox("排序", ["名称", "分类", "最近验证"])
-    
+
+    sort_options = ["🔥 综合热度", "📛 名称 A-Z", "📂 分类", "🕐 最近验证"]
+    sort_by = st.selectbox("排序方式", sort_options)
+
     st.markdown("---")
-    st.markdown("### ⚡ 操作")
-    
+    st.subheader("⚡ 操作")
+
     if st.button("🔍 发现新 Agent", type="primary", use_container_width=True):
         with st.spinner("正在搜索新 Agent..."):
             output = run_command("discover")
@@ -215,7 +233,7 @@ with st.sidebar:
                 st.code(output[:500])
             st.cache_data.clear()
             st.rerun()
-    
+
     if st.button("🔄 刷新已有 Agent", use_container_width=True):
         with st.spinner("正在刷新..."):
             output = run_command("refresh")
@@ -224,13 +242,13 @@ with st.sidebar:
                 st.code(output[:500])
             st.cache_data.clear()
             st.rerun()
-    
+
     if st.button("📊 生成报告", use_container_width=True):
         with st.spinner("生成中..."):
             output = run_command("report")
             st.success("报告已生成！")
 
-# ── 过滤 & 排序 ──────────────────────────────────────────────────────
+# ── 过滤 ────────────────────────────────────────────────────────────
 filtered = []
 for a in agents:
     if a.get("category", "Other") not in selected_cats:
@@ -239,141 +257,127 @@ for a in agents:
         continue
     if search:
         s = search.lower()
-        text = f"{a.get('name', '')} {a.get('description', '')} {' '.join(a.get('tags', []))}".lower()
+        text = f"{a.get('name', '')} {a.get('description', '')} {' '.join(a.get('tags', []))}" .lower()
         if s not in text:
             continue
     filtered.append(a)
 
-if sort_by == "名称":
+# ── 排序 ────────────────────────────────────────────────────────────
+if sort_by == "📛 名称 A-Z":
     filtered.sort(key=lambda a: a.get("name", ""))
-elif sort_by == "分类":
-    filtered.sort(key=lambda a: a.get("category", ""))
-else:
+elif sort_by == "📂 分类":
+    filtered.sort(key=lambda a: (a.get("category", ""), a.get("name", "")))
+elif sort_by == "🕐 最近验证":
     filtered.sort(key=lambda a: a.get("last_verified", ""), reverse=True)
+else:  # 综合热度
+    filtered.sort(key=agent_hot_score, reverse=True)
 
-# ── 统计图表 ──────────────────────────────────────────────────────────
-col1, col2 = st.columns(2)
+# ── 分类导航 Pills ─────────────────────────────────────────────────
+category_options = ["🔥 全部"] + [f"{CATEGORY_ICONS.get(c, '🤖')} {c} ({n})" for c, n in sorted_cats]
+category_values = ["__ALL__"] + [c for c, _ in sorted_cats]
 
-with col1:
-    st.markdown("### 📊 分类分布")
-    cat_counts = {}
-    for a in agents:
-        cat = a.get("category", "Other")
-        cat_counts[cat] = cat_counts.get(cat, 0) + 1
-    
-    fig = go.Figure(data=[go.Pie(
-        labels=list(cat_counts.keys()),
-        values=list(cat_counts.values()),
-        hole=0.4,
-        marker=dict(colors=['#6c8cff', '#a78bfa', '#4ade80', '#facc15', '#f87171', '#60a5fa', '#c084fc']),
-        textinfo='label+percent',
-        textposition='auto',
-    )])
-    fig.update_layout(
-        margin=dict(l=20, r=20, t=20, b=20),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#e2e4f0'),
-        showlegend=False,
-    )
-    st.plotly_chart(fig, use_container_width=True)
+# category 和 pills 行的对应 map
+pill_to_cat = dict(zip(category_options, category_values))
 
-with col2:
-    st.markdown("### 📈 开源状态")
-    os_counts = {"开源": open_count, "部分开源": partial_count, "闭源": closed_count}
-    fig2 = go.Figure(data=[go.Bar(
-        x=list(os_counts.keys()),
-        y=list(os_counts.values()),
-        marker=dict(color=['#4ade80', '#facc15', '#f87171']),
-        text=list(os_counts.values()),
-        textposition='outside',
-    )])
-    fig2.update_layout(
-        margin=dict(l=20, r=20, t=20, b=20),
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#e2e4f0'),
-        yaxis=dict(showgrid=False),
-        xaxis=dict(showgrid=False),
-        showlegend=False,
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+selected_pill = st.pills(
+    "分类导航",
+    options=category_options,
+    default="🔥 全部",
+    label_visibility="collapsed",
+)
+active_category = pill_to_cat.get(selected_pill, "__ALL__")
 
-# ── Agent 列表 ────────────────────────────────────────────────────────
-st.markdown(f"### 📋 Agent 列表 ({len(filtered)} 个)")
+# ── Agent 列表 ──────────────────────────────────────────────────────
+# 计算当前分类的实际数量
+if active_category == "__ALL__":
+    display_count = len(filtered)
+else:
+    display_count = sum(1 for a in filtered if a["category"] == active_category)
+st.divider()
+st.subheader(f"📋 {'全部' if active_category == '__ALL__' else active_category} · {display_count} 个")
 
-# 按分类分组显示
+# 如果选中了某个分类，做分类过滤
 current_cat = None
 for a in filtered:
+    if active_category != "__ALL__" and a["category"] != active_category:
+        continue
+
+    # 分类标题
     if a["category"] != current_cat:
         current_cat = a["category"]
-        st.markdown(f'<div class="category-title">{current_cat}</div>', unsafe_allow_html=True)
-    
-    # 开源状态样式
-    os_class = {"yes": "badge-yes", "partial": "badge-partial", "no": "badge-no", "unknown": "badge-no"}
-    os_label = {"yes": "开源", "partial": "部分开源", "no": "闭源", "unknown": "未知"}
-    badge_cls = os_class.get(a.get("open_source", "unknown"), "badge-no")
-    badge_txt = os_label.get(a.get("open_source", "unknown"), "未知")
-    
-    # 标签 HTML
-    tags_html = ""
-    if a.get("tags"):
-        tags_html = " ".join(f'<span class="tag">{t}</span>' for t in a["tags"][:5])
-    
-    # 链接
-    links = []
-    if a.get("website"):
-        links.append(f'<a href="{a["website"]}" target="_blank">🌐 官网</a>')
-    if a.get("github_repo"):
-        links.append(f'<a href="{a["github_repo"]}" target="_blank">🐙 GitHub</a>')
-    if a.get("docs_url"):
-        links.append(f'<a href="{a["docs_url"]}" target="_blank">📄 文档</a>')
-    links_html = " &nbsp;|&nbsp; ".join(links)
-    
-    # 特性列表
-    features_html = ""
-    if a.get("features"):
-        features_html = "<br>".join(f"• {f}" for f in a["features"][:3])
-        if len(a["features"]) > 3:
-            features_html += f"<br><i style='color:#8b8fa8'>+{len(a['features'])-3} 更多...</i>"
-    
-    st.markdown(f"""
-    <div class="agent-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-            <div>
-                <a href="{a.get('website', '#')}" target="_blank" style="font-size: 1.1rem; font-weight: 600; color: #e2e4f0; text-decoration: none;">
-                    {a['name']}
-                </a>
-                <div style="color: #8b8fa8; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {a.get('position', a.get('description', '')[:80])}
-                </div>
-            </div>
-            <span class="badge {badge_cls}" style="padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem;">
-                {badge_txt}
-            </span>
-        </div>
-        
-        {tags_html}
-        
-        <div style="margin-top: 0.75rem; font-size: 0.85rem; color: #8b8fa8;">
-            {features_html}
-        </div>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #2a2f45; font-size: 0.8rem; color: #8b8fa8;">
-            <div>
-                {"💰 " + a.get('pricing', '-') if a.get('pricing') else ''}
-                &nbsp;&nbsp; 📅 {a.get('last_verified', '-')}
-            </div>
-            <div>{links_html}</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+        cat_icon = CATEGORY_ICONS.get(current_cat, "🤖")
+        cat_agents = [x for x in filtered if x["category"] == current_cat]
+        if active_category == "__ALL__":
+            st.subheader(f"{cat_icon} {current_cat} · {len(cat_agents)} 个")
 
-# ── 页脚 ──────────────────────────────────────────────────────────────
-st.markdown("---")
-st.markdown(f"""
-<div style="text-align: center; color: #8b8fa8; font-size: 0.85rem; padding: 1rem;">
-    由 <a href="https://github.com/xiowen/agent-hunter" style="color: #6c8cff; text-decoration: none;">agent-hunter</a> 自动生成 | 
-    更新于 {datetime.now().strftime('%Y-%m-%d %H:%M')}
-</div>
-""", unsafe_allow_html=True)
+    os_status = a.get("open_source", "unknown")
+    os_color, os_label = OS_STYLE.get(os_status, ("grey", "⚪ 未知"))
+
+    with st.container(border=True):
+        # Header: name + open-source badge
+        h1, h2 = st.columns([5, 1])
+        with h1:
+            st.subheader(a["name"])
+        with h2:
+            st.markdown(f":{os_color}[{os_label}]")
+
+        # Position + description
+        if a.get("position"):
+            st.caption(f"「{a['position']}」")
+        if a.get("description"):
+            st.write(a.get("description", ""))
+
+        # Tags
+        if a.get("tags"):
+            st.caption(" ".join(f"`{t}`" for t in a["tags"][:8]))
+
+        # Links as real buttons
+        link_cols = st.columns([1, 1, 1, 3])
+        col_idx = 0
+        if a.get("website"):
+            with link_cols[col_idx]:
+                st.link_button("🌐 官网", a["website"])
+            col_idx += 1
+        if a.get("github_repo"):
+            with link_cols[col_idx]:
+                st.link_button("🐙 GitHub", a["github_repo"])
+            col_idx += 1
+        if a.get("docs_url"):
+            with link_cols[col_idx]:
+                st.link_button("📄 文档", a["docs_url"])
+            col_idx += 1
+
+        # Hot score
+        hot = agent_hot_score(a)
+        st.caption(f"🔥 热度评分: {hot}  ·  {len(a.get('features', []))} 特性  ·  {len(a.get('strengths', []))} 优势")
+
+        # Strengths + Features expanders
+        exp_col1, exp_col2 = st.columns(2)
+        with exp_col1:
+            if a.get("strengths"):
+                with st.expander("💪 核心优势"):
+                    for s in a["strengths"][:5]:
+                        st.write(f"- {s}")
+        with exp_col2:
+            if a.get("features"):
+                with st.expander(f"✨ 特性 ({len(a['features'])})"):
+                    for f in a["features"][:10]:
+                        st.write(f"- {f}")
+                    if len(a["features"]) > 10:
+                        st.caption(f"... 还有 {len(a['features']) - 10} 个")
+
+        # Footer meta
+        parts = []
+        if a.get("pricing"):
+            parts.append(f"💰 {a['pricing']}")
+        if a.get("license") and a.get("license") != "未知":
+            parts.append(f"📜 {a['license']}")
+        parts.append(f"📅 {a.get('last_verified', '-')}")
+        st.caption(" · ".join(parts))
+
+# ── 页脚 ────────────────────────────────────────────────────────────
+st.divider()
+st.caption(
+    f"由 [agent-hunter](https://github.com/xiowen/agent-hunter) 自动生成 | "
+    f"更新于 {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+)
