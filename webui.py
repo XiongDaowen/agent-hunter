@@ -284,7 +284,7 @@ with col2:
     fig2 = go.Figure(data=[go.Bar(
         x=list(os_counts.keys()),
         y=list(os_counts.values()),
-        marker=dict(color=['#4ade80', '#facc15', '#f87171'], corner_radius=8),
+        marker=dict(color=['#4ade80', '#facc15', '#f87171']),
         text=list(os_counts.values()),
         textposition='outside',
     )])

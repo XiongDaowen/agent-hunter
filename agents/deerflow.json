@@ -1,0 +1,27 @@
+{
+  "id": "deerflow",
+  "name": "DeerFlow",
+  "category": "Runtime",
+  "description": "轻量级 AI Agent 运行时框架，支持快速部署和管理多 Agent 协作工作流。",
+  "features": [
+    "多 Agent 协作",
+    "工作流编排",
+    "快速部署",
+    "状态管理",
+    "工具调用"
+  ],
+  "open_source": "yes",
+  "license": "Apache-2.0",
+  "strengths": [
+    "轻量级",
+    "易部署",
+    "工作流编排"
+  ],
+  "position": "轻量级 AI Agent 运行时框架",
+  "website": "https://github.com/microsoft/deepagent",
+  "docs_url": "",
+  "github_repo": "https://github.com/microsoft/deepagent",
+  "pricing": "免费",
+  "tags": ["Runtime", "Agent", "Workflow"],
+  "last_verified": "2026-05-17"
+}

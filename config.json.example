@@ -7,7 +7,7 @@
   "report_dir": "report",
   "report_file": "report/index.html",
   "meta_file": "cache/meta.json",
-  "categories": ["IDE", "CLI", "TUI", "GUI", "Plugin", "SDK", "Other"],
+  "categories": ["IDE", "CLI", "TUI", "GUI", "Plugin", "SDK", "Runtime", "Other"],
   "update_interval_hours": 24,
   "search_sources": {
     "domestic": {
