@@ -19,9 +19,9 @@
     "技能系统完善"
   ],
   "position": "功能全面的开源 AI 代理，从命令行到聊天平台全覆盖",
-  "website": "https://hermes-agent.io",
-  "docs_url": "https://docs.hermes-agent.io",
-  "github_repo": "https://github.com/hermes-agent/hermes",
+  "website": "https://hermes-agent.nousresearch.com",
+  "docs_url": "",
+  "github_repo": "https://github.com/NousResearch/hermes-agent",
   "pricing": "免费",
   "tags": [
     "CLI",
