@@ -411,6 +411,53 @@ def _search_duckduckgo(query: str, limit: int = 6) -> list[dict]:
         return []
 
 
+def _search_hn_algolia(query: str, limit: int = 5) -> list[dict]:
+    """使用 Hacker News Algolia API 搜索（免费，无需 API key）"""
+    import requests
+    import re
+
+    try:
+        url = f"https://hn.algolia.com/api/v1/search"
+        params = {
+            "query": query,
+            "tags": "story",
+            "hitsPerPage": limit,
+        }
+        resp = requests.get(url, params=params, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+
+        results = []
+        for hit in data.get("hits", []):
+            story_url = hit.get("url", "")
+            title = hit.get("title", "") or ""
+            author = hit.get("author", "")
+            points = hit.get("points", 0)
+            num_comments = hit.get("num_comments", 0)
+
+            # HN stories 有时无 url（纯文字帖），跳过
+            if not story_url or not title:
+                continue
+
+            # 清理标题
+            title = re.sub(r'<[^>]+>', '', title).strip()
+
+            # 构造 meta 描述
+            meta = f"{points} points | {num_comments} comments | by {author}"
+
+            results.append({
+                "url": story_url,
+                "title": title[:120],
+                "content": meta,
+                "source": "hn_algolia",
+            })
+
+        return results
+    except Exception as e:
+        warning(f"HN Algolia 搜索失败: {e}")
+        return []
+
+
 def _search_firecrawl(query: str, limit: int = 6) -> list[dict]:
     """使用 Firecrawl 搜索网页（需要有效 API key）"""
     import subprocess
@@ -522,9 +569,9 @@ def discover() -> list[dict]:
             raw_sources.extend(sources)
 
     # ── 执行国外搜索 ──
-    # 优先使用 firecrawl（如果有效），备选 DuckDuckGo
+    # 优先使用 firecrawl（如果有效），备选 HN Algolia（DuckDuckGo 在 WSL 下常超时不可靠）
     overseas_fc = CONFIG.get("search_sources", {}).get("overseas", {}).get("firecrawl", {}).get("enabled", False) == True
-    overseas_ddg = CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", False) == True
+    overseas_hn = True  # HN Algolia 可靠免费，直接启用
 
     if overseas_fc:
         step("国外搜索源（Firecrawl）")
@@ -534,21 +581,22 @@ def discover() -> list[dict]:
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)
-        # 如果 firecrawl 无结果，自动启用 DDG 备用
+        # firecrawl 无结果时补充 HN Algolia
         overseas_count = sum(1 for s in raw_sources if s.get("source") == "firecrawl")
-        if overseas_count == 0 and overseas_ddg:
-            warning("Firecrawl 无结果，启用 DuckDuckGo 备用...")
+        if overseas_count == 0:
+            warning("Firecrawl 无结果，补充 HN Algolia...")
             for target_cat, query in OVERSEAS_SEARCHES:
-                sub_step(f"DDG(fallback): {query[:50]}...")
-                sources = _search_duckduckgo(query, limit=4)
+                sub_step(f"HN Algolia: {query[:50]}...")
+                sources = _search_hn_algolia(query, limit=4)
                 for s in sources:
                     s["category_hint"] = target_cat
                 raw_sources.extend(sources)
-    elif overseas_ddg:
-        step("国外搜索源（DuckDuckGo）")
+    else:
+        # 默认使用 HN Algolia（DuckDuckGo 在 WSL 下常超时，直接跳过）
+        step("国外搜索源（HN Algolia）")
         for target_cat, query in OVERSEAS_SEARCHES:
-            sub_step(f"DDG: {query[:50]}...")
-            sources = _search_duckduckgo(query, limit=4)
+            sub_step(f"HN Algolia: {query[:50]}...")
+            sources = _search_hn_algolia(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)

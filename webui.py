@@ -2,6 +2,7 @@
 """agent-hunter WebUI — 基于 Streamlit 的可视化界面（分类导航版）"""
 
 import json
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -207,6 +208,31 @@ if top_tags:
     tags_md = " · ".join(f"**{tag}** ({count})" for tag, count in top_tags)
     st.markdown(tags_md)
 
+# ── 主 Tab 切换 ─────────────────────────────────────────────────────
+tab1, tab2 = st.tabs(["📦 产品列表", "📰 每日资讯"])
+
+# ── Tab 2: 每日资讯 ──────────────────────────────────────────────────
+with tab2:
+    st.subheader("📰 每日资讯（HN + Dev.to）")
+    if st.button("🔄 刷新资讯", use_container_width=True):
+        with st.spinner("正在搜索（30秒内）..."):
+            output = run_command("news")
+            st.success("资讯已更新！")
+            with st.expander("📄 搜索日志"):
+                st.code(output)
+            st.rerun()
+
+    news_path = BASE_DIR / "report" / "news.html"
+    if news_path.exists():
+        st.caption(f"📄 [打开资讯报告](/{news_path.relative_to(BASE_DIR)})")
+        # 显示资讯条数
+        with open(news_path) as f:
+            content = f.read()
+        card_count = len(re.findall(r'class="news-card"', content))
+        st.metric("📬 资讯条数", card_count)
+    else:
+        st.info("点击上方「刷新资讯」生成第一份报告")
+
 # ── 侧边栏 ──────────────────────────────────────────────────────────
 with st.sidebar:
     st.subheader("🔍 筛选与排序")
@@ -272,136 +298,128 @@ with st.sidebar:
             if report_path.exists():
                 st.caption(f"📄 [打开报告](/{report_path.relative_to(BASE_DIR)}) — {report_path}")
 
-# ── 过滤 ────────────────────────────────────────────────────────────
-filtered = []
-for a in agents:
-    if a.get("category", "Other") not in selected_cats:
-        continue
-    if a.get("open_source", "unknown") not in [os_options[k] for k in selected_os]:
-        continue
-    if search:
-        s = search.lower()
-        text = f"{a.get('name', '')} {a.get('description', '')} {' '.join(a.get('tags', []))}" .lower()
-        if s not in text:
+# ── Tab 1: 产品列表 ─────────────────────────────────────────────────
+with tab1:
+
+    # ── 过滤 ────────────────────────────────────────────────────────────
+    filtered = []
+    for a in agents:
+        if a.get("category", "Other") not in selected_cats:
             continue
-    filtered.append(a)
+        if a.get("open_source", "unknown") not in [os_options[k] for k in selected_os]:
+            continue
+        if search:
+            s = search.lower()
+            text = f"{a.get('name', '')} {a.get('description', '')} {' '.join(a.get('tags', []))}" .lower()
+            if s not in text:
+                continue
+        filtered.append(a)
 
-# ── 排序 ────────────────────────────────────────────────────────────
-if sort_by == "📛 名称 A-Z":
-    filtered.sort(key=lambda a: a.get("name", ""))
-elif sort_by == "📂 分类":
-    filtered.sort(key=lambda a: (a.get("category", ""), a.get("name", "")))
-elif sort_by == "🕐 最近验证":
-    filtered.sort(key=lambda a: a.get("last_verified", ""), reverse=True)
-else:  # 综合热度
-    filtered.sort(key=agent_hot_score, reverse=True)
+    # ── 排序 ────────────────────────────────────────────────────────────
+    if sort_by == "📛 名称 A-Z":
+        filtered.sort(key=lambda a: a.get("name", ""))
+    elif sort_by == "📂 分类":
+        filtered.sort(key=lambda a: (a.get("category", ""), a.get("name", "")))
+    elif sort_by == "🕐 最近验证":
+        filtered.sort(key=lambda a: a.get("last_verified", ""), reverse=True)
+    else:  # 综合热度
+        filtered.sort(key=agent_hot_score, reverse=True)
 
-# ── 分类导航 Pills ─────────────────────────────────────────────────
-category_options = ["🔥 全部"] + [f"{CATEGORY_ICONS.get(c, '🤖')} {c} ({n})" for c, n in sorted_cats]
-category_values = ["__ALL__"] + [c for c, _ in sorted_cats]
+    # ── 分类导航 Pills ─────────────────────────────────────────────────
+    category_options = ["🔥 全部"] + [f"{CATEGORY_ICONS.get(c, '🤖')} {c} ({n})" for c, n in sorted_cats]
+    category_values = ["__ALL__"] + [c for c, _ in sorted_cats]
 
-# category 和 pills 行的对应 map
-pill_to_cat = dict(zip(category_options, category_values))
+    pill_to_cat = dict(zip(category_options, category_values))
 
-selected_pill = st.pills(
-    "分类导航",
-    options=category_options,
-    default="🔥 全部",
-    label_visibility="collapsed",
-)
-active_category = pill_to_cat.get(selected_pill, "__ALL__")
+    selected_pill = st.pills(
+        "分类导航",
+        options=category_options,
+        default="🔥 全部",
+        label_visibility="collapsed",
+    )
+    active_category = pill_to_cat.get(selected_pill, "__ALL__")
 
-# ── Agent 列表 ──────────────────────────────────────────────────────
-# 计算当前分类的实际数量
-if active_category == "__ALL__":
-    display_count = len(filtered)
-else:
-    display_count = sum(1 for a in filtered if a["category"] == active_category)
-st.divider()
-st.subheader(f"📋 {'全部' if active_category == '__ALL__' else active_category} · {display_count} 个")
+    # ── Agent 列表 ──────────────────────────────────────────────────────
+    if active_category == "__ALL__":
+        display_count = len(filtered)
+    else:
+        display_count = sum(1 for a in filtered if a["category"] == active_category)
+    st.divider()
+    st.subheader(f"📋 {'全部' if active_category == '__ALL__' else active_category} · {display_count} 个")
 
-# 如果选中了某个分类，做分类过滤
-current_cat = None
-for a in filtered:
-    if active_category != "__ALL__" and a["category"] != active_category:
-        continue
+    current_cat = None
+    for a in filtered:
+        if active_category != "__ALL__" and a["category"] != active_category:
+            continue
 
-    # 分类标题
-    if a["category"] != current_cat:
-        current_cat = a["category"]
-        cat_icon = CATEGORY_ICONS.get(current_cat, "🤖")
-        cat_agents = [x for x in filtered if x["category"] == current_cat]
-        if active_category == "__ALL__":
-            st.subheader(f"{cat_icon} {current_cat} · {len(cat_agents)} 个")
+        if a["category"] != current_cat:
+            current_cat = a["category"]
+            cat_icon = CATEGORY_ICONS.get(current_cat, "🤖")
+            cat_agents = [x for x in filtered if x["category"] == current_cat]
+            if active_category == "__ALL__":
+                st.subheader(f"{cat_icon} {current_cat} · {len(cat_agents)} 个")
 
-    os_status = a.get("open_source", "unknown")
-    os_color, os_label = OS_STYLE.get(os_status, ("grey", "⚪ 未知"))
+        os_status = a.get("open_source", "unknown")
+        os_color, os_label = OS_STYLE.get(os_status, ("grey", "⚪ 未知"))
 
-    with st.container(border=True):
-        # Header: name + open-source badge
-        h1, h2 = st.columns([5, 1])
-        with h1:
-            st.subheader(a["name"])
-        with h2:
-            st.markdown(f":{os_color}[{os_label}]")
+        with st.container(border=True):
+            h1, h2 = st.columns([5, 1])
+            with h1:
+                st.subheader(a["name"])
+            with h2:
+                st.markdown(f":{os_color}[{os_label}]")
 
-        # Position + description
-        if a.get("position"):
-            st.caption(f"「{a['position']}」")
-        if a.get("description"):
-            st.write(a.get("description", ""))
+            if a.get("position"):
+                st.caption(f"「{a['position']}」")
+            if a.get("description"):
+                st.write(a.get("description", ""))
 
-        # Tags
-        if a.get("tags"):
-            st.caption(" ".join(f"`{t}`" for t in a["tags"][:8]))
+            if a.get("tags"):
+                st.caption(" ".join(f"`{t}`" for t in a["tags"][:8]))
 
-        # Links as real buttons
-        link_cols = st.columns([1, 1, 1, 3])
-        col_idx = 0
-        if a.get("website"):
-            with link_cols[col_idx]:
-                st.link_button("🌐 官网", a["website"])
-            col_idx += 1
-        if a.get("github_repo"):
-            with link_cols[col_idx]:
-                st.link_button("🐙 GitHub", a["github_repo"])
-            col_idx += 1
-        if a.get("docs_url"):
-            with link_cols[col_idx]:
-                st.link_button("📄 文档", a["docs_url"])
-            col_idx += 1
+            link_cols = st.columns([1, 1, 1, 3])
+            col_idx = 0
+            if a.get("website"):
+                with link_cols[col_idx]:
+                    st.link_button("🌐 官网", a["website"])
+                col_idx += 1
+            if a.get("github_repo"):
+                with link_cols[col_idx]:
+                    st.link_button("🐙 GitHub", a["github_repo"])
+                col_idx += 1
+            if a.get("docs_url"):
+                with link_cols[col_idx]:
+                    st.link_button("📄 文档", a["docs_url"])
+                col_idx += 1
 
-        # Hot score
-        hot = agent_hot_score(a)
-        st.caption(f"🔥 热度评分: {hot}  ·  {len(a.get('features', []))} 特性  ·  {len(a.get('strengths', []))} 优势")
+            hot = agent_hot_score(a)
+            st.caption(f"🔥 热度评分: {hot}  ·  {len(a.get('features', []))} 特性  ·  {len(a.get('strengths', []))} 优势")
 
-        # Strengths + Features expanders
-        exp_col1, exp_col2 = st.columns(2)
-        with exp_col1:
-            if a.get("strengths"):
-                with st.expander("💪 核心优势"):
-                    for s in a["strengths"][:5]:
-                        st.write(f"- {s}")
-        with exp_col2:
-            if a.get("features"):
-                with st.expander(f"✨ 特性 ({len(a['features'])})"):
-                    for f in a["features"][:10]:
-                        st.write(f"- {f}")
-                    if len(a["features"]) > 10:
-                        st.caption(f"... 还有 {len(a['features']) - 10} 个")
+            exp_col1, exp_col2 = st.columns(2)
+            with exp_col1:
+                if a.get("strengths"):
+                    with st.expander("💪 核心优势"):
+                        for s in a["strengths"][:5]:
+                            st.write(f"- {s}")
+            with exp_col2:
+                if a.get("features"):
+                    with st.expander(f"✨ 特性 ({len(a['features'])})"):
+                        for f in a["features"][:10]:
+                            st.write(f"- {f}")
+                        if len(a["features"]) > 10:
+                            st.caption(f"... 还有 {len(a['features']) - 10} 个")
 
-        # Footer meta
-        parts = []
-        if a.get("pricing"):
-            parts.append(f"💰 {a['pricing']}")
-        if a.get("license") and a.get("license") != "未知":
-            parts.append(f"📜 {a['license']}")
-        parts.append(f"📅 {a.get('last_verified', '-')}")
-        st.caption(" · ".join(parts))
+            parts = []
+            if a.get("pricing"):
+                parts.append(f"💰 {a['pricing']}")
+            if a.get("license") and a.get("license") != "未知":
+                parts.append(f"📜 {a['license']}")
+            parts.append(f"📅 {a.get('last_verified', '-')}")
+            st.caption(" · ".join(parts))
 
-# ── 页脚 ────────────────────────────────────────────────────────────
-st.divider()
-st.caption(
-    f"由 [agent-hunter](https://github.com/xiowen/agent-hunter) 自动生成 | "
-    f"更新于 {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-)
+    # ── 页脚 ────────────────────────────────────────────────────────────
+    st.divider()
+    st.caption(
+        f"由 [agent-hunter](https://github.com/xiowen/agent-hunter) 自动生成 | "
+        f"更新于 {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    )

@@ -11,7 +11,8 @@ agent-hunter 主入口 — 发现、更新和报告 AI Agent 产品。
   python run.py               搜索发现 + 更新 + 报告（默认）
   python run.py update        仅增量更新（不从外面搜索）
   python run.py discover      仅搜索发现新 agent
-  python run.py report        仅生成报告（使用现有数据）
+  python run.py report        仅生成产品报告（使用现有数据）
+  python run.py news          生成每日资讯报告（HN + Dev.to）
   python run.py force         强制全部更新 + 报告
   python run.py status        查看缓存状态
   python run.py list          列出所有 agent
@@ -35,6 +36,7 @@ from hunter import (
     refresh_agents,
 )
 from report_gen import generate_report
+from news import generate_news_report
 from logger import info, success, warning, error, step
 
 
@@ -144,6 +146,8 @@ if __name__ == "__main__":
             run_refresh(batch_size=batch, max_batches=batches)
             print()
             generate_report()
+        elif command == "news":
+            generate_news_report()
         else:
             error(f"未知命令: {command}")
             info("支持: update, discover, report, status, add, list, refresh, force (空=全部)")

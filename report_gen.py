@@ -20,6 +20,7 @@ AGENTS_DIR = BASE_DIR / CONFIG["agents_dir"]
 REPORT_FILE = BASE_DIR / CONFIG["report_file"]
 META_FILE = BASE_DIR / CONFIG["meta_file"]
 CACHE_DIR = BASE_DIR / CONFIG["cache_dir"]
+RELEASES_FILE = BASE_DIR / "data" / "releases.json"
 
 # ── 模板 ────────────────────────────────────────────────────────────────
 
@@ -287,6 +288,94 @@ HEADER = """<!DOCTYPE html>
     .grid {{ grid-template-columns: 1fr; }}
     .header h1 {{ font-size: 1.6rem; }}
   }}
+
+  /* ── Release Changelog Section ─────────────────────────────── */
+  .releases-section {{
+    margin: 32px 0;
+  }}
+  .releases-header {{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }}
+  .releases-header h2 {{
+    font-size: 1.4rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #00d4ff, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }}
+  .release-item {{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }}
+  .release-item:hover {{
+    border-color: var(--accent);
+  }}
+  .release-top {{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }}
+  .release-name {{
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text);
+  }}
+  .release-version {{
+    font-size: 0.85rem;
+    color: var(--accent);
+    background: rgba(108,140,255,0.1);
+    padding: 2px 10px;
+    border-radius: 10px;
+  }}
+  .release-date {{
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+  }}
+  .release-tag {{
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 600;
+  }}
+  .release-tag.new {{
+    background: rgba(74,222,128,0.15);
+    color: #4ade80;
+  }}
+  .release-tag.updated {{
+    background: rgba(250,204,21,0.15);
+    color: #facc15;
+  }}
+  .release-body {{
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }}
+  .release-body li {{
+    margin-bottom: 4px;
+  }}
+  .diff-summary {{
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(0,212,255,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }}
+  .diff-summary strong {{
+    color: var(--accent);
+  }}
 </style>
 </head>
 <body>
@@ -312,6 +401,69 @@ def badge_class(open_source: str) -> str:
 def badge_label(open_source: str) -> str:
     mapping = {"yes": "开源", "partial": "部分开源", "no": "闭源"}
     return mapping.get(open_source, open_source)
+
+
+def render_release_item(name: str, data: dict) -> str:
+    """渲染单个 Release Changelog 条目"""
+    tag_name = data.get("tag_name", "")
+    published_at = data.get("published_at", "")[:10]
+    changelog_zh = data.get("changelog_zh", "").strip()
+    diff_summary = data.get("diff_summary", "").strip()
+    html_url = data.get("html_url", "")
+
+    # changelog_zh 可能是多行，每行以 · 或数字开头
+    bullets_html = ""
+    if changelog_zh:
+        bullets = []
+        for line in changelog_zh.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            # 保留原样，去掉开头的 · 或数字编号
+            if line.startswith("·"):
+                line = line[1:].strip()
+            elif line[0].isdigit() and ". " in line[:4]:
+                line = line.split(". ", 1)[1].strip() if ". " in line else line
+            bullets.append(f"<li>{line}</li>")
+        if bullets:
+            bullets_html = f"<ul>{''.join(bullets)}</ul>"
+
+    diff_html = ""
+    if diff_summary:
+        diff_html = f'<div class="diff-summary"><strong>相较上一版本：</strong>{diff_summary}</div>'
+
+    return f"""
+    <div class="release-item">
+      <div class="release-top">
+        <span class="release-name">{name}</span>
+        <a href="{html_url}" target="_blank" class="release-version">{tag_name}</a>
+        <span class="release-date">📅 {published_at}</span>
+      </div>
+      {f'<div class="release-body">{bullets_html}</div>' if bullets_html else ''}
+      {diff_html}
+    </div>
+    """
+
+
+def render_releases_section(releases: dict) -> str:
+    """渲染所有 Release 条目"""
+    items_html = ""
+    # 按发布时间倒序
+    sorted_releases = sorted(
+        releases.items(),
+        key=lambda x: x[1].get("published_at", ""),
+        reverse=True,
+    )
+    for name, data in sorted_releases:
+        items_html += render_release_item(name, data)
+    return f"""
+    <div class="releases-section">
+      <div class="releases-header">
+        <h2>🚀 开源 Agent 版本更新</h2>
+      </div>
+      {items_html}
+    </div>
+    """
 
 
 def render_card(agent: dict) -> str:
@@ -435,9 +587,20 @@ def generate_report():
       <div class="stat-card"><div class="num">{sum(1 for a in agents if a.get('open_source') == 'partial')}</div><div class="label">部分开源</div></div>
       <div class="stat-card"><div class="num">{sum(1 for a in agents if a.get('open_source') == 'no')}</div><div class="label">闭源</div></div>
     </div>
-    <div class="category-nav">{nav_links}</div>
-    {sections}
     """
+
+    # ── Release Changelog Section ─────────────────────────────────
+    releases = {}
+    if RELEASES_FILE.exists():
+        with open(RELEASES_FILE) as f:
+            releases_data = json.load(f)
+            releases = releases_data.get("releases", {})
+
+    if releases:
+        html += render_releases_section(releases)
+
+    html += '<div class="category-nav">' + nav_links + '</div>'
+    html += sections
 
     html += FOOTER.format(update_time=now)
 
