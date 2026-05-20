@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
 """
 agent-hunter — 全球 AI Agent 产品检索与追踪工具
 
@@ -261,7 +261,7 @@ def load_all_agents() -> list[dict]:
 # ── LLM 调用 ──────────────────────────────────────────────────────────
 
 def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 4096) -> str | None:
-    """调用 LLM（MiniMax M2.7）返回内容文本"""
+    """调用 LLM，自动适配 Anthropic 或 OpenAI 兼容格式"""
     import requests
 
     cfg = CONFIG.get("llm", {})
@@ -273,29 +273,47 @@ def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 
         warning("config.json 未配置 llm.base_url / llm.api_key")
         return None
 
-    url = f"{base_url.rstrip('/')}/v1/messages"
-    headers = {
-        "X-Api-Key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-    }
-    body = {
-        "model": model,
-        "max_tokens": max_tokens,
-        "temperature": temperature,
-        "messages": messages,
-    }
+    # 检测 API 格式：OpenAI 兼容用 /chat/completions，Anthropic 用 /messages
+    base = base_url.rstrip("/")
+    if "/anthropic" in base or "/v1/messages" in base:
+        # Anthropic 兼容格式
+        url = f"{base}/v1/messages"
+        headers = {
+            "X-Api-Key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        body = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": messages,
+        }
+    else:
+        # OpenAI 兼容格式（scnet 等）
+        url = f"{base}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "content-type": "application/json",
+        }
+        body = {
+            "model": model,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "messages": messages,
+        }
 
     try:
         resp = requests.post(url, headers=headers, json=body, timeout=120)
         resp.raise_for_status()
         data = resp.json()
+
         # Anthropic 兼容格式
         content_blocks = data.get("content", [])
         if isinstance(content_blocks, list):
             texts = [b.get("text", "") for b in content_blocks if b.get("type") == "text"]
             return "\n".join(texts)
-        # OpenAI 兼容格式兜底
+        # OpenAI 兼容格式
         choices = data.get("choices", [])
         if choices:
             return choices[0].get("message", {}).get("content", "")
@@ -352,22 +370,42 @@ def _search_360(query: str, limit: int = 6) -> list[dict]:
 
 def _search_duckduckgo(query: str, limit: int = 6) -> list[dict]:
     """使用 DuckDuckGo 搜索（免费，覆盖全球英文站点）"""
+    import requests
+
     try:
-        from ddgs import DDGS
+        url = "https://html.duckduckgo.com/html/"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml",
+        }
+        params = {"q": query}
+        resp = requests.get(url, headers=headers, params=params, timeout=15)
+        resp.raise_for_status()
 
         results = []
-        with DDGS() as ddgs:
-            for r in ddgs.text(query, max_results=limit):
+        # 解析 DuckDuckGo HTML 结果
+        import re
+        # 匹配 <a class="result__a" href="...">Title</a> 和后面的 <a class="result__snippet" href="...">snippet</a>
+        pattern = r'<a class="result__a"[^>]*href="([^"]+)"[^>]*>(.*?)</a>'
+        snippet_pattern = r'<a class="result__snippet"[^>]*>(.*?)</a>'
+
+        matches = re.findall(pattern, resp.text, re.DOTALL)
+        snippets = re.findall(snippet_pattern, resp.text, re.DOTALL)
+
+        for i, (link, title_html) in enumerate(matches[:limit]):
+            title = re.sub(r'<[^>]+>', '', title_html).strip()
+            snippet = ""
+            if i < len(snippets):
+                s = re.sub(r'<[^>]+>', '', snippets[i]).strip()
+                snippet = s[:800] if s else ""
+            if title and link and link.startswith('http'):
                 results.append({
-                    "url": r.get("href", ""),
-                    "title": (r.get("title", "") or "")[:120],
-                    "content": (r.get("body", "") or "")[:800],
+                    "url": link,
+                    "title": title[:120],
+                    "content": snippet,
                     "source": "duckduckgo",
                 })
         return results
-    except ImportError:
-        warning("未安装 ddgs，运行: pip3 install ddgs")
-        return []
     except Exception as e:
         warning(f"DuckDuckGo 搜索失败: {e}")
         return []
@@ -378,15 +416,18 @@ def _search_firecrawl(query: str, limit: int = 6) -> list[dict]:
     import subprocess
     import json as _json
 
+    firecrawl_cmd = str(Path.home() / ".hermes/node/bin/firecrawl")
     try:
         result = subprocess.run(
-            ["firecrawl", "search", query, "--scrape", "--limit", str(limit), "--json"],
-            capture_output=True, text=True, timeout=30,
+            [firecrawl_cmd, "search", query, "--scrape", "--limit", str(limit), "--json", "-o", "/tmp/firecrawl_search.json"],
+            capture_output=True, text=True, timeout=8,
         )
-        if result.returncode != 0:
+        if result.returncode != 0 or not Path("/tmp/firecrawl_search.json").exists():
             return []
 
-        data = _json.loads(result.stdout)
+        with open("/tmp/firecrawl_search.json") as f:
+            data = _json.load(f)
+
         sources = data.get("data", {}).get("web", [])
         results = []
         for src in sources:
@@ -448,39 +489,66 @@ def discover() -> list[dict]:
 
     raw_sources = []
 
-    # ── 执行国内搜索（360搜索） ──
-    step("国内搜索源（360搜索）")
-    for target_cat, query in DOMESTIC_SEARCHES:
-        if CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", True):
+    # ── 执行国内搜索 ──
+    # 优先使用 firecrawl（如果有效），备选 360
+    domestic_fc = CONFIG.get("search_sources", {}).get("domestic", {}).get("firecrawl", {}).get("enabled", False) == True
+    domestic_360 = CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", False) == True
+
+    if domestic_fc:
+        step("国内搜索源（Firecrawl）")
+        for target_cat, query in DOMESTIC_SEARCHES:
+            sub_step(f"Firecrawl: {query[:50]}...")
+            sources = _search_firecrawl(query, limit=4)
+            for s in sources:
+                s["category_hint"] = target_cat
+            raw_sources.extend(sources)
+        # 如果 firecrawl 无结果，自动启用 360 备用
+        domestic_count = sum(1 for s in raw_sources if s.get("source") == "firecrawl")
+        if domestic_count == 0 and domestic_360:
+            warning("Firecrawl 无结果，启用 360 备用...")
+            for target_cat, query in DOMESTIC_SEARCHES:
+                sub_step(f"360(fallback): {query[:50]}...")
+                sources = _search_360(query, limit=4)
+                for s in sources:
+                    s["category_hint"] = target_cat
+                raw_sources.extend(sources)
+    elif domestic_360:
+        step("国内搜索源（360搜索）")
+        for target_cat, query in DOMESTIC_SEARCHES:
             sub_step(f"360: {query[:50]}...")
             sources = _search_360(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)
 
-    # ── 执行国外搜索（DuckDuckGo） ──
-    step("国外搜索源（DuckDuckGo）")
-    for target_cat, query in OVERSEAS_SEARCHES:
-        if CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", True):
+    # ── 执行国外搜索 ──
+    # 优先使用 firecrawl（如果有效），备选 DuckDuckGo
+    overseas_fc = CONFIG.get("search_sources", {}).get("overseas", {}).get("firecrawl", {}).get("enabled", False) == True
+    overseas_ddg = CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", False) == True
+
+    if overseas_fc:
+        step("国外搜索源（Firecrawl）")
+        for target_cat, query in OVERSEAS_SEARCHES:
+            sub_step(f"Firecrawl: {query[:50]}...")
+            sources = _search_firecrawl(query, limit=4)
+            for s in sources:
+                s["category_hint"] = target_cat
+            raw_sources.extend(sources)
+        # 如果 firecrawl 无结果，自动启用 DDG 备用
+        overseas_count = sum(1 for s in raw_sources if s.get("source") == "firecrawl")
+        if overseas_count == 0 and overseas_ddg:
+            warning("Firecrawl 无结果，启用 DuckDuckGo 备用...")
+            for target_cat, query in OVERSEAS_SEARCHES:
+                sub_step(f"DDG(fallback): {query[:50]}...")
+                sources = _search_duckduckgo(query, limit=4)
+                for s in sources:
+                    s["category_hint"] = target_cat
+                raw_sources.extend(sources)
+    elif overseas_ddg:
+        step("国外搜索源（DuckDuckGo）")
+        for target_cat, query in OVERSEAS_SEARCHES:
             sub_step(f"DDG: {query[:50]}...")
             sources = _search_duckduckgo(query, limit=4)
-            for s in sources:
-                s["category_hint"] = target_cat
-            raw_sources.extend(sources)
-
-    # ── 可选：Firecrawl 补充搜索 ──
-    if CONFIG.get("search_sources", {}).get("domestic", {}).get("firecrawl", {}).get("enabled", False):
-        step("Firecrawl 补充搜索（国内）")
-        for target_cat, query in DOMESTIC_SEARCHES[:3]:  # 只搜前3个节省额度
-            sources = _search_firecrawl(query, limit=3)
-            for s in sources:
-                s["category_hint"] = target_cat
-            raw_sources.extend(sources)
-
-    if CONFIG.get("search_sources", {}).get("overseas", {}).get("firecrawl", {}).get("enabled", False):
-        step("Firecrawl 补充搜索（国外）")
-        for target_cat, query in OVERSEAS_SEARCHES[:3]:
-            sources = _search_firecrawl(query, limit=3)
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)
@@ -814,12 +882,22 @@ def refresh_agents(batch_size: int = 5, max_batches: int = 3) -> dict:
             sub_step(f"[{aid}] {name}")
             debug(f"  搜索: {query}")
 
-            # 搜索（360 + DuckDuckGo）
+            # 搜索（firecrawl 优先，备选 360 + DDG）
             sources = []
-            if CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", True):
-                sources.extend(_search_360(query, limit=3))
-            if CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", True):
-                sources.extend(_search_duckduckgo(query, limit=3))
+            domestic_fc = CONFIG.get("search_sources", {}).get("domestic", {}).get("firecrawl", {}).get("enabled", False) == True
+            overseas_fc = CONFIG.get("search_sources", {}).get("overseas", {}).get("firecrawl", {}).get("enabled", False) == True
+
+            if domestic_fc:
+                sources.extend(_search_firecrawl(query, limit=3))
+            if overseas_fc:
+                sources.extend(_search_firecrawl(query, limit=3))
+
+            # 如果 firecrawl 无结果，启用备用源
+            if not sources:
+                if CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", False) == True:
+                    sources.extend(_search_360(query, limit=3))
+                if CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", False) == True:
+                    sources.extend(_search_duckduckgo(query, limit=3))
 
             if not sources:
                 warning(f"  [{aid}] 无搜索结果，跳过")

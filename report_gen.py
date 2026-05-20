@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
 """
 报告生成模块 — 从 agents/ 目录读取数据，生成卡片式 HTML 报告。
 """

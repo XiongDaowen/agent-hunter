@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
 """
 agent-hunter 主入口 — 发现、更新和报告 AI Agent 产品。
 
