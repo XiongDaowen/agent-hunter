@@ -1,7 +1,7 @@
 {
   "id": "gemini-code-assist",
   "name": "Google Gemini Code Assist",
-  "category": "GUI",
+  "category": "Plugin",
   "description": "Google 推出的 AI 编程助手（原 Duet AI）。",
   "features": [
     "Gemini 模型驱动的代码补全",

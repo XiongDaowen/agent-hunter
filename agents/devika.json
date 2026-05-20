@@ -1,7 +1,7 @@
 {
   "id": "devika",
   "name": "Devika",
-  "category": "Other",
+  "category": "CLI",
   "description": "开源 AI 软件工程师代理。",
   "features": [
     "高级指令理解",
@@ -23,7 +23,7 @@
   "github_repo": "https://github.com/stitionai/devika",
   "pricing": "免费",
   "tags": [
-    "Other",
+    "CLI",
     "SWE Agent",
     "Open Source"
   ],

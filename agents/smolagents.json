@@ -1,7 +1,7 @@
 {
   "id": "smolagents",
   "name": "Smolagents",
-  "category": "CLI",
+  "category": "SDK",
   "description": "Hugging Face 的极简 AI 代理框架。",
   "features": [
     "极简 API 设计",
@@ -23,7 +23,7 @@
   "github_repo": "https://github.com/huggingface/smolagents",
   "pricing": "免费",
   "tags": [
-    "CLI",
+    "SDK",
     "Framework",
     "Hugging Face",
     "Lightweight"
