@@ -1,7 +1,7 @@
 {
   "id": "manus",
   "name": "Manus",
-  "category": "Other",
+  "category": "GUI",
   "description": "通用 AI 代理平台，自主完成复杂任务。",
   "features": [
     "自主复杂任务执行",
