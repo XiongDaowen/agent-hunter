@@ -211,7 +211,8 @@ with tab2:
         updated = news_data.get("updated", "")
         st.caption(f"📅 更新时间: {updated} | 共 {total} 条")
 
-        for topic_name, topic in news_data.get("topics", {}).items():
+        topics = list(news_data.get("topics", {}).items())
+        for idx, (topic_name, topic) in enumerate(topics):
             icon = topic.get("icon", "📌")
             label = topic.get("label", topic_name)
             items = topic.get("items", [])
@@ -220,8 +221,12 @@ with tab2:
             if not items:
                 continue
 
-            with st.expander(f"{icon} {label} ({count})", expanded=False):
-                for item in items:
+            # 前2个话题默认展开，其余默认折叠
+            default_expanded = idx < 2
+            with st.expander(f"{icon} {label} ({count})", expanded=default_expanded):
+                # Grid layout for news items
+                cols = st.columns(2) if len(items) > 1 else [st]
+                for i, item in enumerate(items):
                     title = item.get("title", "无标题")
                     url = item.get("url", "#")
                     desc = item.get("description", "")
@@ -237,15 +242,13 @@ with tab2:
                     else:
                         src_color = "#94a3b8"
 
-                    col1, col2 = st.columns([4, 1])
-                    with col1:
+                    with cols[i % 2]:
                         st.markdown(f"**[{title}]({url})**")
                         if desc:
                             st.caption(desc[:120])
-                        st.caption(f":{src_color}[{source}] {meta}")
-                    with col2:
-                        st.caption(f"⏱ {time_ago}" if time_ago else "")
-                    st.divider()
+                        st.caption(f":{src_color}[{source}] {meta} · ⏱ {time_ago}" if time_ago else f":{src_color}[{source}] {meta}")
+                        if i < len(items) - 1:
+                            st.divider()
 
     # ── 版本更新 ────────────────────────────────────────────────
     st.markdown("---")
