@@ -4311,3 +4311,35 @@ base_url = os.environ.get('LLM_BASE_URL', '') or os.environ.get('MINIMAX_ CN_BAS
 2. 调研 HN API 的 date-range 参数能否直接限制时间（避免先取后过滤的浪费）
 3. 考虑为每个 topic 添加"最新 N 条"视图（而非累积所有历史）
 4. iteration-log.md 已达 197KB，考虑归档早期条目到 iteration-log-archive.md
+
+
+## 2026-05-27 10:00（Job ID: 603bc53e1dfd）
+
+### 本次分析
+- 检查对象：WebUI 每日资讯 Tab + dev.to 对标参考
+- 发现的问题：
+  - 资讯页面所有话题均默认折叠（expanded=False），用户必须手动逐个展开才能浏览
+  - 话题内所有条目纵向排列，每条占用一整行，空间利用率低
+  - 参考 dev.to：使用卡片网格+标签系统提升信息密度和扫描效率
+- 决定动手的改进点：
+  1. 前2个话题默认展开，其余折叠（用户优先看到最新热门资讯）
+  2. 话题内使用双列网格布局
+
+### 本次修复
+- webui.py:214-247 — 资讯 Tab 布局优化：
+  - 前2个话题（index < 2）默认展开，其余折叠
+  - 使用 st.columns(2) 双列网格替代单列纵向排列
+  - 每条资讯内嵌时间信息到同一行
+  - 移除不必要的右侧空白列，每条资讯信息更紧凑
+
+### 验证结果
+- python3 -m py_compile webui.py -> OK
+- WebUI Tab 2 加载正常，Claude Code + Hermes 话题默认展开
+- git push origin master -> 成功
+
+### 待下次修复
+1. 产品列表 Tab 也加入类似的"热门分类默认展开"行为
+2. 调研 firecrawl 402 根因，或尝试 SerpAPI/Jina 作为替代搜索 API
+3. 检查 agents/ 中各 agent 的 website 字段是否还有失效链接
+4. iteration-log.md 已达 197KB，考虑归档早期条目
+5. 调研 HN 搜索结果数量是否可以增加（当前偏少）
