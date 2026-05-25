@@ -1,3 +1,31 @@
+## 2026-05-27 09:00（Job ID: 603bc53e1dfd）
+
+### 本次分析
+- 检查对象：webui.py（agent 卡片渲染）、iteration-log.md、agents 目录（78个JSON）、news.json
+- 发现的问题：
+  - 78/78 个 agent 同时有 position 和 description 字段，其中 12 个两者高度相似（相似度>0.5），Vectimus 达到 0.93
+  - 高度相似的 position+description 同时显示造成信息冗余，用户阅读时看到两行几乎相同的内容
+  - news.json 正常（35条，6个话题），meta.json 最后修改时间 2026-05-24
+- 对标参考：producthunt.com（被 Cloudflare 拦截）+ github.com/explore（超时），改为基于本地卡片内容分析
+- 决定动手的改进点：WebUI agent 卡片 position/description 去重优化——当 position 与 description 相似度>0.6 时，跳过 description 显示，避免信息冗余
+
+### 本次修复
+- webui.py:663-677 — 新增 position/description 相似度检测逻辑：
+  - 使用 `difflib.SequenceMatcher` 计算 position 与 description 的相似度（ratio）
+  - 当 ratio > 0.6 且两者均非空时，跳过 description 显示（仅保留 position 的「」包裹展示）
+  - 仅对真正有区分度的 description（ratio ≤ 0.6）才显示，避免信息丢失
+  - 影响范围：12/78 个 agent 卡片将减少冗余信息（Vectimus/AgentArmor/DeerFlow/Aider 等）
+
+### 验证结果
+- python3 -m py_compile webui.py → OK ✓
+- WebUI 已加载（78个产品，分类分布正常）✓
+
+### 待下次修复
+1. 调研 firecrawl 402 根因，或尝试 SerpAPI/Jina 作为替代搜索 API
+2. 检查 meta.json 中超过 60 天未更新的 agent 并运行 refresh 强制刷新
+3. 调研 news.html 的 HN 搜索结果数量是否偏少（可能只取6条可以增加）
+4. 检查 agents/ 中各 agent 的 website 字段是否还有失效链接
+
 ## 2026-05-27 08:00（Job ID: cron-unknown）
 
 ### 本次分析

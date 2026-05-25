@@ -663,8 +663,15 @@ with tab1:
 
             if a.get("position"):
                 st.caption(f"「{a['position']}」")
-            if a.get("description"):
-                desc_text = a.get("description", "")
+            # Skip description if it's highly similar to position (redundant)
+            pos_text = a.get("position", "")
+            show_desc = True
+            desc_text = a.get("description", "")
+            if pos_text and desc_text:
+                ratio = SequenceMatcher(None, pos_text, desc_text).ratio()
+                if ratio > 0.6:
+                    show_desc = False
+            if show_desc and desc_text:
                 # Truncate long descriptions to prevent card overflow
                 MAX_DESC_LEN = 150
                 if len(desc_text) > MAX_DESC_LEN:
