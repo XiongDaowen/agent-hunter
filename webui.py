@@ -126,10 +126,28 @@ OS_STYLE = {
 }
 
 
+STARS_CACHE_FILE = None  # lazily loaded
+
+def _load_stars_cache():
+    """Load GitHub stars from cache file (once per process)."""
+    global STARS_CACHE_FILE
+    if STARS_CACHE_FILE is None:
+        from pathlib import Path
+        cache_file = Path(__file__).parent / "cache" / "github_stars.json"
+        if cache_file.exists():
+            try:
+                STARS_CACHE_FILE = json.load(open(cache_file))
+            except Exception:
+                STARS_CACHE_FILE = {}
+        else:
+            STARS_CACHE_FILE = {}
+    return STARS_CACHE_FILE
+
 def agent_hot_score(a: dict) -> int:
-    """Comprehensive hot score (used when GitHub stars data is unavailable).
+    """Comprehensive hot score — now with real GitHub stars data.
 
     Scoring dimensions:
+      - GitHub stars: log-scale bonus (real popularity signal)
       - Open source: yes=5, partial=3, no=0
       - Features count: +1 each
       - Strengths count: +2 each
@@ -139,7 +157,15 @@ def agent_hot_score(a: dict) -> int:
       - Has website: +1
     Returns integer score.
     """
+    import math
     score = 0
+    # Real GitHub stars bonus (log scale to prevent domination)
+    cache = _load_stars_cache()
+    agent_id = a.get('id', '')
+    if agent_id in cache and cache[agent_id].get('stars', -1) >= 0:
+        stars = cache[agent_id]['stars']
+        if stars > 0:
+            score += int(math.log10(stars + 1) * 15)
     # Open source bonus
     os_map = {"yes": 5, "partial": 3, "no": 0, "unknown": 0}
     score += os_map.get(a.get("open_source", "unknown"), 0)
@@ -616,13 +642,21 @@ with tab1:
         top5 = scored[:5]
         medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
         parts = []
+        cache = _load_stars_cache()
         for i, (s, a) in enumerate(top5):
             name = a['name']
             score = f"{s}"
+            # Show stars in medal line for top 3
+            stars_str = ''
+            agent_id = a.get('id', '')
+            if agent_id in cache and cache[agent_id].get('stars', -1) >= 0:
+                ss = cache[agent_id]['stars']
+                if ss > 0:
+                    stars_str = f' ⭐{ss:,}'
             if i < 3:
-                parts.append(f"**{medals[i]} {name}**({score})")
+                parts.append(f"**{medals[i]} {name}**({score}{stars_str})")
             else:
-                parts.append(f"{medals[i]} **{name}**({score})")
+                parts.append(f"{medals[i]} **{name}**({score}{stars_str})")
         st.caption("🏆 TOP5: " + " · ".join(parts))
 
     # Show TOP5 ranking for selected single category
@@ -700,10 +734,16 @@ with tab1:
                     st.link_button("📄 文档", a["docs_url"])
                 col_idx += 1
 
+            stars = ''
+            cache = _load_stars_cache()
+            agent_id = a.get('id', '')
+            if agent_id in cache and cache[agent_id].get('stars', -1) >= 0:
+                s = cache[agent_id]['stars']
+                stars = f" · ⭐ {s:,}" if s > 0 else ''
             hot = agent_hot_score(a)
             feat_n = len(a.get('features', []))
             str_n = len(a.get('strengths', []))
-            st.caption(f"🔥 热度: {hot} · 🔧 {feat_n} 特性 · 💪 {str_n} 优势")
+            st.caption(f"🔥 热度: {hot}{stars} · 🔧 {feat_n} 特性 · 💪 {str_n} 优势")
 
             exp_col1, exp_col2 = st.columns(2)
             with exp_col1:

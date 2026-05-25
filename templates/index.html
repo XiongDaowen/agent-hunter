@@ -279,6 +279,20 @@ function updateStats() {
   const open = allAgents.filter(a => a.open_source === 'yes').length;
   const gh = allAgents.filter(a => a.github_repo).length;
   const withRelease = allAgents.filter(a => a._release).length;
+
+  // Compute news freshness from heroBar's data-news attribute (set by loadNews)
+  const updated = document.getElementById('heroBar').dataset.newsUpdated || '';
+  let freshLabel = '';
+  if (updated) {
+    const then = new Date(updated.replace(' ', 'T'));
+    const now = new Date();
+    const hours = (now - then) / 3600000;
+    if (hours < 6) freshLabel = '<span style="color:#34d399;font-weight:600">● 实时更新</span>';
+    else if (hours < 24) freshLabel = '<span style="color:#fbbf24;font-weight:600">● 今日更新</span>';
+    else if (hours < 48) freshLabel = '<span style="color:#fb923c;font-weight:600">● 即将过期</span>';
+    else freshLabel = '<span style="color:#f87171;font-weight:600">● 需要刷新</span>';
+  }
+
   document.getElementById('heroBar').innerHTML = `
     <h1>🤖 AI Agent 产品全景</h1>
     <span class="hero-stat">📦 <b>${total}</b> 产品</span>
@@ -286,6 +300,7 @@ function updateStats() {
     <span class="hero-stat">🟢 <b>${open}</b> 开源</span>
     <span class="hero-stat">🐙 <b>${gh}</b> GitHub</span>
     ${withRelease > 0 ? `<span class="hero-stat">🚀 <b>${withRelease}</b> 版本更新</span>` : ''}
+    ${freshLabel ? `<span class="hero-stat">${freshLabel}</span>` : ''}
   `;
 }
 
@@ -493,6 +508,10 @@ function renderNews() {
   if (!newsData) return;
   const d = newsData;
   document.getElementById('newsSummary').textContent = `📅 更新时间: ${d.updated} | 共 ${d.total} 条`;
+  // Expose news timestamp on heroBar so updateStats() can compute freshness
+  document.getElementById('heroBar').dataset.newsUpdated = d.updated;
+  // Re-render hero bar with freshness label
+  updateStats();
 
   let html = '';
   for (const [name, topic] of Object.entries(d.topics || {})) {

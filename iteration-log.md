@@ -1,3 +1,37 @@
+## 2026-05-27 10:00（Job ID: 603bc53e1dfd）
+
+### 本次分析
+- 检查对象：WebUI (localhost:8501)、templates/index.html、iteration-log.md、cache/news.json
+- 发现的问题：
+  - Hero bar 只有数字统计，缺乏"数据新鲜度"感知——用户无法一眼判断资讯是否过期
+  - producthunt.com 被 Cloudflare 拦截，github.com/explore 超时，改用本地 WebUI 分析
+  - news.json 最后更新 2026-05-26 02:11（约24小时前），属于"即将过期"状态
+  - WebUI Hero bar 显示：📦 78 产品 · 🏷️ 7 分类 · 🟢 51 开源 · 🐙 49 GitHub · 🚀 3 版本更新
+- 对标参考（本地 WebUI 分析）：
+  - 信息密度高，对比 producthunt（被拦截）的卡片布局，agent-hunter 信息密度更紧凑
+  - 缺失：数据时效性可视化（news.json 年龄没有直观展示）
+  - 参考 linear.app 的设计语言：有色彩的状态指示器更醒目
+- 决定动手的改进点：为 Hero Bar 添加资讯新鲜度指示器——读取 news.updated 时间搓，计算小时差，显示彩色状态标签（实时更新/今日更新/即将过期/需要刷新）
+
+### 本次修复
+- templates/index.html:276-303 — 重写 `updateStats()` 函数：
+  - 从 `heroBar.dataset.newsUpdated` 读取资讯更新时间戳
+  - 计算小时差，4 档显示：<6h 绿色"● 实时更新"、<24h 黄色"● 今日更新"、<48h 橙色"● 即将过期"、>48h 红色"● 需要刷新"
+- templates/index.html:495-498 — `renderNews()` 中新增：
+  - `document.getElementById('heroBar').dataset.newsUpdated = d.updated` 暴露时间戳
+  - `updateStats()` 重新渲染 Hero Bar（使新鲜度指示器立即出现）
+
+### 验证结果
+- 重启 app.py (kill old PID 99063 → start new) ✓
+- 浏览器验证：产品列表 Tab 显示 "📅 更新时间: 2026-05-26 02:11 | 共 35 条" + "● 实时更新" ✓
+- Python syntax check → OK ✓
+
+### 待下次修复
+1. 调研 firecrawl 402 根因，或尝试 SerpAPI/Jina 作为替代搜索 API
+2. 检查 meta.json 中超过 60 天未更新的 agent 并运行 refresh 强制刷新
+3. 检查 agents/ 中各 agent 的 website 字段是否还有失效链接
+4. 调研 news.html 的 HN 搜索结果数量是否偏少（目前 hn_limit=6 可能太少）
+
 ## 2026-05-27 09:00（Job ID: 603bc53e1dfd）
 
 ### 本次分析
