@@ -1,0 +1,28 @@
+{
+  "id": "zep",
+  "name": "Zep",
+  "category": "SDK",
+  "description": "开源图内存系统，为 AI 应用提供长期记忆存储与语义检索能力，支持复杂关系查询与多模态数据管理",
+  "features": [
+    "图结构存储",
+    "记忆持久化",
+    "语义检索"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "高效记忆管理",
+    "支持复杂查询",
+    "可扩展架构"
+  ],
+  "position": "AI应用的记忆存储引擎",
+  "website": "https://blog.getzep.com/announcing-zep-community-edition/",
+  "docs_url": "https://docs.getzep.com",
+  "github_repo": "",
+  "pricing": "免费+付费",
+  "tags": [
+    "内存系统",
+    "AI持久化"
+  ],
+  "last_verified": "2026-05-20"
+}

@@ -12,14 +12,14 @@
     "Claude Agent"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "JetBrains 市场",
     "轻量级"
   ],
   "position": "JetBrains 插件市场的 AI 助手",
   "website": "https://plugins.jetbrains.com/plugin/22282-jetbrains-ai-assistant",
-  "docs_url": "",
+  "docs_url": "https://plugins.jetbrains.com/plugin/22282-jetbrains-ai-assistant",
   "github_repo": "",
   "pricing": "免费",
   "tags": [

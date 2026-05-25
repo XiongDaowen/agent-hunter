@@ -2,7 +2,7 @@
   "id": "openhands",
   "name": "OpenHands",
   "category": "CLI",
-  "description": "开源的 AI 软件开发代理平台（原 OpenDevin）。",
+  "description": "开源 AI 软件开发代理平台（原 OpenDevin），支持全栈自动化开发、沙盒安全执行环境与浏览器 GUI/CLI 双模式",
   "features": [
     "全栈软件开发自动化",
     "浏览器 GUI + CLI 双模式",

@@ -1,0 +1,29 @@
+{
+  "id": "ya-copilot",
+  "name": "YA Copilot",
+  "category": "Plugin",
+  "description": "另一款开源的GitHub Copilot替代品，作为VS Code扩展提供智能代码辅助。",
+  "features": [
+    "代码建议",
+    "上下文感知",
+    "支持多种编程语言"
+  ],
+  "open_source": "yes",
+"license": "MIT",
+  "strengths": [
+    "轻量",
+    "易配置",
+    "社区驱动"
+  ],
+  "position": "轻量级开源编程助手插件",
+  "website": "https://marketplace.visualstudio.com/items?itemName=RemoteSkills.ya-copilot",
+  "docs_url": "https://github.com/AgoraIO/ya-copilot",
+  "github_repo": "https://github.com/AgoraIO/ya-copilot",
+  "pricing": "免费",
+  "tags": [
+    "code assistant",
+    "VS Code",
+    "open source"
+  ],
+  "last_verified": "2026-05-21"
+}

@@ -10,16 +10,16 @@
     "部署管理"
   ],
   "open_source": "partial",
-  "license": "未知",
+  "license": "Unknown",
   "strengths": [
     "可视化操作",
     "降低使用门槛",
     "活跃社区"
   ],
   "position": "可视化AI智能体构建与部署平台",
-  "website": "",
-  "docs_url": "",
-  "github_repo": "",
+  "website": "https://agpt.co",
+  "docs_url": "https://docs.agpt.co",
+  "github_repo": "https://github.com/Significant-Gravitas/AutoGPT",
   "pricing": "免费+付费",
   "tags": [
     "autonomous-agent",

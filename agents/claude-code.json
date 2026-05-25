@@ -2,7 +2,7 @@
   "id": "claude-code",
   "name": "Claude Code",
   "category": "CLI",
-  "description": "Anthropic 推出的 AI 编程助手，作为 CLI 工具集成到开发工作流中，提供代码理解、编辑和问题解答能力。",
+  "description": "Anthropic 推出的 AI 编程 CLI 助手，深度集成 Claude 模型支持文件编辑、项目理解与终端命令执行",
   "features": [
     "深度代码理解",
     "内联编辑与建议",
@@ -11,7 +11,7 @@
     "Git 工作流集成"
   ],
   "open_source": "partial",
-  "license": "专有（部分开源组件）",
+  "license": "Proprietary (partial open source components)",
   "strengths": [
     "Anthropic 原生",
     "代码理解深度",

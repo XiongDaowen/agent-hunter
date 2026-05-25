@@ -1,0 +1,28 @@
+{
+  "id": "vectimus",
+  "name": "Vectimus",
+  "category": "SDK",
+  "description": "开源策略执行引擎，为AI编码代理提供基于Cedar策略的安全控制。",
+  "features": [
+    "策略管理",
+    "权限控制",
+    "审计追踪"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "细粒度控制",
+    "安全合规",
+    "易集成"
+  ],
+  "position": "开源策略执行引擎，为 AI 编码代理提供基于 Cedar 策略的安全控制",
+  "website": "https://github.com/vectimus/vectimus",
+  "docs_url": "https://github.com/vectimus/vectimus#readme",
+  "github_repo": "https://github.com/vectimus/vectimus",
+  "pricing": "免费",
+  "tags": [
+    "策略引擎",
+    "访问控制"
+  ],
+  "last_verified": "2026-05-20"
+}

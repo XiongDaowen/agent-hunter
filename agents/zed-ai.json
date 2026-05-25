@@ -11,7 +11,7 @@
     "终端集成"
   ],
   "open_source": "yes",
-  "license": "AGPL-3.0 + 商业许可",
+  "license": "AGPL-3.0 + Commercial License",
   "strengths": [
     "极致性能",
     "Rust 底层",

@@ -1,0 +1,28 @@
+{
+  "id": "go-tui",
+  "name": "Go-TUI",
+  "category": "TUI",
+  "description": "Go 语言声明式终端 UI 开发框架，通过简洁语法快速构建交互式命令行界面，支持跨平台与实时热重载",
+  "features": [
+    "声明式语法",
+    "跨平台支持",
+    "实时渲染"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "高性能",
+    "开发效率高",
+    "活跃社区"
+  ],
+  "position": "Go语言终端UI框架",
+  "website": "https://www.go-tui.dev/",
+  "docs_url": "https://github.com/moogar0880/go-tui#readme",
+  "github_repo": "https://github.com/moogar0880/go-tui",
+  "pricing": "免费",
+  "tags": [
+    "开发框架",
+    "终端UI"
+  ],
+  "last_verified": "2026-05-23"
+}

@@ -2,7 +2,7 @@
   "id": "openai-agents-sdk",
   "name": "OpenAI Agents SDK",
   "category": "SDK",
-  "description": "OpenAI 官方 AI 代理开发 SDK。",
+  "description": "OpenAI 官方 AI 代理开发 SDK，提供 Agent 循环/工具调用/安全护栏/Handoff 委派等企业级功能",
   "features": [
     "Agent 循环与工具调用",
     "Agent Handoff 委派",

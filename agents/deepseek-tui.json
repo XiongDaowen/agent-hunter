@@ -12,7 +12,7 @@
     "缓存与上下文管理"
   ],
   "open_source": "partial",
-  "license": "BSD-3-Clause（部分开源）",
+  "license": "BSD-3-Clause (partial open source)",
   "strengths": [
     "DeepSeek 原生",
     "子代理并行",

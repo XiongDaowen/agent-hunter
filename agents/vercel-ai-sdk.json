@@ -2,7 +2,7 @@
   "id": "vercel-ai-sdk",
   "name": "Vercel AI SDK",
   "category": "SDK",
-  "description": "Web 前端 AI 应用开发的 SDK。",
+  "description": "Web 前端 AI 应用开发 SDK，深度集成 React/Next.js 支持流式 UI 渲染，提供统一多模型 API 与边缘部署能力",
   "features": [
     "React/Next.js 深度集成",
     "流式 UI 渲染",

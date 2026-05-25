@@ -1,8 +1,8 @@
 {
   "id": "anthropic-mcp-servers",
   "name": "Anthropic MCP Servers",
-  "category": "SDK",
-  "description": "Anthropic 官方 MCP 服务器集合。",
+  "category": "Runtime",
+  "description": "Anthropic 官方维护的 MCP 服务器集合，提供文件系统存取、Git/GitHub 操作、浏览器自动化与搜索工具的标准实现",
   "features": [
     "官方维护的 MCP 服务器集合",
     "文件系统存取",
@@ -23,7 +23,6 @@
   "github_repo": "https://github.com/modelcontextprotocol/servers",
   "pricing": "免费",
   "tags": [
-    "SDK",
     "MCP",
     "Tool Servers",
     "Anthropic"

@@ -2,7 +2,7 @@
   "id": "dify",
   "name": "Dify",
   "category": "GUI",
-  "description": "开源 LLM 应用开发平台。",
+  "description": "开源 LLM 应用开发平台，提供可视化工作流编排、Agent 构建管理、RAG 知识库集成与多模型支持的企业级能力",
   "features": [
     "可视化工作流编排",
     "Agent 构建与管理",

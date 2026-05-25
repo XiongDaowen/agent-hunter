@@ -1,0 +1,28 @@
+{
+  "id": "superlocalmemoryv2",
+  "name": "SuperLocalMemoryV2",
+  "category": "SDK",
+  "description": "为 Claude/Cursor 等 AI 工具提供本地优先的记忆存储系统，支持多工具集成、隐私保护与跨平台同步，开源可自托管",
+  "features": [
+    "本地存储优先",
+    "多工具集成",
+    "隐私保护"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "数据隐私",
+    "跨平台兼容",
+    "开源灵活性"
+  ],
+  "position": "AI代理的本地记忆解决方案",
+  "website": "https://github.com/varun369/SuperLocalMemoryV2",
+  "docs_url": "https://github.com/varun369/SuperLocalMemoryV2#readme",
+  "github_repo": "https://github.com/varun369/SuperLocalMemoryV2",
+  "pricing": "免费",
+  "tags": [
+    "本地存储",
+    "记忆存储"
+  ],
+  "last_verified": "2026-05-20"
+}

@@ -2,7 +2,7 @@
   "id": "sourcegraph-cody",
   "name": "Sourcegraph Cody",
   "category": "Plugin",
-  "description": "以代码库理解见长的 AI 编程助手。",
+  "description": "以代码库理解见长的 AI 编程助手，深度集成 Sourcegraph 代码搜索，支持代码解释/文档生成与多 IDE",
   "features": [
     "代码库级上下文理解",
     "Sourcegraph 代码搜索集成",

@@ -1,0 +1,28 @@
+{
+  "id": "toad",
+  "name": "Toad",
+  "category": "TUI",
+  "description": "统一的终端UI框架，专为AI编码代理设计，提供可视化交互界面。",
+  "features": [
+    "终端集成",
+    "多代理支持",
+    "实时可视化"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "界面友好",
+    "降低使用门槛",
+    "支持多种代理"
+  ],
+  "position": "AI代理终端交互界面解决方案",
+  "website": "https://github.com/batrachianai/toad",
+  "docs_url": "https://github.com/batrachianai/toad#readme",
+  "github_repo": "https://github.com/batrachianai/toad",
+  "pricing": "免费",
+  "tags": [
+    "终端UI",
+    "AI代理框架"
+  ],
+  "last_verified": "2026-05-20"
+}

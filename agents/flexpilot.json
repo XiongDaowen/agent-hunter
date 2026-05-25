@@ -1,0 +1,28 @@
+{
+  "id": "flexpilot",
+  "name": "Flexpilot",
+  "category": "Plugin",
+  "description": "开源的GitHub Copilot替代方案，提供代码自动补全功能。",
+  "features": [
+    "代码补全",
+    "VSCode集成",
+    "多语言支持"
+  ],
+  "open_source": "yes",
+  "license": "MIT",
+  "strengths": [
+    "免费替代品",
+    "无缝集成IDE",
+    "即时代码建议"
+  ],
+  "position": "VS Code 代码辅助插件，GitHub Copilot 开源替代方案",
+  "website": "https://marketplace.visualstudio.com/items?itemName=flexpilot.flexpilot-vscode-extension",
+  "docs_url": "https://github.com/flexpilot-ai/flexpilot",
+  "github_repo": "https://github.com/flexpilot-ai/flexpilot",
+  "pricing": "unknown",
+  "tags": [
+    "插件",
+    "代码生成"
+  ],
+  "last_verified": "2026-05-20"
+}

@@ -10,14 +10,14 @@
     "AI 对话"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "JetBrains 原生",
     "IDE 深度集成"
   ],
   "position": "JetBrains IDE 内置的 AI 编程助手",
   "website": "https://www.jetbrains.com/ai/",
-  "docs_url": "",
+  "docs_url": "https://www.jetbrains.com/help/idea/ai-assistant.html",
   "github_repo": "",
   "pricing": "付费",
   "tags": [

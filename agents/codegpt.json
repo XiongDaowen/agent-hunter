@@ -2,7 +2,7 @@
   "id": "codegpt",
   "name": "CodeGPT",
   "category": "Plugin",
-  "description": "多 IDE AI 编程助手插件。",
+  "description": "多 IDE AI 编程助手插件，支持 VS Code/IntelliJ/VS 等主流编辑器，提供代码补全、对话生成与 Agent 模式多模型接入",
   "features": [
     "多 IDE 支持",
     "代码补全与对话",
@@ -11,7 +11,7 @@
     "代码审查与解释"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "多模型接入",
     "IDE 覆盖广",

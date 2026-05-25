@@ -1,0 +1,29 @@
+{
+  "id": "ridvay-code",
+  "name": "Ridvay Code",
+  "category": "Plugin",
+  "description": "VS Code的AI编码助手插件，提供代码生成、补全和智能建议功能。",
+  "features": [
+    "代码生成",
+    "智能补全",
+    "VS Code集成"
+  ],
+  "open_source": "unknown",
+  "license": "Proprietary",
+  "strengths": [
+    "无缝集成VS Code",
+    "上下文感知",
+    "提高编码效率"
+  ],
+  "position": "VS Code上的AI编码助手",
+  "website": "https://ridvay.com/ridvay-code/",
+  "docs_url": "https://ridvay.com/ridvay-code/",
+  "github_repo": "",
+  "pricing": "未知",
+  "tags": [
+    "VS Code",
+    "AI coding assistant",
+    "plugin"
+  ],
+  "last_verified": "2026-05-21"
+}

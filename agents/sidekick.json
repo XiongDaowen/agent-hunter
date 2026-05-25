@@ -1,0 +1,28 @@
+{
+  "id": "sidekick",
+  "name": "Sidekick",
+  "category": "GUI",
+  "description": "可视化监控 AI 编码代理活动的工具，实时展示代理行为轨迹、工具调用与中间结果，提升调试效率与可解释性",
+  "features": [
+    "实时监控",
+    "可视化界面",
+    "行为分析"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "直观监控",
+    "提升调试效率",
+    "开源灵活"
+  ],
+  "position": "可视化 AI 编码代理活动监控平台",
+  "website": "https://cesarandreslopez.github.io/sidekick-agent-hub/",
+  "docs_url": "https://github.com/cesarandreslopez/sidekick-agent#readme",
+  "github_repo": "https://github.com/cesarandreslopez/sidekick-agent-hub",
+  "pricing": "免费",
+  "tags": [
+    "监控",
+    "可视化"
+  ],
+  "last_verified": "2026-05-20"
+}

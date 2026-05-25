@@ -1,0 +1,93 @@
+import requests
+cfg = {
+    "base_url": "https://ark.cn-beijing.volces.com/api/coding/v3",
+    "api_key": "ark-dd5ccd59-ec1f-461a-bf1c-8c55098cedbe-4da6a",
+    "model": "ark-code-latest"
+}
+url = f"{cfg['base_url']}/chat/completions"
+headers = {
+    "Authorization": f"Bearer {cfg['api_key']}",
+    "content-type": "application/json"
+}
+
+# 模拟 discover 中的 prompt
+system_prompt = """你是一个专业的 AI Agent 产品研究员。你的任务是从网页搜索结果中识别并提取 AI Agent 产品信息。
+
+符合条件的产品应该是：
+1. 能够自主执行编程/开发任务的 AI 工具
+2. 具有 Agent、Copilot、Assistant、Developer 等关键词
+3. 有明确的官网或 GitHub 仓库
+
+对每个产品输出 JSON 格式（只输出一个 JSON 数组，不要其他文字）：
+```json
+[
+  {
+    "name": "产品名称（英文原名）",
+    "category": "IDE|CLI|TUI|GUI|Plugin|SDK|Other",
+    "description": "一句话中文描述（30-80字）",
+    "features": ["特性1", "特性2", "特性3"],
+    "open_ource": "yes|partial|no|unknown",
+    "license": "开源许可证名称或'专有'或'未知'",
+    "strengths": ["优势1", "优势2", "优势3"],
+    "position": "一句话中文定位（10-30字）",
+    "website": "官网URL",
+    "docs_url": "文档URL（如果没有则填空字符串）",
+    "github_repo": "GitHub仓库URL（如果没有则填空字符串）",
+    "pricing": "定价信息（免费/付费/免费+付费或未知）",
+    "tags": ["标签1", "标签2"]
+  }
+]
+```
+
+要求：
+- 只输出严格有效的 JSON 数组
+- 最多输出 5 个产品（宁可少也不要错）
+- 不确定的字段填空值而不是猜测
+- category 必须从 IDE/CLI/TUI/GUI/Plugin/SDK/Other 中选"""
+
+# 模拟实际的用户搜索结果内容
+user_content = """请分析以下网页搜索结果，识别并提取 AI Agent 产品信息：
+
+来源1: 知乎 - https://www.zhihu.com/question/123456
+标题: 2025年最佳AI编程助手推荐
+内容摘要: Cursor IDE 是一款基于 AI 的代码编辑器，集成 GPT-4，能够自动补全代码、生成函数、解释代码。GitHub Copilot 是微软推出的 AI 编程助手，支持多种 IDE。
+
+来源2: 掘金 - https://juejin.cn/post/123456
+标题: AI Agent 开发框架哪家强
+内容摘要: LangChain 是一个用于构建 LLM 应用的开发框架，提供了 Agent、Chain、Memory 等组件。AutoGPT 是一个实验性的开源项目，能够自主完成复杂任务。
+
+来源3: Hacker News - https://news.ycombinator.com/item?id=123456
+标题: Introducing Windsurf - AI Agent for Code Generation
+内容摘要: Windsurf is a new AI-powered code editor that combines the best of Cursor and Copilot. It uses a novel architecture to understand codebase context and generate code efficiently.
+
+来源4: Product Hunt - https://www.producthunt.com/products/123456
+标题: AI Code Review Assistant
+内容摘要: CodeRabbit is an AI-powered code review tool that automates code reviews, detects bugs, and suggests improvements in pull requests.
+
+请提取上述内容中的 AI Agent 产品信息。"""
+
+body = {
+    "model": cfg["model"],
+    "max__tokens": 4000,
+    "temperature": 0.1,
+    "messages": [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_content}
+    ]
+}
+print(f"Prompt size: system={len(system_prompt)}, user={len(user_content)}")
+print("Starting request with 30s timeout...") 
+try:
+    resp = requests.post(url, headers=headers, json=body, timeout=30)
+    print(f"Status: {resp.status_code}")
+    if resp.status_code == 200:
+        data = resp.json()
+        content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+        print(f"Response content length: {len(content) if content else 0}")
+        print(f"Response preview: {content[:500] if content else 'EMPTY'}")
+    else:
+        print(f"Response: {resp.text[:500]}")
+except requests.exceptions.Timeout:
+    print("Request TIMEOUT after 30s")
+except Exception as e:
+    print(f"Exception: {type(e).__name__}: {e}")

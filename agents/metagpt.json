@@ -2,7 +2,7 @@
   "id": "metagpt",
   "name": "MetaGPT",
   "category": "CLI",
-  "description": "多代理元编程框架，模拟软件公司角色。",
+  "description": "多代理元编程框架，模拟软件公司角色分工（产品经理/架构师/工程师），自动生成需求文档与结构化代码产出",
   "features": [
     "多角色软件公司模拟",
     "需求文档自动生成",

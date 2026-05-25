@@ -2,7 +2,7 @@
   "id": "gpt-engineer",
   "name": "GPT Engineer",
   "category": "CLI",
-  "description": "AI 驱动 CLI 代码生成工具。",
+  "description": "AI 驱动 CLI 代码生成工具，对话式项目脚手架生成、文件结构自动规划与代码迭代优化，构建完整应用",
   "features": [
     "对话式项目生成",
     "文件结构自动规划",

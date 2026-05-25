@@ -2,7 +2,7 @@
   "id": "bolt-new",
   "name": "Bolt.new",
   "category": "GUI",
-  "description": "StackBlitz 浏览器内 AI 全栈开发工具。",
+  "description": "StackBlitz 浏览器内 AI 全栈开发工具，基于 WebContainer 技术无需本地环境即可运行完整 npm 项目",
   "features": [
     "浏览器内全栈开发",
     "自然语言生成应用",
@@ -11,7 +11,7 @@
     "支持 npm 生态"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "完整浏览器体验",
     "全栈生成",

@@ -2,7 +2,7 @@
   "id": "devin",
   "name": "Devin",
   "category": "GUI",
-  "description": "Cognition Labs 的 AI 软件工程师。",
+  "description": "Cognition Labs 推出的全球首个 AI 软件工程师，自主完成复杂编程任务、调试与代码部署的全流程",
   "features": [
     "自主 IDE 环境",
     "内置浏览器",
@@ -11,7 +11,7 @@
     "项目规划与执行报告"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "首个 AI 工程师产品",
     "完整工作流",

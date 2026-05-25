@@ -224,12 +224,31 @@ def render_news_card(item: dict) -> str:
 
 # ── 全局去重 ──────────────────────────────────────────────────────────
 
-def global_deduplicate(all_results: dict) -> dict:
+def _is_stale(item: dict, max_age_days: int = 90) -> bool:
+    """Check if a news item is older than max_age_days.
+    
+    Items older than this are considered stale and excluded from news feed
+    (but still participate in deduplication to prevent duplicates from reappearing).
+    """
+    time_ago = item.get("time_ago", "")
+    if not time_ago:
+        return False
+    try:
+        # Parse "Nd ago" format
+        days = int(time_ago.split("d")[0])
+        return days > max_age_days
+    except (ValueError, IndexError):
+        return False
+
+
+def global_deduplicate(all_results: dict, max_age_days: int = 90) -> dict:
     """Remove duplicate URLs and near-duplicate titles across all search topics.
 
     Deduplication strategy:
     - Exact URL match → skip (same article already seen)
     - Normalized title match (strip punctuation, lowercase) → skip (cross-platform duplicate)
+    - Items older than max_age_days are excluded from results (but still participate in
+      deduplication to prevent stale duplicates from resurfacing in other topics)
     """
     seen_urls = set()
     seen_normalized_titles = set()
@@ -245,10 +264,14 @@ def global_deduplicate(all_results: dict) -> dict:
             title_dup = normalized and normalized in seen_normalized_titles
             if url_dup or title_dup:
                 continue
+            # Always register in dedup sets to prevent stale items from leaking via other topics
             if url_val:
                 seen_urls.add(url_val)
             if normalized:
                 seen_normalized_titles.add(normalized)
+            # Skip stale items (older than max_age_days)
+            if _is_stale(item, max_age_days):
+                continue
             deduped_section.append(item)
         deduped[topic_name] = deduped_section
     return deduped

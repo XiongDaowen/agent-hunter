@@ -2,7 +2,7 @@
   "id": "tongyi-lingma",
   "name": "Tongyi Lingma（通义灵码）",
   "category": "Plugin",
-  "description": "阿里巴巴推出的 AI 编程助手，深度集成通义千问模型能力。",
+  "description": "阿里巴巴推出的 AI 编程助手，深度集成通义千问模型，支持代码补全/内联对话/代码审查与优化，覆盖主流 IDE",
   "features": [
     "通义千问模型驱动的代码补全",
     "内联对话与代码生成",
@@ -11,7 +11,7 @@
     "中文文档生成"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "阿里云生态",
     "中文能力",

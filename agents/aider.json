@@ -2,7 +2,7 @@
   "id": "aider",
   "name": "Aider",
   "category": "CLI",
-  "description": "开源的 AI 结对编程 CLI 工具。",
+  "description": "开源的 AI 结对编程 CLI 工具，深度集成 Git 支持增量编辑、多模型切换与自动提交，广泛用于远程编码协作",
   "features": [
     "Git 感知的增量编辑",
     "多模型支持",

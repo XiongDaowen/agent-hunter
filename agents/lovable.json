@@ -2,7 +2,7 @@
   "id": "lovable",
   "name": "Lovable",
   "category": "GUI",
-  "description": "AI 对话式 Web 应用生成器。",
+  "description": "AI 对话式 Web 应用生成器，通过自然语言描述即可生成完整前后端应用，深度集成 Supabase 后端",
   "features": [
     "自然语言生成完整应用",
     "对话式迭代开发",
@@ -11,7 +11,7 @@
     "一键部署"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "Supabase 原生集成",
     "快速迭代",

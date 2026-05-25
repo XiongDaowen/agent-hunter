@@ -1,0 +1,30 @@
+{
+  "id": "flowscript",
+  "name": "FlowScript",
+  "category": "SDK",
+  "description": "一个代理记忆系统，允许记忆中存在矛盾（冲突）作为特性，用于更灵活地处理多代理协作和上下文。",
+  "features": [
+    "矛盾管理",
+    "记忆冲突即特性",
+    "多代理协作支持"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "处理记忆冲突",
+    "支持复杂协作场景",
+    "新颖的记忆模型"
+  ],
+  "position": "支持矛盾记忆的AI代理记忆框架",
+  "website": "https://github.com/phillipclapham/flowscript",
+  "docs_url": "https://github.com/phillipclapham/flowscript#readme",
+  "github_repo": "https://github.com/phillipclapham/flowscript",
+  "pricing": "免费",
+  "tags": [
+    "AI agent",
+    "memory",
+    "framework",
+    "contradiction"
+  ],
+  "last_verified": "2026-05-22"
+}

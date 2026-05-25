@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Trace all requests in _llm_chat"""
+import sys
+import json
+import os
+import traceback
+import requests
+
+sys.path.insert(0, '/home/xiowen/agent-hunter')
+os. chdir('/home/xiowen/agent-hunter')
+
+# Patch requests.post to debug
+original_post = requests.post
+def debug_post(url, headers=None, json=None, timeout=None, **kwargs):
+    print(f"\n=== REQUEST ===")
+    print(f"URL: {url}")
+    print(f"Headers: {headers}")
+    print(f"Body: {json}")
+    print(f"==============\n")
+    
+    resp = original_post(url, headers=headers, json=json, timeout=timeout, **kwargs)
+    print(f"\n=== RESPONSE ===")
+    print(f"Status: {resp.status_code}")
+    print(f"Body (first 500): {resp.text[:500]}")
+    print(f"================\n")
+    return resp
+
+requests.post = debug_post
+
+# Reload hunter to get fresh config
+if 'hunter' in sys. modules:
+    del sys.modules['hunter']
+
+import hunter as h_ module
+result = h_module.discover()
+print(f"Final result: {result}")

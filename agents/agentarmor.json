@@ -1,0 +1,28 @@
+{
+  "id": "agentarmor",
+  "name": "AgentArmor",
+  "category": "SDK",
+  "description": "开源的 AI 代理安全框架，提供 8 层防护体系（输入验证/输出过滤/行为监控/权限控制/审计日志/威胁检测/网络安全/容错恢复）保障代理运行安全",
+  "features": [
+    "多层防护",
+    "实时监控",
+    "威胁检测"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "体系化防护",
+    "开源社区支持",
+    "可扩展性强"
+  ],
+  "position": "开源 AI 代理安全框架，提供 8 层防护体系保障代理运行安全",
+  "website": "https://github.com/Agastya910/agentarmor",
+  "docs_url": "https://github.com/Agastya910/agentarmor#readme",
+  "github_repo": "https://github.com/Agastya910/agentarmor",
+  "pricing": "免费",
+  "tags": [
+    "安全框架",
+    "AI代理防护"
+  ],
+  "last_verified": "2026-05-20"
+}

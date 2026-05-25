@@ -2,7 +2,7 @@
   "id": "devika",
   "name": "Devika",
   "category": "CLI",
-  "description": "开源 AI 软件工程师代理。",
+  "description": "开源 AI 软件工程师代理，支持高级指令理解、自主研究学习、代码编写调试与浏览器自动化，模拟人类开发流程",
   "features": [
     "高级指令理解",
     "自主研究与学习",

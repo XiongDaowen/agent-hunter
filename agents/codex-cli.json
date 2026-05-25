@@ -2,7 +2,7 @@
   "id": "codex-cli",
   "name": "OpenAI Codex CLI",
   "category": "CLI",
-  "description": "OpenAI 的命令行 AI 编码助手。",
+  "description": "OpenAI 官方命令行 AI 编码助手，自然语言代码生成、内联文件编辑与 Shell 命令执行，支持多语言项目开发",
   "features": [
     "自然语言生成代码",
     "内联文件编辑",

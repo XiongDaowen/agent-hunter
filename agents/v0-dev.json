@@ -2,7 +2,7 @@
   "id": "v0-dev",
   "name": "v0 by Vercel",
   "category": "GUI",
-  "description": "Vercel 的 AI 驱动 UI 生成工具。",
+  "description": "Vercel 推出的 AI UI 生成工具，输入描述生成 React 组件，输出 shadcn/ui 风格代码并支持实时预览",
   "features": [
     "提示词生成 React 组件",
     "shadcn/ui 风格输出",
@@ -11,7 +11,7 @@
     "Vercel 部署集成"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "Vercel 生态",
     "React 组件生成",

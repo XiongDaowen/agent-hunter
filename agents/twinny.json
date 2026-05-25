@@ -2,7 +2,7 @@
   "id": "twinny",
   "name": "Twinny",
   "category": "Plugin",
-  "description": "完全离线的本地 AI 代码补全插件。",
+  "description": "完全离线的本地 AI 代码补全插件，集成 Ollama/llama.cpp 支持本地模型，无需网络连接保护代码隐私",
   "features": [
     "完全本地运行",
     "Ollama/llama.cpp 集成",

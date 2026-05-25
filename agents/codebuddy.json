@@ -2,21 +2,21 @@
   "id": "codebuddy",
   "name": "CodeBuddy",
   "category": "IDE",
-  "description": "Cloud Studio 推出的在线 AI 编码 IDE，基于浏览器的开发环境。",
+  "description": "Cloud Studio 在线 AI 编码 IDE，基于浏览器提供完整开发环境，支持多语言与 AI 辅助代码生成调试",
   "features": [
     "在线 IDE",
     "AI 代码生成",
     "云端开发"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "在线环境",
     "免配置"
   ],
   "position": "云端 AI 编程 IDE",
   "website": "https://cloudstudio.net/",
-  "docs_url": "",
+  "docs_url": "https://cloudstudio.net/",
   "github_repo": "",
   "pricing": "免费+付费",
   "tags": [

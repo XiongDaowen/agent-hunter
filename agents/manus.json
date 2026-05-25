@@ -2,7 +2,7 @@
   "id": "manus",
   "name": "Manus",
   "category": "GUI",
-  "description": "通用 AI 代理平台，自主完成复杂任务。",
+  "description": "通用 AI 代理平台，基于云端沙盒环境自主完成复杂任务，支持浏览器、代码执行与文件管理多工具调用",
   "features": [
     "自主复杂任务执行",
     "多工具调用（浏览器、代码、文件）",
@@ -11,7 +11,7 @@
     "结果交付与汇报"
   ],
   "open_source": "partial",
-  "license": "部分开源",
+  "license": "Partially Open Source",
   "strengths": [
     "任务复杂度高",
     "自主性强",

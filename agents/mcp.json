@@ -2,7 +2,7 @@
   "id": "mcp",
   "name": "MCP（Model Context Protocol）",
   "category": "SDK",
-  "description": "Anthropic 开放协议标准。",
+  "description": "Anthropic 开放的协议标准，定义 AI 代理与工具/数据源的通信规范，提供多语言 SDK（Python/TypeScript/Go/Java）与工具服务器生态",
   "features": [
     "标准化工具/数据源接入",
     "开放协议标准",
@@ -23,7 +23,6 @@
   "github_repo": "https://github.com/modelcontextprotocol",
   "pricing": "免费（开放标准）",
   "tags": [
-    "SDK",
     "Protocol",
     "Standard",
     "Tool Integration"

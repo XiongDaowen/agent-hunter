@@ -18,9 +18,9 @@
     "生产级可靠性"
   ],
   "position": "有状态多智能体应用开发框架",
-  "website": "https://langchain.com",
-  "docs_url": "",
-  "github_repo": "",
+  "website": "https://langchain.com/langgraph/",
+  "docs_url": "https://langchain-ai.github.io/langgraph/",
+  "github_repo": "https://github.com/langchain-ai/langgraph",
   "pricing": "免费",
   "tags": [
     "stateful",

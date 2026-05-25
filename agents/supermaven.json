@@ -2,7 +2,7 @@
   "id": "supermaven",
   "name": "SuperMaven",
   "category": "Plugin",
-  "description": "极速 AI 代码补全插件。",
+  "description": "极速 AI 代码补全插件，毫秒级响应、超长上下文窗口（180K）与多 IDE 支持，提供高质量代码建议",
   "features": [
     "毫秒级代码补全",
     "超长上下文窗口",
@@ -11,7 +11,7 @@
     "多语言支持"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "超低延迟",
     "大上下文",

@@ -2,7 +2,7 @@
   "id": "smolagents",
   "name": "Smolagents",
   "category": "SDK",
-  "description": "Hugging Face 的极简 AI 代理框架。",
+  "description": "Hugging Face 极简 AI 代理框架，API 设计简洁、支持 Hub 模型集成与代码代理，原生兼容 Hugging Face 生态",
   "features": [
     "极简 API 设计",
     "Hugging Face Hub 集成",

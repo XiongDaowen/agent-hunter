@@ -1,8 +1,8 @@
 {
   "id": "tabby",
   "name": "Tabby",
-  "category": "Plugin",
-  "description": "自托管的 AI 代码补全服务。",
+  "category": "SDK",
+  "description": "自托管 AI 代码补全服务，数据完全私有、支持多 IDE（VS Code/JetBrains/Vim/Neovim），企业友好且易于部署",
   "features": [
     "自托管/本地部署",
     "数据完全私有",

@@ -1,0 +1,28 @@
+{
+  "id": "hai-cli",
+  "name": "hai-cli",
+  "category": "CLI",
+  "description": "基于LLM的REPL工具，为开发者提供交互式命令行编程环境。",
+  "features": [
+    "LLM驱动交互",
+    "即时代码生成",
+    "命令行集成"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "降低学习成本",
+    "快速原型设计",
+    "终端无缝集成"
+  ],
+  "position": "开发者LLM命令行工具",
+  "website": "https://github.com/braincore/hai-cli",
+  "docs_url": "https://github.com/braincore/hai-cli#readme",
+  "github_repo": "https://github.com/braincore/hai-cli",
+  "pricing": "未知",
+  "tags": [
+    "CLI工具",
+    "代码生成"
+  ],
+  "last_verified": "2026-05-23"
+}

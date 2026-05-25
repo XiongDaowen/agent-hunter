@@ -2,7 +2,7 @@
   "id": "project-idx",
   "name": "Project IDX",
   "category": "IDE",
-  "description": "Google 推出的基于浏览器的全栈开发 IDE，深度集成 Gemini AI。",
+  "description": "Google 基于浏览器的全栈开发 IDE，深度集成 Gemini AI 支持多框架模板、热重载与云端模拟器",
   "features": [
     "云端浏览器 IDE",
     "Gemini AI 集成",
@@ -11,7 +11,7 @@
     "实时协作编辑"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "Google 云生态",
     "浏览器即 IDE",

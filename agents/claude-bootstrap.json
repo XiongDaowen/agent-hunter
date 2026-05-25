@@ -1,0 +1,29 @@
+{
+  "id": "claude-bootstrap",
+  "name": "Claude Bootstrap",
+  "category": "CLI",
+  "description": "Claude Bootstrap 为 Claude Code 提供一套可定制的防护规则和配置，帮助用户安全、高效地使用 AI 编程助手。",
+  "features": [
+    "可自定义防护规则",
+    "与 Claude Code 深度集成",
+    "提供最佳实践配置"
+  ],
+  "open_source": "yes",
+  "license": "Unknown",
+  "strengths": [
+    "增强 AI 代码生成安全性",
+    "易于配置和扩展",
+    "社区驱动维护"
+  ],
+  "position": "Claude Code 的防护规则增强工具",
+  "website": "https://github.com/alinaqi/claude-bootstrap",
+  "docs_url": "https://github.com/alinaqi/claude-bootstrap#readme",
+  "github_repo": "https://github.com/alinaqi/claude-bootstrap",
+  "pricing": "免费",
+  "tags": [
+    "AI编程",
+    "Claude",
+    "防护规则"
+  ],
+  "last_verified": "2026-05-22"
+}

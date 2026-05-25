@@ -9,16 +9,16 @@
     "本地开发环境适配"
   ],
   "open_source": "unknown",
-  "license": "未知",
+  "license": "Unknown",
   "strengths": [
     "本地开发场景",
     "终端集成"
   ],
   "position": "面向开发者的 AI 编程 CLI",
   "website": "https://factory.ai",
-  "docs_url": "",
+  "docs_url": "https://docs.factory.ai",
   "github_repo": "",
-  "pricing": "未知",
+  "pricing": "付费（$20/月起）",
   "tags": [
     "CLI",
     "AI Coding"

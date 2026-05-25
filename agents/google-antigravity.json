@@ -2,20 +2,20 @@
   "id": "google-antigravity",
   "name": "Google Antigravity",
   "category": "IDE",
-  "description": "Google推出的AI优先集成开发环境，优先支持AI智能体进行软件开发，伴随Gemini 3发布。",
+  "description": "Google推出的AI优先集成开发环境，优先支持AI智能体进行软件开发，伴随Gemini 3发布（注：此为2025年初的传言产品，未见正式发布）",
   "features": [
     "AI智能体优先",
     "软件开发平台",
     "Gemini集成"
   ],
   "open_source": "unknown",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "Google品牌",
     "AI原生设计",
     "与Gemini生态集成"
   ],
-  "position": "AI智能体优先的下一代IDE",
+  "position": "AI智能体优先的下一代IDE（未发布）",
   "website": "",
   "docs_url": "",
   "github_repo": "",
@@ -24,7 +24,9 @@
     "IDE",
     "google",
     "gemini",
-    "AI-first"
+    "AI-first",
+    "unverified"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-22",
+  "status": "rumored_unreleased"
 }

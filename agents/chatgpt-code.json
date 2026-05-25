@@ -2,7 +2,7 @@
   "id": "chatgpt-code",
   "name": "ChatGPT Code / Canvas",
   "category": "GUI",
-  "description": "OpenAI ChatGPT 内置的代码生成和编辑界面 Canvas。",
+  "description": "OpenAI ChatGPT 内置的 AI 代码编辑与调试界面，支持实时协作、多文件编辑与代码解释生成",
   "features": [
     "交互式代码编辑界面",
     "多文件支持",
@@ -11,7 +11,7 @@
     "版本回退"
   ],
   "open_source": "no",
-  "license": "专有",
+  "license": "Proprietary",
   "strengths": [
     "ChatGPT 用户覆盖广",
     "零门槛",
