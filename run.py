@@ -1,19 +1,18 @@
-#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
+#!/usr/bin/env python3
 """
 agent-hunter 主入口 — 发现、更新和报告 AI Agent 产品。
 
 设计:
   - agents/ 目录是唯一权威数据源（每个 agent 一个 JSON）
-  - 搜索发现 → 自动 merge 新 agent → 更新 hash 缓存 → 生成 HTML
-  - 每次运行：先搜索新的，再增量/强制更新，最后出报告
+  - 搜索发现 → 自动 merge 新 agent → 更新 hash 缓存
+  - WebUI (webui.py) 是唯一前端界面
 
 用法:
-  python run.py               搜索发现 + 更新 + 报告（默认）
+  python run.py               搜索发现 + 更新（默认）
   python run.py update        仅增量更新（不从外面搜索）
   python run.py discover      仅搜索发现新 agent
-  python run.py report        仅生成产品报告（使用现有数据）
-  python run.py news          生成每日资讯报告（HN + Dev.to）
-  python run.py force         强制全部更新 + 报告
+  python run.py news          生成每日资讯数据 (cache/news.json)
+  python run.py force         强制全部更新
   python run.py status        查看缓存状态
   python run.py list          列出所有 agent
 """
@@ -35,8 +34,7 @@ from hunter import (
     discover,
     refresh_agents,
 )
-from report_gen import generate_report
-from news import generate_news_report
+from news import generate_news_data
 from logger import info, success, warning, error, step
 
 
@@ -105,11 +103,10 @@ def run_refresh(batch_size: int = 5, max_batches: int = 3):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        # 默认: 搜索发现 → 刷新 → 更新 → 报告
+        # 默认: 搜索发现 → 刷新 → 更新
         run_discover()
         run_refresh(batch_size=5, max_batches=2)
         run_update()
-        generate_report()
     else:
         command = sys.argv[1]
         if command == "update":
@@ -117,15 +114,12 @@ if __name__ == "__main__":
             run_update(force=force)
         elif command == "discover":
             run_discover()
-        elif command == "report":
-            generate_report()
         elif command == "status":
             from hunter import show_status
             show_status()
         elif command == "force":
             run_discover()
             run_update(force=True)
-            generate_report()
         elif command == "add":
             if len(sys.argv) < 3:
                 error("用法: python run.py add <file>")
@@ -144,10 +138,8 @@ if __name__ == "__main__":
             batch = int(sys.argv[2]) if len(sys.argv) > 2 else 5
             batches = int(sys.argv[3]) if len(sys.argv) > 3 else 3
             run_refresh(batch_size=batch, max_batches=batches)
-            print()
-            generate_report()
         elif command == "news":
-            generate_news_report()
+            generate_news_data()
         else:
             error(f"未知命令: {command}")
-            info("支持: update, discover, report, status, add, list, refresh, force (空=全部)")
+            info("支持: update, discover, status, add, list, refresh, force (空=全部)")

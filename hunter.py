@@ -1,4 +1,4 @@
-#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
+#!/usr/bin/env python3
 """
 agent-hunter — 全球 AI Agent 产品检索与追踪工具
 
@@ -16,6 +16,7 @@ agent-hunter — 全球 AI Agent 产品检索与追踪工具
 """
 
 import json
+import re  # JSON 修复用
 import hashlib
 import os
 import sys
@@ -24,6 +25,74 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from logger import info, success, warning, error, debug, step, sub_step
+
+
+# ── JSON 修复函数 ────────────────────────────────────────────────────────
+
+def _fix_json_string(text: str) -> str:
+    """尝试修复 LLM 返回的有语法错误的 JSON"""
+    if not text:
+        return text
+
+    # 修复常见的 JSON 语法错误
+    import re
+
+    # 1. 修复缺少引号包裹的字符串键（"key": 变成 key": ）
+    # 匹配不带引号的键后跟冒号: key": -> "key":
+    text = re.sub(r'(\w+)":', r'"\1":', text)
+
+    # 2. 修复键值对之间缺少逗号 ("} " 变成 ", ")
+    text = re.sub(r'("])(\s+)(")', r'\1,\2\3', text)
+
+    # 3. 移除尾随逗号 (如 [1,2,3,] -> [1,2,3])
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+
+    # 4. 修复单引号替换为双引号
+    text = re.sub(r"'([^']*)'", r'"\1"', text)
+
+    # 5. 修复没有引号的字符串值
+    # 匹配 : 后面跟着字母数字开头的值（非 [ { " 开头）
+    text = re.sub(r':\s*([a-zA-Z][a-zA-Z0-9_]*)', r': "\1"', text)
+
+    return text
+
+
+def _safe_json_parse(text: str):
+    """安全解析 JSON，失败时尝试修复后再次解析"""
+    import json as _json
+
+    # 第一次尝试直接解析
+    try:
+        return _json.loads(text)
+    except _json.JSONDecodeError:
+        pass
+
+    # 第二次尝试修复后解析
+    fixed = _fix_json_string(text)
+    try:
+        return _json.loads(fixed)
+    except _json.JSONDecodeError:
+        pass
+
+    # 第三次尝试：提取 JSON 数组部分
+    match = re.search(r'\[.*\]', text, re.DOTALL)
+    if match:
+        try:
+            return _json.loads(match.group(0))
+        except _json.JSONDecodeError:
+            pass
+
+    # 第四次尝试：修复后再次提取数组
+    fixed_match = re.search(r'\[.*\]', fixed, re.DOTALL)
+    if fixed_match:
+        try:
+            return _json.loads(fixed_match.group(0))
+        except _json.JSONDecodeError:
+            pass
+
+    # 所有尝试都失败，抛出原始异常
+    raise _json.JSONDecodeError("无法解析 JSON", text, 0)
+
 
 # ── 路径与配置 ──────────────────────────────────────────────────────────
 
@@ -35,14 +104,11 @@ with open(CONFIG_FILE) as f:
 
 AGENTS_DIR = BASE_DIR / CONFIG["agents_dir"]
 CACHE_DIR = BASE_DIR / CONFIG["cache_dir"]
-REPORT_DIR = BASE_DIR / CONFIG["report_dir"]
 META_FILE = BASE_DIR / CONFIG["meta_file"]
-REPORT_FILE = BASE_DIR / CONFIG["report_file"]
 UPDATE_INTERVAL = CONFIG["update_interval_hours"] * 3600
 
 AGENTS_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
-REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── 数据模型 ────────────────────────────────────────────────────────────
 
@@ -261,17 +327,29 @@ def load_all_agents() -> list[dict]:
 # ── LLM 调用 ──────────────────────────────────────────────────────────
 
 def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 4096) -> str | None:
-    """调用 LLM，自动适配 Anthropic 或 OpenAI 兼容格式"""
+    """调用 LLM，添加完善的错误处理和重试逻辑"""
+    import os
     import requests
+    from requests.exceptions import ConnectionError, Timeout, ReadTimeout, ProxyError
+    import time
 
     cfg = CONFIG.get("llm", {})
-    base_url = cfg.get("base_url", "")
-    api_key = cfg.get("api_key", "")
+    # 优先使用环境变量，其次使用 config.json
+    import os as _os
+    base_url = _os.environ.get("LLM_BASE_URL") or cfg.get("base_url", "")
+    api_key = _os.environ.get("LLM_API_KEY") or cfg.get("api_key", "")
     model = cfg.get("model", "MiniMax-M2.7")
 
     if not base_url or not api_key:
-        warning("config.json 未配置 llm.base_url / llm.api_key")
+        warning("未配置 LLM（环境变量或 config.json）")
         return None
+
+    # 检查 LLM 不可用标记（401 后写入）- 改为立即重试
+    flag_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cache", "llm_unavailable.flag")
+    if os.path.exists(flag_file):
+        # 移除此检查，改为每次都重试（已切换到新的 API）
+        os.remove(flag_file)
+        info("LLM 不可用标记已清除，重试调用")
 
     # 检测 API 格式：OpenAI 兼容用 /chat/completions，Anthropic 用 /messages
     base = base_url.rstrip("/")
@@ -303,24 +381,132 @@ def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 
             "messages": messages,
         }
 
-    try:
-        resp = requests.post(url, headers=headers, json=body, timeout=120)
-        resp.raise_for_status()
-        data = resp.json()
+    # 增强重试逻辑：区分错误类型，差异化处理
+    max_retries = 3  # 增加到 3 次重试
+    retry_codes = {429, 500, 502, 503, 504}  # 可重试的 HTTP 状态码
+    
+    for attempt in range(max_retries + 1):
+        resp = None
+        try:
+            info(f"LLM 调用尝试 {attempt + 1}/{max_retries + 1}...")
+            # 使用分离的连接超时和读取超时
+            resp = requests.post(
+                url, headers=headers, json=body,
+                timeout=(10, 120),  # (connect_timeout, read_timeout) - 增加超时到 120s
+                allow_redirects=True
+            )
+            info(f"  -> resp.status_code={resp.status_code}, resp.text[:100]={resp.text[:100]}")
+            
+            # 401 认证失败：标记并退出
+            if resp.status_code == 401:
+                warning(f"LLM API 认证失败 (401)，标记为不可用 6 小时")
+                os.makedirs(os.path.dirname(flag_file), exist_ok=True)
+                with open(flag_file, "w") as f:
+                    f.write(f"401 at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+                return None
 
-        # Anthropic 兼容格式
-        content_blocks = data.get("content", [])
-        if isinstance(content_blocks, list):
-            texts = [b.get("text", "") for b in content_blocks if b.get("type") == "text"]
-            return "\n".join(texts)
-        # OpenAI 兼容格式
-        choices = data.get("choices", [])
-        if choices:
-            return choices[0].get("message", {}).get("content", "")
-        return str(data)
-    except Exception as e:
-        warning(f"LLM 调用失败: {e}")
-        return None
+            resp.raise_for_status()
+            info("  -> 解析 JSON...")
+            data = resp.json()
+            info(f"  -> data.keys={list(data.keys()) if isinstance(data, dict) else type(data)}")
+            
+            # Anthropic 兼容格式（仅当 content_blocks 有实际内容时使用）
+            content_blocks = data.get("content", [])
+            if isinstance(content_blocks, list) and content_blocks:
+                texts = [b.get("text", "") for b in content_blocks if b.get("type") == "text"]
+                if texts:
+                    info(f"  -> Anthropic 路径: texts={texts[:2]}")
+                    return "\n".join(texts)
+            # OpenAI 兼容格式
+            info(f"  -> 尝试 OpenAI 格式...")
+            # OpenAI 兼容格式
+            choices = data.get("choices", [])
+            if choices:
+                msg_content = choices[0].get("message", {}).get("content", "")
+                finish_reason = choices[0].get("finish_reason", "")
+                # 调试：记录返回内容长度和 finish_reason
+                info(f"LLM 返回: content_len={len(msg_content) if msg_content else 0}, finish_reason={finish_reason}")
+                if msg_content:
+                    return msg_content
+                # content 为空，检查是否有 reasoning_content
+                reasoning = choices[0].get("message", {}).get("reasoning_content", "")
+                if reasoning:
+                    warning("LLM 返回了 reasoning 但无 content，尝试使用 reasoning")
+                    return reasoning
+                warning(f"LLM content 为空，响应数据: {data.get('usage', {})}")
+                return ""
+            warning(f"LLM choices 为空: {data}")
+            return str(data)
+
+        except requests.Timeout as e:
+            warning(f"LLM 请求超时: {e}")
+            if attempt < max_retries:
+                wait = 2 ** attempt  # 指数退避: 1s, 2s, 4s
+                warning(f"{wait}s 后重试...")
+                time.sleep(wait)
+                continue
+            return None
+        except ProxyError as e:
+            # 代理错误重试
+            warning(f"LLM 代理错误: {e}")
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                warning(f"{wait}s 后重试...")
+                time.sleep(wait)
+                continue
+            warning(f"LLM 调用失败（代理错误）: {e}")
+            return None
+        except ConnectionError as e:
+            # 连接错误重试
+            warning(f"LLM 连接错误: {e}")
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                warning(f"{wait}s 后重试...")
+                time.sleep(wait)
+                continue
+            warning(f"LLM 调用失败（连接错误）: {e}")
+            return None
+        except requests.exceptions.HTTPError as e:
+            warning(f"LLM HTTP错误: {e}, status={resp.status_code if resp else 'N/A'}")
+            if resp and resp.status_code == 401:
+                # 401 在重试块里再处理一次
+                warning(f"LLM API 认证失败 (401)，标记为不可用 6 小时")
+                os.makedirs(os.path.dirname(flag_file), exist_ok=True)
+                with open(flag_file, "w") as f:
+                    f.write(f"401 at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+                return None
+            # 429 或 5xx 错误：指数退避重试
+            if resp and resp.status_code in retry_codes:
+                if attempt < max_retries:
+                    wait = 2 ** attempt * 2  # 429/5xx 需要更长等待: 2s, 4s, 8s
+                    if resp.status_code == 429:
+                        # 尝试从响应头获取重试时间
+                        retry_after = resp.headers.get("Retry-After")
+                        if retry_after and retry_after.isdigit():
+                            wait = int(retry_after)
+                    warning(f"LLM 服务错误 ({resp.status_code})，{wait}s 后重试...")
+                    time.sleep(wait)
+                    continue
+            # 其他 HTTP 错误重试
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                warning(f"LLM 调用失败 ({e})，{wait}s 后重试...")
+                time.sleep(wait)
+                continue
+            warning(f"LLM 调用失败: {e}")
+            return None
+        except Exception as e:
+            warning(f"LLM 未知错误: {type(e).__name__}: {e}")
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                warning(f"{wait}s 后重试...")
+                time.sleep(wait)
+                continue
+            warning(f"LLM 调用失败: {e}")
+            return None
+
+    warning("LLM 重试次数耗尽")
+    return None
 
 
 # ── 搜索发现 ──────────────────────────────────────────────────────────
@@ -365,6 +551,64 @@ def _search_360(query: str, limit: int = 6) -> list[dict]:
         return results
     except Exception as e:
         warning(f"360搜索失败: {e}")
+        return []
+
+
+def _search_sogou(query: str, limit: int = 6) -> list[dict]:
+    """使用搜狗搜索（360 被反爬时的备用中文搜索源）"""
+    import requests
+    import re
+    from urllib.parse import quote
+
+    try:
+        url = f"https://www.sogou.com/web?query={quote(query)}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "Accept-Encoding": "gzip, deflate",
+            "Referer": "https://www.sogou.com/",
+        }
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.raise_for_status()
+
+        results = []
+        # 搜狗搜索结果：/link?url=... 重定向
+        # 需要解析真实的跳转 URL
+        pattern = r'<h3[^>]*>\s*<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>'
+        matches = re.findall(pattern, resp.text, re.DOTALL)
+
+        for link, title_html in matches:
+            title = re.sub(r'<[^>]+>', '', title_html).strip()
+            # 处理搜狗重定向链接
+            if title and '/link?url=' in link:
+                # 提取真实 URL（从重定向参数）
+                real_url_match = re.search(r'url=([^&]+)', link)
+                if real_url_match:
+                    import base64
+                    encoded_url = real_url_match.group(1)
+                    try:
+                        # Base64 解码
+                        real_url = base64.b64decode(encoded_url).decode('utf-8')
+                        link = real_url
+                    except:
+                        # 解码失败，跳过
+                        continue
+            if title and (link.startswith('http') or link.startswith('//')):
+                if link.startswith('//'):
+                    link = 'https:' + link
+                results.append({
+                    "url": link,
+                    "title": title[:120],
+                    "content": "",
+                    "source": "sogou_search",
+                })
+            if len(results) >= limit:
+                break
+
+        return results
+    except Exception as e:
+        warning(f"搜狗搜索失败: {e}")
         return []
 
 
@@ -516,6 +760,12 @@ def discover() -> list[dict]:
         ("Other", "AI编程工具 测评 2025 2026"),
         ("TUI",   "终端 AI agent 工具 推荐"),
         ("GUI",   "AI 网页生成器 可视化 工具"),
+        # 新增：更多发现路径
+        ("IDE",   "Cursor 替代 工具 2025"),
+        ("Plugin","AI代码审查 工具 推荐"),
+        ("Other", "AI 编程 开源 工具 2025"),
+        ("SDK",   "AI agent 框架 推荐 2025"),
+        ("Other", "Claude Code 替代 工具"),
     ]
 
     # ── 国外搜索源（DuckDuckGo覆盖ProductHunt/HackerNews/GitHub等） ──
@@ -532,6 +782,12 @@ def discover() -> list[dict]:
         ("Other", "AI coding tool benchmark comparison 2025 2026"),
         ("Other", "best AI developer tools product hunt 2025"),
         ("Plugin", "AI code completion extension marketplace"),
+        # 新增：更多发现路径
+        ("IDE",   "Cursor alternative AI code editor 2025"),
+        ("Plugin", "AI code review tool GitHub 2025"),
+        ("CLI",   "open source AI coding assistant CLI 2025"),
+        ("Other", "AI programmer assistant tool 2025"),
+        ("SDK",   "multi-agent AI framework library 2025"),
     ]
 
     raw_sources = []
@@ -549,21 +805,29 @@ def discover() -> list[dict]:
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)
-        # 如果 firecrawl 无结果，自动启用 360 备用
+        # 如果 firecrawl 无结果，自动启用 360 备用，360 失败则使用 sogou
         domestic_count = sum(1 for s in raw_sources if s.get("source") == "firecrawl")
         if domestic_count == 0 and domestic_360:
             warning("Firecrawl 无结果，启用 360 备用...")
             for target_cat, query in DOMESTIC_SEARCHES:
                 sub_step(f"360(fallback): {query[:50]}...")
                 sources = _search_360(query, limit=4)
+                # 360 无结果时尝试 sogou
+                if not sources and CONFIG.get("search_sources", {}).get("domestic", {}).get("sogou_search", {}).get("enabled", False):
+                    sub_step(f"搜狗备用: {query[:40]}...")
+                    sources = _search_sogou(query, limit=4)
                 for s in sources:
                     s["category_hint"] = target_cat
                 raw_sources.extend(sources)
     elif domestic_360:
-        step("国内搜索源（360搜索）")
+        step("国内搜索源（360+搜狗）")
         for target_cat, query in DOMESTIC_SEARCHES:
             sub_step(f"360: {query[:50]}...")
             sources = _search_360(query, limit=4)
+            # 360 无结果时尝试 sogou
+            if not sources and CONFIG.get("search_sources", {}).get("domestic", {}).get("sogou_search", {}).get("enabled", False):
+                sub_step(f"搜狗: {query[:40]}...")
+                sources = _search_sogou(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
             raw_sources.extend(sources)
@@ -662,7 +926,7 @@ def discover() -> list[dict]:
 
         user_prompt = f"请分析以下网页搜索结果，识别并提取 AI Agent 产品信息：\n\n{sources_text}"
 
-        info(f"第 {batch_start//batch_size + 1} 批: {len(batch)} 个来源 → LLM 分析...")
+        info( f"第 {batch_start//batch_size + 1} 批: {len(batch)} 个来源 → LLM 分析...")
         result_text = _llm_chat([
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -671,6 +935,9 @@ def discover() -> list[dict]:
         if not result_text:
             warning("LLM 无返回，跳过本批")
             continue
+
+        # 调试：打印 LLM 返回内容的前 500 字符
+        debug(f"LLM 返回原始内容 (前500字符): {result_text[:500]}")
 
         # 提取 JSON
         try:
@@ -686,7 +953,8 @@ def discover() -> list[dict]:
                     cleaned = cleaned.split("```")[0]
             cleaned = cleaned.strip()
 
-            parsed = _json.loads(cleaned)
+            # 使用安全的 JSON 解析（自动修复语法错误）
+            parsed = _safe_json_parse(cleaned)
             if isinstance(parsed, dict):
                 parsed = [parsed]
 
@@ -836,7 +1104,8 @@ def _refresh_single_agent(agent: dict, sources: list[dict]) -> dict | None:
                 cleaned = cleaned.split("```")[0]
         cleaned = cleaned.strip()
 
-        parsed = _json.loads(cleaned)
+        # 使用安全的 JSON 解析（自动修复语法错误）
+        parsed = _safe_json_parse(cleaned)
         if isinstance(parsed, list):
             parsed = parsed[0] if parsed else None
 
@@ -944,6 +1213,9 @@ def refresh_agents(batch_size: int = 5, max_batches: int = 3) -> dict:
             if not sources:
                 if CONFIG.get("search_sources", {}).get("domestic", {}).get("360_search", {}).get("enabled", False) == True:
                     sources.extend(_search_360(query, limit=3))
+                    # 360 无结果时使用 sogou 备用
+                    if not sources and CONFIG.get("search_sources", {}).get("domestic", {}).get("sogou_search", {}).get("enabled", False):
+                        sources.extend(_search_sogou(query, limit=3))
                 if CONFIG.get("search_sources", {}).get("overseas", {}).get("duckduckgo", {}).get("enabled", False) == True:
                     sources.extend(_search_duckduckgo(query, limit=3))
 
@@ -995,9 +1267,6 @@ if __name__ == "__main__":
 
     if command == "status":
         show_status()
-    elif command == "report":
-        from report_gen import generate_report
-        generate_report()
     elif command == "update":
         info("请通过 load_agents() 传入 agent 数据后调用 update_all()")
         info("或使用 'python hunter.py run'")

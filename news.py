@@ -1,4 +1,4 @@
-#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
+#!/usr/bin/env python3
 """
 每日资讯模块 — 整合 HN Algolia + Dev.to 搜索，生成卡片式 HTML 报告。
 从 agent-daily-report.py 移植并优化。
@@ -7,9 +7,11 @@
 import json
 import re
 import sys
-from datetime import datetime
+import html
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
+import time as time_module
 
 import requests
 
@@ -21,38 +23,83 @@ with open(CONFIG_FILE) as f:
     CONFIG = json.load(f)
 
 
+# ── Time helper ──────────────────────────────────────────────────────────
+
+def relative_time(dt_str: str) -> str:
+    """Convert ISO datetime string to human-friendly 'Nd Nh ago' format."""
+    try:
+        dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+    except Exception:
+        return dt_str
+    now = datetime.now(timezone.utc)
+    diff = now - dt
+    total_seconds = int(diff.total_seconds())
+    if total_seconds < 0:
+        return "just now"
+    days = total_seconds // 86400
+    hours = (total_seconds % 86400) // 3600
+    minutes = (total_seconds % 3600) // 60
+    if days > 0:
+        return f"{days}d ago"
+    if hours > 0:
+        return f"{hours}h ago"
+    if minutes > 0:
+        return f"{minutes}m ago"
+    return "just now"
+
+
 # ── HN Algolia ──────────────────────────────────────────────────────────
 
 HN_ALGOLIA_URL = "https://hn.algolia.com/api/v1/search"
 
 
-def fetch_hn(query: str, tags: str = "story", hits_per_page: int = 8) -> list[dict]:
-    """Fetch results from HN Algolia API."""
+def fetch_hn(query: str, tags: str = "story", hits_per_page: int = 8, max_retries: int = 2) -> list[dict]:
+    """Fetch results from HN Algolia API with retry logic."""
     params = {
         "query": query,
         "tags": tags,
         "hitsPerPage": hits_per_page,
     }
-    try:
-        r = requests.get(HN_ALGOLIA_URL, params=params, timeout=10)
-        if r.status_code != 200:
+    for attempt in range(max_retries + 1):
+        try:
+            r = requests.get(HN_ALGOLIA_URL, params=params, timeout=15)
+            if r.status_code != 200:
+                if attempt < max_retries:
+                    import time
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                return []
+            data = r.json()
+            results = []
+            for hit in data.get("hits", []):
+                created_at = hit.get("created_at", "")
+                time_ago = relative_time(created_at) if created_at else ""
+                story_text = hit.get("story_text") or ""
+                # Decode HTML entities in story_text (e.g. &amp;#x2F; → /)
+                story_text = html.unescape(story_text)
+                # Fallback to title if story_text is empty
+                description = story_text[:150].strip() if story_text else (hit.get("title") or "")[:150].strip()
+                results.append({
+                    "title": hit.get("title") or hit.get("story_text", "")[:80],
+                    "url": hit.get("url") or f"https://news.ycombinator.com/item?id={hit.get('objectID')}",
+                    "points": hit.get("points", 0),
+                    "comments": hit.get("num_comments", 0),
+                    "author": hit.get("author", ""),
+                    "source": "HN",
+                    "description": description,
+                    "time_ago": time_ago,
+                    "_meta": f"{hit.get('points', 0)} points | {hit.get('num_comments', 0)} comments | by {hit.get('author', '')}",
+                })
+            return results
+        except Exception as e:
+            if attempt < max_retries:
+                import time
+                print(f"   ⚠ HN Algolia attempt {attempt + 1} failed: {e}, retrying...", file=sys.stderr)
+                time.sleep(2 * (attempt + 1))
+                continue
+            print(f"   ⚠ HN Algolia failed after {max_retries + 1} attempts: {e}", file=sys.stderr)
             return []
-        data = r.json()
-        results = []
-        for hit in data.get("hits", []):
-            results.append({
-                "title": hit.get("title") or hit.get("story_text", "")[:80],
-                "url": hit.get("url") or f"https://news.ycombinator.com/item?id={hit.get('objectID')}",
-                "points": hit.get("points", 0),
-                "comments": hit.get("num_comments", 0),
-                "author": hit.get("author", ""),
-                "source": "HN",
-                "_meta": f"{hit.get('points', 0)} points | {hit.get('num_comments', 0)} comments | by {hit.get('author', '')}",
-            })
-        return results
-    except Exception as e:
-        print(f"   ⚠ HN Algolia failed: {e}", file=sys.stderr)
-        return []
+    return []
 
 
 # ── Dev.to ─────────────────────────────────────────────────────────────
@@ -60,33 +107,54 @@ def fetch_hn(query: str, tags: str = "story", hits_per_page: int = 8) -> list[di
 DEVTO_URL = "https://dev.to/api/articles"
 
 
-def fetch_devto(query: str, per_page: int = 5) -> list[dict]:
-    """Fetch results from Dev.to public API."""
+def fetch_devto(query: str, per_page: int = 5, max_retries: int = 2) -> list[dict]:
+    """Fetch results from Dev.to public API with retry logic."""
     params = {
         "tag": query.replace(" ", "").lower(),
         "per_page": per_page,
     }
-    try:
-        r = requests.get(DEVTO_URL, params=params, timeout=10)
-        if r.status_code != 200:
+    for attempt in range(max_retries + 1):
+        try:
+            r = requests.get(DEVTO_URL, params=params, timeout=15)
+            if r.status_code != 200:
+                if attempt < max_retries:
+                    import time
+                    time.sleep(2 * (attempt + 1))
+                    continue
+                return []
+            articles = r.json()
+            results = []
+            for a in articles:
+                created_at = a.get("published_at", "") or a.get("created_at", "")
+                time_ago = relative_time(created_at) if created_at else ""
+                raw_desc = a.get("description") or ""
+                # Strip HTML tags and decode entities
+                import re as re_module
+                desc_clean = re_module.sub(r"<[^>]+>", "", raw_desc)
+                desc_clean = html.unescape(desc_clean)
+                description = desc_clean[:150].strip()
+                results.append({
+                    "title": a.get("title", ""),
+                    "url": a.get("url", ""),
+                    "reactions": a.get("public_reactions_count", 0),
+                    "comments": a.get("comments_count", 0),
+                    "read_time": a.get("reading_time_minutes", 0),
+                    "author": a.get("user", {}).get("username", ""),
+                    "source": "Dev.to",
+                    "description": description,
+                    "time_ago": time_ago,
+                    "_meta": f"{a.get('public_reactions_count', 0)} ❤️ | {a.get('comments_count', 0)} 💬 | {a.get('reading_time_minutes', 0)} min read | by @{a.get('user', {}).get('username', '')}",
+                })
+            return results
+        except Exception as e:
+            if attempt < max_retries:
+                import time
+                print(f"   ⚠ Dev.to API attempt {attempt + 1} failed: {e}, retrying...", file=sys.stderr)
+                time.sleep(2 * (attempt + 1))
+                continue
+            print(f"   ⚠ Dev.to API failed after {max_retries + 1} attempts: {e}", file=sys.stderr)
             return []
-        articles = r.json()
-        results = []
-        for a in articles:
-            results.append({
-                "title": a.get("title", ""),
-                "url": a.get("url", ""),
-                "reactions": a.get("public_reactions_count", 0),
-                "comments": a.get("comments_count", 0),
-                "read_time": a.get("reading_time_minutes", 0),
-                "author": a.get("user", {}).get("username", ""),
-                "source": "Dev.to",
-                "_meta": f"{a.get('public_reactions_count', 0)} ❤️ | {a.get('comments_count', 0)} 💬 | {a.get('reading_time_minutes', 0)} min read | by @{a.get('user', {}).get('username', '')}",
-            })
-        return results
-    except Exception as e:
-        print(f"   ⚠ Dev.to API failed: {e}", file=sys.stderr)
-        return []
+    return []
 
 
 # ── Combined search ────────────────────────────────────────────────────
@@ -102,18 +170,25 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4) -> list
 
 # ── HTML 报告生成 ──────────────────────────────────────────────────────
 
-TOPICS = {
-    "OpenClaw": ("OpenClaw AI agent", "🔶", "OpenClaw 相关资讯"),
-    "Hermes": ("Hermes Agent AI", "🟣", "Hermes Agent 相关资讯"),
-    "OpenCode": ("OpenCode AI coding", "🔵", "OpenCode 相关资讯"),
-    "Other": ("AI coding agent LLM", "🟢", "其他 AI Agent 重要资讯"),
+# ── Dynamic topics from agents ────────────────────────────────────────────
+
+# Fixed topic list (was _DEFAULT_TOPICS before _build_topics_from_agents was removed)
+_TOPICS = {
+    "OpenClaw":   ("OpenClaw",   "🔵", "OpenClaw 资讯"),
+    "Hermes":     ("Hermes Agent", "🟢", "Hermes 资讯"),
+    "OpenCode":   ("OpenCode",   "🟣", "OpenCode 资讯"),
+    "ClaudeCode": ("Claude Code", "🟠", "Claude Code 资讯"),
+    "Cline":      ("Cline",      "🔷", "Cline 资讯"),
+    "Other":      ("AI coding agent", "🟡", "其他 AI Agent 资讯"),
 }
 
-TOPIC_EMPTY_DEFAULT = """<p style='color:#666;padding:20px;'>暂无相关资讯</p>"""
+
+def get_topics():
+    """Return topics dict: {key: (search_query, icon, label)}"""
+    return dict(_TOPICS)
 
 
 def format_source_badge(item: dict) -> str:
-    """Return source badge HTML."""
     src = item.get("source", "")
     meta = item.get("_meta", "")
     if src == "HN":
@@ -133,11 +208,16 @@ def render_news_card(item: dict) -> str:
     """Render a single news card HTML."""
     title = item.get("title", "无标题")
     url = item.get("url", "#")
+    description = item.get("description", "")
+    time_ago = item.get("time_ago", "")
     badge = format_source_badge(item)
+    time_str = f'<span class="time-ago">⏱ {time_ago}</span>' if time_ago else ""
+    desc_str = f'<div class="news-desc">{description}</div>' if description else ""
     return f"""
     <div class="news-card">
       <div class="news-title"><a href="{url}" target="_blank">{title}</a></div>
-      <div class="news-meta">{badge}</div>
+      {desc_str}
+      <div class="news-meta">{badge} {time_str}</div>
     </div>
     """
 
@@ -145,16 +225,31 @@ def render_news_card(item: dict) -> str:
 # ── 全局去重 ──────────────────────────────────────────────────────────
 
 def global_deduplicate(all_results: dict) -> dict:
-    """Remove duplicate URLs across all search topics."""
+    """Remove duplicate URLs and near-duplicate titles across all search topics.
+
+    Deduplication strategy:
+    - Exact URL match → skip (same article already seen)
+    - Normalized title match (strip punctuation, lowercase) → skip (cross-platform duplicate)
+    """
     seen_urls = set()
+    seen_normalized_titles = set()
     deduped = {}
     for topic_name, items in all_results.items():
         deduped_section = []
         for item in items:
             url_val = item.get("url", "")
-            if url_val and url_val not in seen_urls:
+            title_val = item.get("title", "")
+            # Normalize title for cross-platform duplicate detection
+            normalized = re.sub(r'[\W_]+', ' ', title_val.lower()).strip()
+            url_dup = url_val and url_val in seen_urls
+            title_dup = normalized and normalized in seen_normalized_titles
+            if url_dup or title_dup:
+                continue
+            if url_val:
                 seen_urls.add(url_val)
-                deduped_section.append(item)
+            if normalized:
+                seen_normalized_titles.add(normalized)
+            deduped_section.append(item)
         deduped[topic_name] = deduped_section
     return deduped
 
@@ -165,8 +260,11 @@ def generate_news_report():
     """Search all topics and generate HTML news report."""
     print("🔍 搜索 HN Algolia + Dev.to...")
 
+    topics = get_topics()
+    topic_empty_default = '<p style=\'color:#666;padding:20px;\'>暂无相关资讯</p>'
+
     all_results = {}
-    for topic_name, (query, icon, label) in TOPICS.items():
+    for topic_name, (query, icon, label) in topics.items():
         print(f"   📡 搜索 [{topic_name}]: {query}")
         results = combined_search(query, hn_limit=6, devto_limit=4)
         all_results[topic_name] = results
@@ -183,10 +281,10 @@ def generate_news_report():
 
     # Build HTML
     sections_html = ""
-    for topic_name, (query, icon, label) in TOPICS.items():
+    for topic_name, (query, icon, label) in topics.items():
         items = all_results.get(topic_name, [])
         cards_html = "".join(render_news_card(i) for i in items)
-        empty_html = TOPIC_EMPTY_DEFAULT if not items else ""
+        empty_html = topic_empty_default if not items else ""
         sections_html += f"""
         <div class="topic-section">
           <h2 class="topic-title">{icon} {label}</h2>
@@ -236,6 +334,8 @@ def generate_news_report():
   .source-badge.hn {{ background: rgba(255,102,0,0.15); color: var(--hn-color); }}
   .source-badge.devto {{ background: rgba(59,73,223,0.15); color: var(--devto-color); }}
   .hn-meta, .devto-meta {{ font-size: 0.72rem; color: var(--text-secondary); }}
+  .news-desc {{ font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.4; }}
+  .time-ago {{ font-size: 0.72rem; color: var(--text-secondary); margin-left: 4px; }}
 
   .footer {{ text-align: center; padding: 32px; color: var(--text-secondary); font-size: 0.82rem; border-top: 1px solid var(--border); margin-top: 40px; }}
 </style>
@@ -261,6 +361,54 @@ def generate_news_report():
         f.write(html)
 
     print(f"✅ 资讯报告已生成: {NEWS_REPORT_FILE} ({total} 条)")
+    return total
+
+
+# ── JSON 数据生成 (供 WebUI 消费) ────────────────────────────────────────
+
+NEWS_DATA_FILE = BASE_DIR / "cache" / "news.json"
+
+
+def generate_news_data():
+    """Search all topics and save structured JSON to cache/news.json."""
+    print("🔍 搜索 HN Algolia + Dev.to...")
+
+    topics = get_topics()
+
+    all_results = {}
+    for topic_name, (query, icon, label) in topics.items():
+        print(f"   📡 搜索 [{topic_name}]: {query}")
+        results = combined_search(query, hn_limit=6, devto_limit=4)
+        all_results[topic_name] = results
+        print(f"      → {len(results)} 条结果")
+
+    # Global deduplication across topics
+    all_results = global_deduplicate(all_results)
+
+    total = sum(len(v) for v in all_results.values())
+    print(f"   ✅ 全局去重后: {total} 条唯一资讯")
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    data = {
+        "updated": now,
+        "total": total,
+        "topics": {},
+    }
+    for topic_name, (query, icon, label) in topics.items():
+        items = all_results.get(topic_name, [])
+        data["topics"][topic_name] = {
+            "icon": icon,
+            "label": label,
+            "count": len(items),
+            "items": items,
+        }
+
+    NEWS_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(NEWS_DATA_FILE, "w") as f:
+        json.dump(data, f, ensure_ascii=False)
+
+    print(f"✅ 资讯数据已生成: {NEWS_DATA_FILE} ({total} 条)")
     return total
 
 

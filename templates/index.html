@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 产品全景</title>
+<style>
+:root {
+  --bg: #0f172a; --card: #1e293b; --border: #334155; --text: #e2e8f0;
+  --dim: #94a3b8; --accent: #60a5fa; --purple: #a78bfa; --pink: #f472b6;
+  --green: #34d399; --red: #f87171; --orange: #fb923c; --yellow: #fbbf24;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif; background:var(--bg); color:var(--text); line-height:1.6; min-height:100vh; }
+.container { max-width:1400px; margin:0 auto; padding:12px 24px; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; margin-bottom:12px; }
+.tab-btn { padding:8px 20px; background:var(--card); border:1px solid var(--border); color:var(--dim); border-radius:8px 8px 0 0; cursor:pointer; font-size:0.95rem; transition:.15s; border-bottom:none; }
+.tab-btn:hover { color:var(--text); border-color:var(--accent); }
+.tab-btn.active { background:linear-gradient(135deg, #1e293b, #1e1b4b); color:var(--accent); border-color:var(--accent); font-weight:600; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* Compact hero bar */
+.hero-bar { display:flex; align-items:center; gap:16px; padding:8px 16px; background:linear-gradient(135deg, #1e293b, #1e1b4b); border-radius:12px; border:1px solid var(--border); margin-bottom:12px; flex-wrap:wrap; }
+.hero-bar h1 { font-size:1.2rem; font-weight:700; background:linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; white-space:nowrap; }
+.hero-stat { font-size:0.82rem; color:var(--dim); }
+.hero-stat b { color:var(--accent); }
+
+/* Sidebar */
+.layout { display:flex; gap:16px; }
+.sidebar { width:250px; flex-shrink:0; }
+.main { flex:1; min-width:0; }
+.sidebar-section { margin-bottom:14px; }
+.sidebar-section h4 { font-size:0.82rem; color:var(--dim); margin-bottom:5px; }
+
+/* Search */
+.search-input { width:100%; padding:7px 10px; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:0.88rem; outline:none; }
+.search-input:focus { border-color:var(--accent); }
+
+/* Filter chips */
+.chips { display:flex; flex-wrap:wrap; gap:4px; }
+.chip { padding:3px 9px; border-radius:5px; font-size:0.76rem; cursor:pointer; background:var(--card); border:1px solid var(--border); color:var(--dim); transition:.15s; user-select:none; }
+.chip:hover { border-color:var(--accent); color:var(--text); }
+.chip.active { background:rgba(96,165,250,0.15); border-color:var(--accent); color:var(--accent); }
+
+/* Buttons */
+.btn { padding:7px 14px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; font-size:0.82rem; transition:.15s; }
+.btn:hover { border-color:var(--accent); }
+.btn.primary { background:linear-gradient(135deg, #3b82f6, #8b5cf6); border:none; color:#fff; font-weight:600; width:100%; margin-bottom:4px; }
+
+/* Category pills sticky */
+.cat-pills-wrap { position:sticky; top:0; z-index:10; background:var(--bg); padding:4px 0 8px; display:flex; align-items:center; gap:8px; }
+.cat-pills-wrap .cat-pills { flex:1; }
+
+/* View toggle */
+.view-toggle { display:flex; gap:2px; flex-shrink:0; }
+.view-toggle button { padding:5px 10px; border:1px solid var(--border); background:var(--card); color:var(--dim); cursor:pointer; font-size:0.78rem; transition:.15s; }
+.view-toggle button:first-child { border-radius:6px 0 0 6px; }
+.view-toggle button:last-child { border-radius:0 6px 6px 0; }
+.view-toggle button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+/* Compact list view */
+.list-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+.list-table th { position:sticky; top:48px; background:var(--card); color:var(--dim); font-size:0.75rem; text-align:left; padding:6px 10px; border-bottom:2px solid var(--border); z-index:5; }
+.list-table td { padding:8px 10px; border-bottom:1px solid rgba(51,65,85,0.4); vertical-align:top; }
+.list-table tr:hover td { background:rgba(96,165,250,0.04); }
+.list-table .list-name { font-weight:600; white-space:nowrap; }
+.list-table .list-name a { color:var(--text); text-decoration:none; }
+.list-table .list-name a:hover { color:var(--accent); }
+.list-table .list-desc { color:var(--dim); font-size:0.8rem; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.list-table .list-hot { color:var(--orange); font-weight:600; font-size:0.78rem; }
+.list-table .list-links a { font-size:0.72rem; color:var(--accent); text-decoration:none; margin-right:6px; }
+.list-table .list-links a:hover { text-decoration:underline; }
+.list-table .list-expand { cursor:pointer; color:var(--dim); font-size:0.75rem; user-select:none; }
+.list-table .list-expand:hover { color:var(--accent); }
+.list-detail { display:none; padding:4px 10px 10px 10px; }
+.list-detail.open { display:block; }
+.list-detail .card-tags { display:flex; flex-wrap:wrap; gap:3px; margin:4px 0; }
+.cat-pill { padding:5px 12px; border-radius:16px; font-size:0.8rem; cursor:pointer; background:var(--card); border:1px solid var(--border); color:var(--dim); transition:.15s; user-select:none; }
+.cat-pill:hover { border-color:var(--accent); color:var(--text); }
+.cat-pill.active { background:linear-gradient(135deg, #3b82f6, #8b5cf6); color:#fff; border-color:transparent; }
+
+/* Category section header */
+.cat-section-header { font-size:0.95rem; font-weight:600; margin:16px 0 8px; padding-bottom:4px; border-bottom:2px solid var(--border); }
+
+/* Product cards */
+.cards { display:grid; grid-template-columns:repeat(auto-fill, minmax(360px,1fr)); gap:10px; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px; transition:.15s; display:flex; flex-direction:column; }
+.card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.card-header { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+.card-name { font-size:0.95rem; font-weight:600; flex:1; min-width:0; }
+.card-name a { color:var(--text); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+.card-name a:hover { color:var(--accent); }
+.badge { display:inline-block; font-size:0.68rem; font-weight:600; padding:1px 7px; border-radius:5px; flex-shrink:0; }
+.badge-yes { background:rgba(52,211,153,0.15); color:var(--green); }
+.badge-partial { background:rgba(251,191,36,0.15); color:var(--yellow); }
+.badge-no { background:rgba(248,113,113,0.15); color:var(--red); }
+
+.card-desc { color:var(--dim); font-size:0.82rem; margin-bottom:6px; line-height:1.5; }
+.card-tags { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:6px; }
+.tag { background:rgba(96,165,250,0.1); color:var(--accent); font-size:0.72rem; padding:2px 7px; border-radius:4px; }
+.card-links { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:4px; }
+.card-links a { font-size:0.75rem; color:var(--accent); text-decoration:none; padding:2px 7px; border-radius:5px; background:rgba(96,165,250,0.08); }
+.card-links a:hover { background:rgba(96,165,250,0.18); }
+.card-meta { font-size:0.72rem; color:var(--dim); }
+.card-meta .hot { color:var(--orange); font-weight:600; }
+
+/* Release badge in card */
+.release-badge { display:inline-flex; align-items:center; gap:3px; font-size:0.72rem; margin-top:4px; padding:2px 8px; border-radius:5px; background:rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.2); }
+.release-badge a { color:var(--accent); text-decoration:none; font-weight:600; }
+.release-badge a:hover { text-decoration:underline; }
+.release-badge .rel-date { color:var(--dim); font-size:0.7rem; }
+
+/* Compare toggle */
+.compare-toggle { font-size:0.72rem; color:var(--dim); cursor:pointer; user-select:none; flex-shrink:0; }
+.compare-toggle:hover { color:var(--accent); }
+.compare-toggle.checked { color:var(--accent); }
+
+.features { font-size:0.78rem; color:var(--dim); margin-top:4px; }
+.features summary { cursor:pointer; color:var(--dim); font-size:0.76rem; }
+.features summary:hover { color:var(--text); }
+.features ul { margin:4px 0 0 16px; font-size:0.76rem; }
+
+/* News */
+.news-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.news-topic { margin-bottom:20px; }
+.news-topic-title { font-size:1.05rem; font-weight:600; margin-bottom:6px; padding-bottom:3px; border-bottom:2px solid var(--border); color:var(--accent); cursor:pointer; user-select:none; }
+.news-grid { display:none; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); gap:8px; }
+.news-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; transition:.15s; }
+.news-card:hover { border-color:var(--accent); }
+.news-title { font-size:0.88rem; font-weight:500; margin-bottom:4px; }
+.news-title a { color:var(--text); text-decoration:none; }
+.news-title a:hover { color:var(--accent); }
+.news-desc { font-size:0.78rem; color:var(--dim); margin-bottom:4px; }
+.news-meta { font-size:0.7rem; color:var(--dim); }
+.src-hn { color:#ff6600; font-weight:600; }
+.src-devto { color:#3b49df; font-weight:600; }
+
+/* Compare */
+.compare-bar { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+.compare-table { width:100%; border-collapse:collapse; margin:10px 0; }
+.compare-table td, .compare-table th { padding:5px 10px; border:1px solid var(--border); font-size:0.8rem; text-align:left; }
+.compare-table th { background:var(--card); color:var(--accent); }
+
+.actions { display:flex; gap:6px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border); }
+
+/* Spinner */
+.spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top:2px solid var(--accent); border-radius:50%; animation:spin .6s linear infinite; margin-right:6px; vertical-align:middle; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+@media (max-width:900px) {
+  .layout { flex-direction:column; }
+  .sidebar { width:100%; }
+  .cards { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="products">📦 产品列表</button>
+    <button class="tab-btn" data-tab="news">📰 每日资讯</button>
+  </div>
+
+  <!-- ── Tab 1: Products ────────────────────────────────────────── -->
+  <div class="tab-panel active" id="tab-products">
+    <div class="hero-bar" id="heroBar"></div>
+
+    <div class="layout">
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-section" style="position:relative">
+          <input type="text" class="search-input" id="searchInput" placeholder="搜索名称/描述/标签...">
+          <span id="searchClear" style="position:absolute;right:8px;top:6px;cursor:pointer;color:var(--dim);font-size:1rem;display:none;" onclick="clearSearch()">✕</span>
+        </div>
+        <div class="sidebar-section">
+          <h4>分类</h4>
+          <div class="chips" id="catChips"></div>
+        </div>
+        <div class="sidebar-section">
+          <h4>开源状态</h4>
+          <div class="chips" id="osChips"></div>
+        </div>
+        <div class="sidebar-section">
+          <label style="font-size:0.8rem;color:var(--dim);cursor:pointer">
+            <input type="checkbox" id="osOnly" style="margin-right:4px">🟢 仅显示开源
+          </label>
+        </div>
+        <div class="sidebar-section">
+          <label style="font-size:0.8rem;color:var(--dim);cursor:pointer">
+            <input type="checkbox" id="ghOnly" style="margin-right:4px">🐙 有 GitHub
+          </label>
+        </div>
+        <div class="sidebar-section">
+          <h4>排序</h4>
+          <select id="sortBy" class="search-input">
+            <option value="hot">🔥 综合热度</option>
+            <option value="name">📛 名称 A-Z</option>
+            <option value="category">📂 分类</option>
+            <option value="verified">🕐 最近验证</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn primary" onclick="refreshAgents()">🔄 刷新 Agent</button>
+          <button class="btn primary" onclick="discoverAgents()">🔍 发现新 Agent</button>
+        </div>
+      </div>
+      <div class="main">
+        <div class="cat-pills-wrap">
+          <div class="cat-pills" id="catPills"></div>
+          <div class="view-toggle">
+            <button id="viewCards" class="active" onclick="setView('cards')">▦ 卡片</button>
+            <button id="viewList" onclick="setView('list')">☰ 列表</button>
+          </div>
+        </div>
+        <div id="cards"></div>
+        <div id="compareSection"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab 2: News ──────────────────────────────────────────── -->
+  <div class="tab-panel" id="tab-news">
+    <div class="news-header">
+      <h2>📰 每日资讯（HN + Dev.to）</h2>
+      <button class="btn" onclick="refreshNews()">🔄 刷新资讯</button>
+    </div>
+    <div id="newsSummary" style="font-size:0.82rem;color:var(--dim);margin-bottom:12px;"></div>
+    <div id="newsContent"></div>
+  </div>
+
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────────────────
+let allAgents = [];
+let newsData = null;
+let selectedCats = new Set();
+let selectedOS = new Set();
+let compareSet = new Set();
+let activePill = 'ALL';
+let viewMode = 'cards';
+
+const icons = {IDE:'💻',CLI:'⌨️',TUI:'🖥️',GUI:'🎨',Plugin:'🔌',SDK:'📦',Runtime:'⚙️',Other:'🤖'};
+const catColors = {IDE:'#a78bfa',CLI:'#34d399',TUI:'#f87171',GUI:'#f472b6',Plugin:'#fb923c',SDK:'#60a5fa',Runtime:'#fbbf24',Other:'#94a3b8'};
+const osBadge = {yes:'badge-yes',partial:'badge-partial',no:'badge-no'};
+const osLabel = {yes:'开源',partial:'部分开源',no:'闭源',unknown:'未知'};
+
+// ── Tab switching ───────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'news') loadNews();
+  });
+});
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+
+// ── Load agents ─────────────────────────────────────────────────
+async function loadAgents() {
+  allAgents = await fetchJSON('/api/agents');
+  updateStats();
+  updateFilters();
+  render();
+}
+
+function updateStats() {
+  const total = allAgents.length;
+  const cats = [...new Set(allAgents.map(a => a.category || 'Other'))];
+  const open = allAgents.filter(a => a.open_source === 'yes').length;
+  const gh = allAgents.filter(a => a.github_repo).length;
+  const withRelease = allAgents.filter(a => a._release).length;
+  document.getElementById('heroBar').innerHTML = `
+    <h1>🤖 AI Agent 产品全景</h1>
+    <span class="hero-stat">📦 <b>${total}</b> 产品</span>
+    <span class="hero-stat">🏷️ <b>${cats.length}</b> 分类</span>
+    <span class="hero-stat">🟢 <b>${open}</b> 开源</span>
+    <span class="hero-stat">🐙 <b>${gh}</b> GitHub</span>
+    ${withRelease > 0 ? `<span class="hero-stat">🚀 <b>${withRelease}</b> 版本更新</span>` : ''}
+  `;
+}
+
+function updateFilters() {
+  const catCounts = {};
+  allAgents.forEach(a => { const c = a.category || 'Other'; catCounts[c] = (catCounts[c]||0)+1; });
+  const cats = Object.keys(catCounts).sort();
+  if (selectedCats.size === 0) cats.forEach(c => selectedCats.add(c));
+  if (selectedOS.size === 0) ['yes','partial','no','unknown'].forEach(o => selectedOS.add(o));
+
+  document.getElementById('catChips').innerHTML = cats.map(c =>
+    `<span class="chip ${selectedCats.has(c)?'active':''}" data-cat="${c}" onclick="toggleFilter('cat','${c}')">${c} (${catCounts[c]})</span>`
+  ).join('');
+
+  const osLabels = {yes:'🟢 开源', partial:'🟡 部分开源', no:'🔴 闭源', unknown:'⚪ 未知'};
+  document.getElementById('osChips').innerHTML = Object.entries(osLabels).map(([k,v]) =>
+    `<span class="chip ${selectedOS.has(k)?'active':''}" data-os="${k}" onclick="toggleFilter('os','${k}')">${v}</span>`
+  ).join('');
+
+  document.getElementById('catPills').innerHTML = ['<span class="cat-pill active" data-pill="ALL" onclick="setPill(\'ALL\')">🔥 全部</span>']
+    .concat(cats.map(c => `<span class="cat-pill" data-pill="${c}" onclick="setPill('${c}')">${c} (${catCounts[c]})</span>`)).join('');
+}
+
+function toggleFilter(type, val) {
+  if (type === 'cat') {
+    if (selectedCats.has(val)) {
+      selectedCats.delete(val);
+      if (activePill === val) { activePill = 'ALL'; document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.pill === 'ALL')); }
+    } else {
+      selectedCats.add(val);
+      activePill = 'ALL'; document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.pill === 'ALL'));
+    }
+  } else {
+    if (selectedOS.has(val)) selectedOS.delete(val); else selectedOS.add(val);
+  }
+  updateFilters();
+  render();
+}
+
+function setPill(pill) {
+  activePill = pill;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.toggle('active', p.dataset.pill === pill));
+  render();
+}
+
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('viewCards').classList.toggle('active', mode === 'cards');
+  document.getElementById('viewList').classList.toggle('active', mode === 'list');
+  render();
+}
+
+function hotScore(a) {
+  let s = 0;
+  if (a.github_repo) s += 2;
+  if (['MIT','Apache-2.0','GPL','BSD'].includes((a.license||'').toUpperCase())) s += 1;
+  s += (a.tags||[]).length + (a.features||[]).length * 2;
+  return s;
+}
+
+function render() {
+  let filtered = [...allAgents];
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  const osOnly = document.getElementById('osOnly').checked;
+  const ghOnly = document.getElementById('ghOnly').checked;
+  const sortBy = document.getElementById('sortBy').value;
+
+  filtered = filtered.filter(a => {
+    if (!selectedCats.has(a.category || 'Other')) return false;
+    if (osOnly && a.open_source !== 'yes') return false;
+    if (!selectedOS.has(a.open_source || 'unknown')) return false;
+    if (ghOnly && !a.github_repo) return false;
+    if (activePill !== 'ALL' && (a.category || 'Other') !== activePill) return false;
+    if (search) {
+      const txt = [a.name, a.description, ...(a.tags||[])].join(' ').toLowerCase();
+      if (!txt.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (sortBy === 'name') filtered.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  else if (sortBy === 'category') filtered.sort((a,b) => (a.category||'').localeCompare(b.category||'') || (a.name||'').localeCompare(b.name||''));
+  else if (sortBy === 'verified') filtered.sort((a,b) => (b.last_verified||'').localeCompare(a.last_verified||''));
+  else filtered.sort((a,b) => hotScore(b) - hotScore(a));
+
+  // Group by category
+  const groups = {};
+  filtered.forEach(a => { const c = a.category || 'Other'; if (!groups[c]) groups[c] = []; groups[c].push(a); });
+  const catOrder = ['SDK','CLI','Plugin','GUI','IDE','TUI','Runtime','Other'];
+
+  let html = '';
+  if (viewMode === 'list') {
+    html = renderListView(groups, catOrder);
+  } else {
+    for (const cat of catOrder) {
+      const items = groups[cat];
+      if (!items || !items.length) continue;
+      const color = catColors[cat] || '#94a3b8';
+      html += `<div class="cat-section-header" style="color:${color}">${icons[cat]||'🤖'} ${cat} · ${items.length} 个</div><div class="cards">`;
+      html += items.map(a => renderCard(a)).join('');
+      html += '</div>';
+    }
+  }
+  document.getElementById('cards').innerHTML = html || '<div style="color:var(--dim);text-align:center;padding:30px;">没有匹配的产品</div>';
+  // Update hero product count to reflect filters
+  const heroCount = document.getElementById('heroBar').querySelector('.hero-stat b');
+  if (heroCount) heroCount.textContent = filtered.length;
+  updateCompareBar();
+}
+
+function renderListView(groups, catOrder) {
+  let html = '<table class="list-table"><thead><tr><th>名称</th><th>描述</th><th>热度</th><th>链接</th><th></th></tr></thead><tbody>';
+  for (const cat of catOrder) {
+    const items = groups[cat];
+    if (!items || !items.length) continue;
+    const color = catColors[cat] || '#94a3b8';
+    html += `<tr><td colspan="5" style="color:${color};font-weight:600;font-size:0.85rem;padding:8px 10px 0;">${icons[cat]||'🤖'} ${cat} · ${items.length} 个</td></tr>`;
+    items.forEach((a, idx) => {
+      const checked = compareSet.has(a.name);
+      const uid = 'detail_' + a.name.replace(/[^a-zA-Z0-9]/g, '_');
+      html += `<tr>
+        <td><span class="list-name" style="color:${catColors[a.category||'Other']||'#94a3b8'}"><a href="${a.website||'#'}" target="_blank">${a.name}</a></span> <span class="badge ${osBadge[a.open_source]||'badge-no'}" style="font-size:0.65rem">${osLabel[a.open_source]||a.open_source}</span></td>
+        <td><div class="list-desc">${a.description||''}</div></td>
+        <td><span class="list-hot">🔥 ${hotScore(a)}</span></td>
+        <td class="list-links">${a.website?`<a href="${a.website}" target="_blank">🌐</a>`:''}${a.github_repo?`<a href="${a.github_repo}" target="_blank">🐙</a>`:''}${a.docs_url?`<a href="${a.docs_url}" target="_blank">📄</a>`:''}${a._release?`<a href="${a._release.url}" target="_blank">🚀${a._release.tag}</a>`:''}</td>
+        <td><span class="list-expand ${checked?'checked':''}" onclick="toggleCompare('${a.name}')">${checked?'☑':'☐'}</span> <span class="list-expand" onclick="this.textContent=this.textContent==='▶'?'▼':'▶';this.closest('tr').nextElementSibling?.classList.toggle('open')">▶</span></td>
+      </tr>
+      <tr class="list-detail"><td colspan="5">
+        ${a.tags && a.tags.length ? `<div class="card-tags">${a.tags.slice(0,6).map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
+        ${a.features && a.features.length ? `<details class="features"><summary>✨ 特性 (${a.features.length})</summary><ul style="margin:4px 0 0 16px;font-size:0.78rem;color:var(--dim)">${a.features.slice(0,8).map(f=>`<li>${f}</li>`).join('')}</ul></details>` : ''}
+        <div style="font-size:0.75rem;color:var(--dim);margin-top:4px;">${a.pricing?`💰 ${a.pricing} · `:''}${a.license&&a.license!=='未知'?`📜 ${a.license} · `:''}${a.last_verified?`📅 ${a.last_verified}`:''}</div>
+      </td></tr>`;
+    });
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+function renderCard(a) {
+  const cat = a.category || 'Other';
+  const checked = compareSet.has(a.name);
+  return `<div class="card">
+    <div class="card-header">
+      <span class="card-name" style="color:${catColors[cat]||'#94a3b8'}"><a href="${a.website||'#'}" target="_blank">${icons[cat]||'🤖'} ${a.name}</a></span>
+      <span class="badge ${osBadge[a.open_source]||'badge-no'}">${osLabel[a.open_source]||a.open_source}</span>
+      <span class="compare-toggle ${checked?'checked':''}" onclick="toggleCompare('${a.name}')">${checked?'☑':'☐'}</span>
+    </div>
+    ${a.description ? `<div class="card-desc">${a.description.slice(0,100)}${a.description.length>100?'…':''}</div>` : ''}
+    ${a.tags && a.tags.length ? `<div class="card-tags">${a.tags.slice(0,5).map(t => `<span class="tag">${t}</span>`).join('')}${a.tags.length>5?`<span class="tag">+${a.tags.length-5}</span>`:''}</div>` : ''}
+    <div class="card-links">
+      ${a.website ? `<a href="${a.website}" target="_blank">🌐 官网</a>` : ''}
+      ${a.github_repo ? `<a href="${a.github_repo}" target="_blank">🐙 GitHub</a>` : ''}
+      ${a.docs_url ? `<a href="${a.docs_url}" target="_blank">📄 文档</a>` : ''}
+    </div>
+    <div class="card-meta">
+      <span class="hot">🔥 ${hotScore(a)}</span>
+      ${a.pricing ? ` · 💰 ${a.pricing}` : ''}
+      ${a.license && a.license!=='未知' ? ` · 📜 ${a.license}` : ''}
+      ${a.last_verified ? ` · 📅 ${a.last_verified}` : ''}
+    </div>
+    ${a._release ? `<div class="release-badge">🚀 <a href="${a._release.url}" target="_blank">${a._release.tag}</a><span class="rel-date">${a._release.date}</span></div>` : ''}
+    ${a.features && a.features.length ? `<details class="features"><summary>✨ 特性 (${a.features.length})</summary><ul>${a.features.slice(0,8).map(f => `<li>${f}</li>`).join('')}${a.features.length>8?`<li>...等 ${a.features.length-8} 项</li>`:''}</ul></details>` : ''}
+  </div>`;
+}
+
+function toggleCompare(name) {
+  if (compareSet.has(name)) compareSet.delete(name);
+  else if (compareSet.size < 5) compareSet.add(name);
+  render();
+}
+
+function updateCompareBar() {
+  const section = document.getElementById('compareSection');
+  if (compareSet.size < 2) { section.innerHTML = ''; return; }
+  const agents = allAgents.filter(a => compareSet.has(a.name));
+  if (agents.length < 2) { section.innerHTML = ''; return; }
+  let html = `<div class="compare-bar"><strong>📊 对比 ${agents.map(a => a.name).join(' vs ')}</strong> <button class="btn" onclick="compareSet.clear();render();">清空</button></div>`;
+  html += '<table class="compare-table"><thead><tr><th>字段</th>' + agents.map(a => `<th>${a.name}</th>`).join('') + '</tr></thead><tbody>';
+  [['分类','category'],['开源','open_source'],['许可证','license'],['定价','pricing'],['特性数',null],['优势数',null]].forEach(([label,key]) => {
+    html += `<tr><td><strong>${label}</strong></td>`;
+    agents.forEach(a => {
+      let val = '-';
+      if (key === null) val = label==='特性数' ? (a.features||[]).length : (a.strengths||[]).length;
+      else val = a[key] || '-';
+      html += `<td>${val}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  section.innerHTML = html;
+}
+
+// ── News ─────────────────────────────────────────────────────────
+async function loadNews() {
+  if (newsData) return;
+  try {
+    newsData = await fetchJSON('/api/news');
+    renderNews();
+  } catch(e) {
+    document.getElementById('newsContent').innerHTML = '<div style="color:var(--dim);padding:20px;">加载失败</div>';
+  }
+}
+
+function renderNews() {
+  if (!newsData) return;
+  const d = newsData;
+  document.getElementById('newsSummary').textContent = `📅 更新时间: ${d.updated} | 共 ${d.total} 条`;
+
+  let html = '';
+  for (const [name, topic] of Object.entries(d.topics || {})) {
+    const items = topic.items || [];
+    if (!items.length) continue;
+    html += `<div class="news-topic">
+      <div class="news-topic-title" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'grid':'none'">${topic.icon} ${topic.label} (${items.length})</div>
+      <div class="news-grid">`;
+    items.forEach(item => {
+      const srcClass = item.source === 'HN' ? 'src-hn' : item.source === 'Dev.to' ? 'src-devto' : '';
+      html += `<div class="news-card">
+        <div class="news-title"><a href="${item.url}" target="_blank">${item.title}</a></div>
+        ${item.description ? `<div class="news-desc">${item.description.slice(0,100)}</div>` : ''}
+        <div class="news-meta"><span class="${srcClass}">${item.source}</span> ${item._meta||''} ${item.time_ago ? '· ⏱ '+item.time_ago : ''}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+  }
+  document.getElementById('newsContent').innerHTML = html || '<div style="color:var(--dim);padding:20px;">暂无资讯，点击刷新</div>';
+  // Auto-expand first topic
+  const firstGrid = document.querySelector('#newsContent .news-grid');
+  if (firstGrid) firstGrid.style.display = 'grid';
+}
+
+async function refreshNews() {
+  document.getElementById('newsContent').innerHTML = '<div style="text-align:center;padding:30px;color:var(--dim);"><span class="spinner"></span>搜索中（约30秒）...</div>';
+  try {
+    const r = await fetch('/api/news/refresh', {method:'POST'});
+    const d = await r.json();
+    if (d.ok) { newsData = await fetchJSON('/api/news'); renderNews(); }
+    else document.getElementById('newsContent').innerHTML = '<div style="color:var(--dim);padding:20px;">刷新失败</div>';
+  } catch(e) {
+    document.getElementById('newsContent').innerHTML = '<div style="color:var(--dim);padding:20px;">刷新失败: ' + e.message + '</div>';
+  }
+}
+
+async function refreshAgents() {
+  try { await fetch('/api/agents/refresh', {method:'POST'}); loadAgents(); } catch(e) { alert('刷新失败'); }
+}
+async function discoverAgents() {
+  try { await fetch('/api/agents/discover', {method:'POST'}); loadAgents(); } catch(e) { alert('发现失败'); }
+}
+
+// ── Event listeners ──────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', () => {
+  const hasText = document.getElementById('searchInput').value.length > 0;
+  document.getElementById('searchClear').style.display = hasText ? 'inline' : 'none';
+  render();
+});
+document.getElementById('osOnly').addEventListener('change', render);
+document.getElementById('ghOnly').addEventListener('change', render);
+document.getElementById('sortBy').addEventListener('change', render);
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').style.display = 'none';
+  render();
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('searchInput').blur();
+  }
+});
+
+loadAgents();
+</script>
+</body>
+</html>

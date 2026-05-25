@@ -1,4 +1,4 @@
-#!/home/xiowen/.hermes/hermes-agent/venv/bin/python3
+#!/usr/bin/env python3
 """
 报告生成模块 — 从 agents/ 目录读取数据，生成卡片式 HTML 报告。
 """
@@ -29,6 +29,7 @@ HEADER = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="收录 78+ 个 AI Agent 产品，涵盖 IDE、CLI、TUI、GUI、Plugin、SDK 等分类，实时追踪 AI 编程助手发展动态">
 <title>AI Agent 产品全景报告</title>
 <style>
   :root {{
@@ -133,15 +134,23 @@ HEADER = """<!DOCTYPE html>
     border-color: var(--accent);
   }}
 
-  /* 分类标题 */
+/* 分类标题 */
   .section-title {{
     font-size: 1.3rem;
     font-weight: 600;
     margin: 40px 0 16px;
     padding-bottom: 8px;
     border-bottom: 2px solid var(--border);
-    color: var(--accent);
   }}
+  /* Per-category title colors */
+  .section-title-IDE    {{ color: #818cf8; }}
+  .section-title-CLI    {{ color: #22c55e; }}
+  .section-title-TUI    {{ color: #a855f7; }}
+  .section-title-GUI    {{ color: #ec48bb; }}
+  .section-title-Plugin {{ color: #fb923c; }}
+  .section-title-SDK    {{ color: #0ea5e9; }}
+  .section-title-Runtime{{ color: #eab308; }}
+  .section-title-Other  {{ color: #9ca3af; }}
 
   /* 卡片网格 */
   .grid {{
@@ -165,13 +174,7 @@ HEADER = """<!DOCTYPE html>
     transform: translateY(-2px);
   }}
 
-  /* 卡片头部 */
-  .card-header {{
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-  }}
+/* 卡片标题 */
   .card-title {{
     font-size: 1.15rem;
     font-weight: 600;
@@ -181,6 +184,23 @@ HEADER = """<!DOCTYPE html>
     text-decoration: none;
   }}
   .card-title a:hover {{ color: var(--accent); }}
+  /* Per-category card title colors */
+  .card-title-IDE a    {{ color: #818cf8 !important; }}
+  .card-title-CLI a    {{ color: #22c55e !important; }}
+  .card-title-TUI a    {{ color: #a855f7 !important; }}
+  .card-title-GUI a    {{ color: #ec48bb !important; }}
+  .card-title-Plugin a {{ color: #fb923c !important; }}
+  .card-title-SDK a    {{ color: #0ea5e9 !important; }}
+  .card-title-Runtime a{{ color: #eab308 !important; }}
+  .card-title-Other a  {{ color: #9ca3af !important; }}
+  .card-title-IDE a:hover    {{ color: #a5b4fc !important; }}
+  .card-title-CLI a:hover    {{ color: #4ade80 !important; }}
+  .card-title-TUI a:hover    {{ color: #c084fc !important; }}
+  .card-title-GUI a:hover    {{ color: #f472b6 !important; }}
+  .card-title-Plugin a:hover{{ color: #fdba74 !important; }}
+  .card-title-SDK a:hover    {{ color: #38bdf8 !important; }}
+  .card-title-Runtime a:hover{{ color: #fde047 !important; }}
+  .card-title-Other a:hover  {{ color: #d1d5db !important; }}
 
   /* 开源标签 */
   .badge {{
@@ -194,6 +214,101 @@ HEADER = """<!DOCTYPE html>
   .badge-yes {{ background: rgba(74,222,128,0.15); color: var(--accent-green); }}
   .badge-partial {{ background: rgba(250,204,21,0.15); color: var(--accent-yellow); }}
   .badge-no {{ background: rgba(248,113,113,0.15); color: var(--accent-red); }}
+
+  /* 分类标签 */
+  .cat-tag {{
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-left: 8px;
+    vertical-align: middle;
+  }}
+  .cat-IDE {{ background: rgba(99,102,241,0.15); color: #818cf8; }}
+  .cat-CLI {{ background: rgba(34,197,94,0.15); color: #22c55e; }}
+  .cat-TUI {{ background: rgba(168,85,247,0.15); color: #a855f7; }}
+  .cat-GUI {{ background: rgba(236,72,153,0.15); color: #ec48bb; }}
+  .cat-Plugin {{ background: rgba(249,115,22,0.15); color: #fb923c; }}
+  .cat-SDK {{ background: rgba(14,165,233,0.15); color: #0ea5e9; }}
+  .cat-Runtime {{ background: rgba(234,179,8,0.15); color: #eab308; }}
+  .cat-Other {{ background: rgba(107,114,128,0.15); color: #9ca3af; }}
+
+  /* TOP 5 热门排名 */
+  .top5-section {{
+    margin-bottom: 18px;
+    padding: 10px 14px 12px;
+    background: rgba(108,140,255,0.05);
+    border: 1px solid rgba(108,140,255,0.12);
+    border-radius: 10px;
+  }}
+  .top5-header {{
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }}
+  .top5-list {{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }}
+  .top5-list li {{
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }}
+  .top5-list li:last-child {{ border-bottom: none; }}
+  .top5-rank {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }}
+  .rank-1 .top5-rank {{ background: rgba(250,204,21,0.2); color: #facc15; }}
+  .rank-2 .top5-rank {{ background: rgba(156,163,175,0.2); color: #9ca3af; }}
+  .rank-3 .top5-rank {{ background: rgba(205,127,50,0.2); color: #cd7f32; }}
+  .rank-other .top5-rank {{ background: rgba(108,140,255,0.1); color: var(--accent); }}
+  .top5-name {{
+    color: var(--text);
+    font-weight: 500;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }}
+  .top5-name a {{ color: var(--text); text-decoration: none; }}
+  .top5-name a:hover {{ color: var(--accent); }}
+  .top5-meta {{
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-left: 8px;
+    flex-shrink: 0;
+  }}
+  .top5-badge {{
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    flex-shrink: 0;
+  }}
+  .top5-badge.verified {{ background: rgba(74,222,128,0.12); color: #4ade80; }}
+  .top5-badge.new {{ background: rgba(108,140,255,0.12); color: var(--accent); }}
+  .top5-badge.updated {{ background: rgba(250,204,21,0.12); color: #facc15; }}
 
   /* 卡片内容 */
   .card-desc {{
@@ -284,6 +399,12 @@ HEADER = """<!DOCTYPE html>
     margin-bottom: 8px;
   }}
 
+  /* 平板布局 */
+  @media (max-width: 900px) {{
+    .grid {{ grid-template-columns: repeat(2, 1fr); }}
+  }}
+  
+  /* 手机布局 */
   @media (max-width: 600px) {{
     .grid {{ grid-template-columns: 1fr; }}
     .header h1 {{ font-size: 1.6rem; }}
@@ -292,6 +413,52 @@ HEADER = """<!DOCTYPE html>
   /* ── Release Changelog Section ─────────────────────────────── */
   .releases-section {{
     margin: 32px 0;
+  }}
+  .releases-controls {{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }}
+  .releases-search {{
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }}
+  .releases-search:focus {{
+    border-color: var(--accent);
+  }}
+  .releases-filter {{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }}
+  .filter-btn {{
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text-secondary);
+    transition: all 0.2s;
+  }}
+  .filter-btn:hover {{
+    border-color: var(--accent);
+    color: var(--text);
+  }}
+  .filter-btn.active {{
+    background: rgba(108,140,255,0.2);
+    border-color: var(--accent);
+    color: var(--accent);
   }}
   .releases-header {{
     display: flex;
@@ -410,6 +577,21 @@ def render_release_item(name: str, data: dict) -> str:
     changelog_zh = data.get("changelog_zh", "").strip()
     diff_summary = data.get("diff_summary", "").strip()
     html_url = data.get("html_url", "")
+    body_text = data.get("body", "")[:200].lower()  # for filtering
+
+    # Compute days since published
+    import datetime
+    days_since = 999
+    try:
+        dt = datetime.datetime.strptime(published_at[:10], "%Y-%m-%d")
+        days_since = (datetime.datetime.now() - dt).days
+    except Exception:
+        pass
+
+    # Determine tag class
+    tag_class = "updated"
+    if days_since <= 14:
+        tag_class = "new"
 
     # changelog_zh 可能是多行，每行以 · 或数字开头
     bullets_html = ""
@@ -430,12 +612,15 @@ def render_release_item(name: str, data: dict) -> str:
 
     diff_html = ""
     if diff_summary:
-        diff_html = f'<div class="diff-summary"><strong>相较上一版本：</strong>{diff_summary}</div>'
+        # 清理 LLM 可能返回的重复前缀（LLM 返回的 diff_summary 已带 "相较上一版本：" 前缀）
+        clean_diff = diff_summary.replace("相较上一版本：", "").strip()
+        diff_html = f'<div class="diff-summary"><strong>相较上一版本：</strong>{clean_diff}</div>'
 
     return f"""
-    <div class="release-item">
+    <div class="release-item" data-name="{name}" data-body="{body_text}" data-tag="{tag_class}" data-days="{days_since}">
       <div class="release-top">
         <span class="release-name">{name}</span>
+        <span class="release-tag {tag_class}">{"🆕 新版" if tag_class == "new" else "🔄 更新"}</span>
         <a href="{html_url}" target="_blank" class="release-version">{tag_name}</a>
         <span class="release-date">📅 {published_at}</span>
       </div>
@@ -445,8 +630,65 @@ def render_release_item(name: str, data: dict) -> str:
     """
 
 
+def compute_hot_score(agent: dict) -> int:
+    """Compute hot score: MIT license +1, github_repo +2, tags +1 each, features +2 each.
+    Returns integer score for ranking."""
+    score = 0
+    if agent.get("license", "").upper() in ("MIT", "APACHE-2.0", "GPL", "BSD"):
+        score += 1
+    if agent.get("github_repo", "").strip():
+        score += 2
+    score += len(agent.get("tags", []))
+    score += len(agent.get("features", [])) * 2
+    return score
+
+
+def render_top5_section(cat: str, agents_cat: list) -> str:
+    """Render TOP 5 hot ranking section for a category.
+
+    Args:
+        cat: category name
+        agents_cat: list of agent dicts in this category
+    Returns HTML string. Empty string if fewer than 2 agents.
+    """
+    if len(agents_cat) < 2:
+        return ""
+    # 按热度降序，取前5
+    sorted_agents = sorted(agents_cat, key=lambda a: compute_hot_score(a), reverse=True)
+    top5 = sorted_agents[:5]
+    items_html = ""
+    for i, agent in enumerate(top5):
+        rank_class = "rank-1" if i == 0 else ("rank-2" if i == 1 else ("rank-3" if i == 2 else "rank-other"))
+        name_html = f'<a href="#{agent["id"]}">{agent["name"]}</a>'
+        # badge
+        badge = ""
+        verified = agent.get("last_verified", "")
+        if verified:
+            from datetime import datetime
+            try:
+                days_ago = (datetime.now() - datetime.strptime(verified, "%Y-%m-%d")).days
+                if days_ago <= 7:
+                    badge = '<span class="top5-badge verified">verified</span>'
+            except Exception:
+                pass
+        if not badge and agent.get("github_repo"):
+            badge = '<span class="top5-badge new">🔥 hot</span>'
+        items_html += f"""
+        <li class="{rank_class}">
+          <span class="top5-rank">{i + 1}</span>
+          <span class="top5-name">{name_html}</span>
+          <span class="top5-meta">{agent.get("category", "")}</span>
+          {badge}
+        </li>"""
+    return f"""
+    <div class="top5-section">
+      <div class="top5-header">🏆 分类热度 TOP5</div>
+      <ol class="top5-list">{items_html}</ol>
+    </div>"""
+
+
 def render_releases_section(releases: dict) -> str:
-    """渲染所有 Release 条目"""
+    """渲染所有 Release 条目（带搜索和过滤功能）"""
     items_html = ""
     # 按发布时间倒序
     sorted_releases = sorted(
@@ -456,12 +698,58 @@ def render_releases_section(releases: dict) -> str:
     )
     for name, data in sorted_releases:
         items_html += render_release_item(name, data)
+
+    controls_html = """
+      <div class="releases-controls">
+        <input type="text" class="releases-search" id="releases-search"
+               placeholder="搜索版本名称、仓库或更新内容..."
+               oninput="filterReleases()">
+        <div class="releases-filter">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter(this)">全部</button>
+          <button class="filter-btn" data-filter="new" onclick="setFilter(this)">🆕 新版</button>
+          <button class="filter-btn" data-filter="updated" onclick="setFilter(this)">🔄 更新</button>
+          <button class="filter-btn" data-filter="week" onclick="setFilter(this)">7天内</button>
+          <button class="filter-btn" data-filter="month" onclick="setFilter(this)">30天内</button>
+        </div>
+      </div>
+      <script>
+      function filterReleases() {
+        var q = document.getElementById('releases-search').value.toLowerCase();
+        var activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+        var items = document.querySelectorAll('.release-item');
+        var count = 0;
+        items.forEach(function(item) {
+          var text = (item.getAttribute('data-name') || '') + (item.getAttribute('data-body') || '');
+          var visible = text.includes(q);
+          var tag = item.getAttribute('data-tag') || '';
+          var days = parseInt(item.getAttribute('data-days') || '999');
+          if (activeFilter === 'new' && !tag.includes('new')) visible = false;
+          if (activeFilter === 'updated' && !tag.includes('updated')) visible = false;
+          if (activeFilter === 'week' && days > 7) visible = false;
+          if (activeFilter === 'month' && days > 30) visible = false;
+          item.style.display = visible ? '' : 'none';
+          if (visible) count++;
+        });
+        var zeroMsg = document.getElementById('releases-zero');
+        if (zeroMsg) zeroMsg.style.display = count === 0 ? '' : 'none';
+      }
+      function setFilter(btn) {
+        document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active')});
+        btn.classList.add('active');
+        filterReleases();
+      }
+      // Auto-run on page load
+      document.addEventListener('DOMContentLoaded', filterReleases);
+      </script>
+    """
     return f"""
     <div class="releases-section">
       <div class="releases-header">
         <h2>🚀 开源 Agent 版本更新</h2>
       </div>
-      {items_html}
+      {controls_html}
+      <div id="releases-list">{items_html}</div>
+      <p id="releases-zero" style="display:none;color:var(--text-secondary);text-align:center;padding:20px;">没有匹配的结果</p>
     </div>
     """
 
@@ -503,7 +791,7 @@ def render_card(agent: dict) -> str:
     return f"""
     <div class="card" id="{agent['id']}">
       <div class="card-header">
-        <div class="card-title"><a href="{agent.get('website', '#')}" target="_blank">{agent['name']}</a></div>
+        <div class="card-title card-title-{agent.get('category', 'Other')}"><a href="{agent.get('website', '#')}" target="_blank">{agent['name']}</a><span class="cat-tag cat-{agent.get('category', 'Other')}">{agent.get('category', 'Other')}</span></div>
         <span class="badge {badge_class(agent.get('open_source', 'no'))}">{badge_label(agent.get('open_source', 'no'))}</span>
       </div>
       {pricing_html}
@@ -512,7 +800,7 @@ def render_card(agent: dict) -> str:
       {tags_html}
       {features_html}
       {strengths_html}
-      <div class="license">许可证: {agent.get('license', '-')}</div>
+      <div class="license">📜 {agent.get('license', '-')}</div>
       <div class="card-links">{links}</div>
     </div>
     """
@@ -560,9 +848,11 @@ def generate_report():
     for cat, items in categories.items():
         if not items:
             continue
+        top5_html = render_top5_section(cat, items)
         cards = "".join(render_card(a) for a in items)
         sections += f"""
-        <h2 class="section-title" id="cat-{cat.lower()}">{cat} ({len(items)})</h2>
+        <h2 class="section-title section-title-{cat}" id="cat-{cat.lower()}">{cat} ({len(items)})</h2>
+        {top5_html}
         <div class="grid">{cards}</div>
         """
 
@@ -586,6 +876,7 @@ def generate_report():
       <div class="stat-card"><div class="num">{sum(1 for a in agents if a.get('open_source') == 'yes')}</div><div class="label">开源</div></div>
       <div class="stat-card"><div class="num">{sum(1 for a in agents if a.get('open_source') == 'partial')}</div><div class="label">部分开源</div></div>
       <div class="stat-card"><div class="num">{sum(1 for a in agents if a.get('open_source') == 'no')}</div><div class="label">闭源</div></div>
+      <div class="stat-card"><div class="num">{sum(1 for a in agents if a.get('github_repo', '').strip())}</div><div class="label">有 GitHub</div></div>
     </div>
     """
 
