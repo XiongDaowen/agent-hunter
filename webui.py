@@ -741,18 +741,13 @@ with tab1:
             if a.get("tags"):
                 st.caption(" ".join(f"`{t}`" for t in a["tags"][:8]))
 
-            link_cols = st.columns([1, 1, 1, 3])
-            col_idx = 0
             links_html = ""
             if a.get("website"):
                 links_html += f'<a href="{a["website"]}" style="color:#60a5fa;font-size:0.82rem;margin-right:8px;">🌐 官网</a>'
-                col_idx += 1
             if a.get("github_repo"):
                 links_html += f'<a href="{a["github_repo"]}" style="color:#60a5fa;font-size:0.82rem;margin-right:8px;">🐙 GitHub</a>'
-                col_idx += 1
             if a.get("docs_url"):
                 links_html += f'<a href="{a["docs_url"]}" style="color:#60a5fa;font-size:0.82rem;margin-right:8px;">📄 文档</a>'
-                col_idx += 1
             if links_html:
                 st.markdown(links_html, unsafe_allow_html=True)
 

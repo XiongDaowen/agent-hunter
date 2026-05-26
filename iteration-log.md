@@ -1,3 +1,31 @@
+## [2026-05-27 13:00] 第 63 次迭代（Job ID: 603bc53e1dfd）
+
+### 本次分析
+- 检查对象：WebUI (localhost:8501) 两个 Tab、webui.py（卡片链接渲染）、iteration-log.md
+- 发现的问题：
+  1. 第 62 次迭代提到产品 Tab 链接从 link_button 改为内联 `<a>` 标签文本，但遗留了 `link_cols = st.columns([1, 1, 1, 3])` 和 `col_idx` 计数逻辑（无实际作用）
+  2. 每个卡片创建了 4 列容器（即使只放链接也浪费），且 `col_idx` 无条件累加但不影响渲染
+- 参考网站：github.com/explore（简洁列表，内联文本链接）
+- 决定动手的改进点：清理产品卡片中无用的 `st.columns([1, 1, 1, 3])` 和 `col_idx` 变量，保留纯 HTML 链接渲染
+
+### 本次修复
+- webui.py:744-755 — 清理遗留代码：
+  - 删除 `link_cols = st.columns([1, 1, 1, 3])`
+  - 删除 `col_idx = 0` 及其所有 `col_idx += 1` 调用
+  - 保留 `links_html` 字符串拼接逻辑和 `st.markdown(links_html, unsafe_allow_html=True)`
+  - 纯 HTML 渲染，无需列布局容器
+
+### 验证结果
+- `python3 -m py_compile webui.py` → OK ✓
+- WebUI 重启后正常加载（77 个产品）✓
+- 产品卡片链接仍然内联显示：🌐 官网 · 🐙 GitHub · 📄 文档（同上一迭代效果一致）
+
+### 待下次修复
+1. 调研 firecrawl 402 根因，或尝试 SerpAPI/Jina 作为替代搜索 API
+2. 检查 agents/ 中各 agent 的 website 字段是否还有失效链接
+3. 检查 news.json 的更新时间，超过 24h 则触发刷新
+4. 资讯 Tab 发布时间超过 30 天的条目用灰色显示
+
 ## [2026-05-27 12:20] 第 62 次迭代（Job ID: 603bc53e1dfd）
 
 ### 本次分析

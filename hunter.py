@@ -811,6 +811,88 @@ def _search_firecrawl(query: str, limit: int = 6) -> list[dict]:
         return []
 
 
+def _evolve_queries(new_entries: list[dict], unique_sources: list[dict], query_stats: dict):
+    """分析本次 discover 各 query 的产出效果，输出改进建议到迭代日志"""
+    from datetime import datetime, timezone
+
+    if not query_stats:
+        return
+
+    # 统计有效条目来自哪些 query
+    entry_names = {e["name"].lower() for e in new_entries}
+    valid_urls = {e.get("website", "") or e.get("github_repo", "") for e in new_entries}
+
+    for source in unique_sources:
+        q = source.get("_query", "")
+        if q and q in query_stats:
+            src_url = source.get("url", "")
+            # 标记有效：URL 最终产生了 LLM 验证通过的条目
+            if src_url and any(src_url.lower() in (v or "").lower() for v in valid_urls):
+                query_stats[q]["valid"] += 1
+
+    # 生成分析文本
+    lines = ["\n## discover() query 效果分析"]
+    lines.append(f"时间: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC")
+    lines.append(f"本次 discover 共发现 {len(new_entries)} 个新 agent")
+
+    sorted_queries = sorted(query_stats.items(), key=lambda x: x[1]["valid"], reverse=True)
+    lines.append("\n### 各 query 产出明细:")
+    for q, stats in sorted_queries:
+        pct = (stats["valid"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        lines.append(f"  - [{stats['valid']}/{stats['total']} ({pct:.0f}%)] \"{q}\"")
+
+    # 识别低效 query（有效率 0% 且总量 >= 3）
+    low_effort = [q for q, s in query_stats.items() if s["valid"] == 0 and s["total"] >= 3]
+    if low_effort:
+        lines.append(f"\n### 建议删除的低效 query（有效率 0%，产出 >= 3）:")
+        for q in low_effort:
+            lines.append(f"  - DELETE: \"{q}\"")
+
+    # 调用 LLM 生成新 query 建议（如果发现少，提示扩展方向）
+    if len(new_entries) < 3:
+        lines.append("\n### LLM 新 query 建议:")
+        suggestions = _llm_query_suggestions(new_entries, entry_names)
+        lines.append(suggestions)
+
+    report = "\n".join(lines)
+    for line in lines:
+        if line.startswith("  -"):
+            debug(line)
+        else:
+            info(line)
+
+    # 追加到迭代日志
+    log_path = BASE_DIR / "iteration-log.md"
+    try:
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(report + "\n")
+    except Exception:
+        warning("无法写入迭代日志")
+
+
+def _llm_query_suggestions(current_entries: list[dict], existing_names: set[str]) -> str:
+    """调用 LLM 基于本次发现情况，建议新的搜索 query"""
+    prompt = f"""本次 discover() 只发现了 {len(current_entries)} 个新 agent（已去重后）。
+当前数据库中已收录的 agent 名字（部分）: {", ".join(list(existing_names)[:20])}
+本次新发现: {[e["name"] for e in current_entries]}
+
+请分析：
+1. 为什么这次发现数量少？是 query 覆盖不足，还是关键词不够精准？
+2. 推荐 5-10 个新的搜索 query（英文，中文均可），帮助发现更多 AI coding agent 产品。
+3. 注意：不要推荐已收录的品牌（如 Cursor、Claude Code、GitHub Copilot）。
+
+输出格式：
+- 每个 query 一行
+- 格式：["类别", "查询词"]
+- 例如：["CLI", "open source AI coding REPL tool 2025"]
+"""
+    try:
+        resp = _llm_chat([{"role": "user", "content": prompt}], max_tokens=512)
+        return resp or "（LLM 无返回）"
+    except Exception as e:
+        return f"（LLM 建议生成失败: {e}）"
+
+
 def discover() -> list[dict]:
     """
     使用多源搜索（360搜索 + DuckDuckGo + Firecrawl）+ LLM 结构化提取，
@@ -823,60 +905,30 @@ def discover() -> list[dict]:
     existing_ids = {a["id"] for a in existing_agents}
     existing_names = {a["name"].lower() for a in existing_agents}
 
-    # ── 国内搜索源（360搜索覆盖知乎/微信公众号/掘金/CSDN等） ──
-    DOMESTIC_SEARCHES = [
-        # 知乎
-        ("IDE",   "AI编程助手 IDE 编辑器 推荐 2025 site:zhihu.com"),
-        ("CLI",   "AI编码工具 命令行 agent 推荐 2025 site:zhihu.com"),
-        ("SDK",   "AI agent开发 框架 SDK 推荐 2025 site:zhihu.com"),
-        # 微信公众号（360也能搜到）
-        ("IDE",   "AI编程工具 推荐 微信公众号"),
-        ("CLI",   "AI编码助手 命令行工具"),
-        ("Other", "AI软件工程师 自主编程 工具"),
-        # 综合中文搜索
-        ("IDE",   "AI IDE编辑器 排名 对比 2025"),
-        ("Plugin","AI代码补全插件 VS Code 推荐"),
-        ("Other", "AI编程工具 测评 2025 2026"),
-        ("TUI",   "终端 AI agent 工具 推荐"),
-        ("GUI",   "AI 网页生成器 可视化 工具"),
-        # 新增：更多发现路径
-        ("IDE",   "Cursor 替代 工具 2025"),
-        ("Plugin","AI代码审查 工具 推荐"),
-        ("Other", "AI 编程 开源 工具 2025"),
-        ("SDK",   "AI agent 框架 推荐 2025"),
-        ("Other", "Claude Code 替代 工具"),
-    ]
+    # ── 加载查询词配置（支持自进化） ──
+    queries_path = BASE_DIR / "data" / "search_queries.json"
+    if queries_path.exists():
+        with open(queries_path) as f:
+            queries_cfg = _json.loads(f.read())
+        DOMESTIC_SEARCHES = [tuple(x) for x in queries_cfg.get("domestic", [])]
+        OVERSEAS_SEARCHES = [tuple(x) for x in queries_cfg.get("overseas", [])]
+    else:
+        # 回退默认查询词
+        DOMESTIC_SEARCHES = [
+            ("IDE",   "AI编程助手 IDE 编辑器 推荐 2025"),
+            ("CLI",   "AI编码工具 命令行 agent 推荐 2025"),
+            ("SDK",   "AI agent开发 框架 SDK 推荐 2025"),
+            ("Other", "AI软件工程师 自主编程 工具"),
+        ]
+        OVERSEAS_SEARCHES = [
+            ("IDE",   "best AI code editor IDE tool 2025"),
+            ("CLI",   "AI coding agent CLI tool terminal 2025"),
+            ("TUI",   "terminal AI agent TUI framework 2025"),
+            ("GUI",   "AI web app generator visual builder tool 2025"),
+        ]
 
-    # ── 国外搜索源（DuckDuckGo覆盖ProductHunt/HackerNews/GitHub等） ──
-    OVERSEAS_SEARCHES = [
-        # 通用英文搜索
-        ("IDE",   "best AI code editor IDE tool 2025"),
-        ("CLI",   "AI coding agent CLI tool terminal 2025"),
-        ("TUI",   "terminal AI agent TUI framework 2025"),
-        ("GUI",   "AI web app generator visual builder tool 2025"),
-        ("Plugin","AI coding assistant plugin VS Code JetBrains 2025"),
-        ("SDK",   "AI agent SDK framework library 2025"),
-        ("Other", "AI software engineer autonomous agent platform 2025"),
-        # 特定类型搜索
-        ("Other", "AI coding tool benchmark comparison 2025 2026"),
-        ("Other", "best AI developer tools product hunt 2025"),
-        ("Plugin", "AI code completion extension marketplace"),
-        # 新增：更多发现路径
-        ("IDE",   "Cursor alternative AI code editor 2025"),
-        ("Plugin", "AI code review tool GitHub 2025"),
-        ("CLI",   "open source AI coding assistant CLI 2025"),
-        ("Other", "AI programmer assistant tool 2025"),
-        ("SDK",   "multi-agent AI framework library 2025"),
-        # 品牌/竞品专项搜索（防止遗漏知名产品）
-        ("CLI",   "Claude Code alternative CLI coding agent"),
-        ("CLI",   "DeepSeek coding agent terminal TUI"),
-        ("IDE",   "Cursor替代 AI代码编辑器 2025 2026"),
-        ("CLI",   "Aider alternative AI coding CLI"),
-        ("TUI",   "open source terminal AI agent 2025 2026"),
-        ("Plugin", "GitHub Copilot alternative VS Code extension"),
-        ("SDK",   "AI agent framework LangChain AutoGen alternative"),
-        ("GUI",   "bolt.new alternative web app generator"),
-    ]
+    # ── 国内搜索源（360搜索覆盖知乎/微信公众号/掘金/CSDN等） ──
+    # DOMESTIC_SEARCHES 已从配置文件加载
 
     raw_sources = []
 
@@ -925,6 +977,15 @@ def discover() -> list[dict]:
     overseas_fc = CONFIG.get("search_sources", {}).get("overseas", {}).get("firecrawl", {}).get("enabled", False) == True
     overseas_hn = True  # HN Algolia 可靠免费，直接启用
 
+    # 自进化：追踪每个 query 的产出量
+    query_stats: dict[str, dict] = {}  # key = query string
+
+    def _mark_source(s: dict, query: str):
+        s["_query"] = query
+        if query not in query_stats:
+            query_stats[query] = {"total": 0, "valid": 0}
+        query_stats[query]["total"] += 1
+
     if overseas_fc:
         step("国外搜索源（Firecrawl）")
         for target_cat, query in OVERSEAS_SEARCHES:
@@ -932,6 +993,7 @@ def discover() -> list[dict]:
             sources = _search_firecrawl(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
+                _mark_source(s, query)
             raw_sources.extend(sources)
         # firecrawl 无结果时补充 HN Algolia
         overseas_count = sum(1 for s in raw_sources if s.get("source") == "firecrawl")
@@ -942,6 +1004,7 @@ def discover() -> list[dict]:
                 sources = _search_hn_algolia(query, limit=4)
                 for s in sources:
                     s["category_hint"] = target_cat
+                    _mark_source(s, query)
                 raw_sources.extend(sources)
     else:
         # 默认使用 HN Algolia（DuckDuckGo 在 WSL 下常超时，直接跳过）
@@ -951,6 +1014,7 @@ def discover() -> list[dict]:
             sources = _search_hn_algolia(query, limit=4)
             for s in sources:
                 s["category_hint"] = target_cat
+                _mark_source(s, query)
             raw_sources.extend(sources)
 
     # 去重 URL
@@ -1111,6 +1175,9 @@ def discover() -> list[dict]:
             vw = "✓web" if e.get("verified_website") else ""
             vg = "✓gh" if e.get("verified_github") else ""
             info(f"  ✨ {e['name']} [{e['category']}] {vw} {vg}")
+
+    # ── 自进化：统计各 query 有效产出，分析并记录改进建议 ──
+    _evolve_queries(new_entries, unique_sources, query_stats)
 
     return new_entries
 
