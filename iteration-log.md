@@ -1,3 +1,28 @@
+## [2026-05-27 11:47] 第 61 次迭代
+
+### 本次分析
+- 问题：discover() 阶段 LLM 从搜索摘要中 Hallucination 出不存在的"DeepSeek TUI"产品并入库
+  - description/website/github_repo 均由 LLM 编造，搜索结果中无真实证据
+  - 根因：discover() 只有 LLM 结构化提取，无存在性验证层
+- 验证规则应有两层：① LLM 层要求来源证据 ② 发现后 HTTP 层验证 URL 可访问性
+
+### 本次修复
+- hunter.py LLM prompt — 新增 `_source_evidence` 字段和验证规则：
+  - website 必须是具体项目页，不接受通用官网
+  - 无法确认真实性时必须在 _source_evidence 标注"无法确认真实性，可信度低"
+  - 无法确认 name/website/github_repo 任意一项 → 丢弃条目
+- hunter.py 新增 `_verify_agent_entry()` 函数：
+  - HEAD+GET 双保险验证 website/github_repo HTTP 状态码
+  - _source_evidence 含"无法确认真实性"/"可信度低" → 丢弃
+  - 两个 URL 都不可达 → 丢弃
+  - 至少一个可访问才保留
+- hunter.py discover() — 每条 entry 构建后立即调用验证，失败则跳过
+- 输出日志附加 ✓web / ✓gh 标记
+- agents/deepseek-tui.json 已删除（hallucinated 条目）
+
+### 验证结果
+- python3 -m py_compile hunter.py → OK ✓
+
 ## [2026-05-27 11:00] 第 60 次迭代（Job ID: 603bc53e1dfd）
 
 ### 本次分析

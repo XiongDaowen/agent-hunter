@@ -511,6 +511,85 @@ def _llm_chat(messages: list[dict], temperature: float = 0.1, max_tokens: int = 
 
 # ── 搜索发现 ──────────────────────────────────────────────────────────
 
+def _verify_agent_entry(entry: dict, timeout: int = 5) -> dict | None:
+    """
+    验证 entry 的 website 和 github_repo 是否真实可访问。
+    同时检查 LLM 提供的 _source_evidence 是否包含"无法确认真实性"标记。
+    返回更新后的 entry，或 None 表示不可信应丢弃。
+    """
+    import requests
+    from urllib.parse import urlparse
+
+    website = entry.get("website", "")
+    github_repo = entry.get("github_repo", "")
+    source_evidence = entry.get("_source_evidence", "")
+
+    # 标记无法确认真实性的条目直接过滤
+    if "无法确认真实性" in source_evidence or "可信度低" in source_evidence:
+        warning(f"  ⚠️  {entry.get('name', '?')} 可信度低，过滤")
+        return None
+
+    verified_website = False
+    verified_github = False
+
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; agent-hunter/1.0)"}
+
+    # 验证 website
+    if website:
+        try:
+            r = requests.head(website, timeout=timeout, headers=headers, allow_redirects=True)
+            if r.status_code < 400:
+                verified_website = True
+            else:
+                # 试试 GET（有些服务器对 HEAD 返回 405）
+                try:
+                    r2 = requests.get(website, timeout=timeout, headers=headers, allow_redirects=True, stream=True)
+                    if r2.status_code < 400:
+                        verified_website = True
+                except Exception:
+                    pass
+        except requests.exceptions.ConnectionError:
+            # 网络层拒绝连接（被墙/超时/DNS失败）— 不归咎于 URL 本身，保留条目
+            verified_website = True
+        except requests.exceptions.Timeout:
+            # 连接超时 — 环境网络问题，不归咎于 URL，保留条目
+            verified_website = True
+        except Exception:
+            pass
+
+    # 验证 github_repo
+    if github_repo and "github.com" in github_repo:
+        try:
+            r = requests.head(github_repo, timeout=timeout, headers=headers, allow_redirects=True)
+            if r.status_code < 400:
+                verified_github = True
+            else:
+                try:
+                    r2 = requests.get(github_repo, timeout=timeout, headers=headers, allow_redirects=True, stream=True)
+                    if r2.status_code < 400:
+                        verified_github = True
+                except Exception:
+                    pass
+        except requests.exceptions.ConnectionError:
+            # 网络层拒绝连接 — 环境问题，保留条目
+            verified_github = True
+        except requests.exceptions.Timeout:
+            # 连接超时 — 环境问题，保留条目
+            verified_github = True
+        except Exception:
+            pass
+
+    # 至少有一个 URL 可验证才保留
+    if not verified_website and not verified_github:
+        warning(f"  ⚠️  {entry.get('name', '?')} website/github 均无法访问，过滤")
+        return None
+
+    # 清理内部字段后返回
+    entry["verified_website"] = verified_website
+    entry["verified_github"] = verified_github
+    entry.pop("_source_evidence", None)
+    return entry
+
 def _search_360(query: str, limit: int = 6) -> list[dict]:
     """使用 360 搜索（免费，覆盖知乎/微信公众号/掘金等中文站点）"""
     import requests
@@ -788,6 +867,15 @@ def discover() -> list[dict]:
         ("CLI",   "open source AI coding assistant CLI 2025"),
         ("Other", "AI programmer assistant tool 2025"),
         ("SDK",   "multi-agent AI framework library 2025"),
+        # 品牌/竞品专项搜索（防止遗漏知名产品）
+        ("CLI",   "Claude Code alternative CLI coding agent"),
+        ("CLI",   "DeepSeek coding agent terminal TUI"),
+        ("IDE",   "Cursor替代 AI代码编辑器 2025 2026"),
+        ("CLI",   "Aider alternative AI coding CLI"),
+        ("TUI",   "open source terminal AI agent 2025 2026"),
+        ("Plugin", "GitHub Copilot alternative VS Code extension"),
+        ("SDK",   "AI agent framework LangChain AutoGen alternative"),
+        ("GUI",   "bolt.new alternative web app generator"),
     ]
 
     raw_sources = []
@@ -890,12 +978,12 @@ def discover() -> list[dict]:
         for i, s in enumerate(batch, 1):
             sources_text += f"[{i}] {s['title']}\n    URL: {s['url']}\n    来源: {s.get('source', 'unknown')}\n    内容摘要: {s.get('content', '')[:500]}\n\n"
 
-        system_prompt = """你是一个 AI Agent 产品分析师。你的任务是从网页搜索结果中识别 AI Agent 产品。
+        system_prompt = """你是一个 AI Agent 产品分析师。你的任务是从网页搜索结果中识别 AI Agent 产品，并严格验证其真实性。
 
 只提取符合以下条件的条目：
 1. 是一个具体的 AI Agent 产品、工具、框架或平台（不是文章、博客、集合页面）
 2. 与 AI 编程、代码生成、AI 代理相关
-3. 有明确的官网或 GitHub 仓库
+3. 有明确的官网或 GitHub 仓库（必须可访问，不能是猜测或编造的 URL）
 
 对每个产品输出 JSON 格式（只输出一个 JSON 数组，不要其他文字）：
 ```json
@@ -909,14 +997,21 @@ def discover() -> list[dict]:
     "license": "开源许可证名称或'专有'或'未知'",
     "strengths": ["优势1", "优势2", "优势3"],
     "position": "一句话中文定位（10-30字）",
-    "website": "官网URL",
+    "website": "官网URL（必须是真实的、可访问的 URL，不允许留空或编造）",
     "docs_url": "文档URL（如果没有则填空字符串）",
     "github_repo": "GitHub仓库URL（如果没有则填空字符串）",
     "pricing": "定价信息（免费/付费/免费+付费/或'未知'）",
-    "tags": ["标签1", "标签2"]
+    "tags": ["标签1", "标签2"],
+    "_source_evidence": "从哪个搜索结果推导出来的，简单说明"
   }
 ]
 ```
+
+验证规则（必须满足）：
+- website 必须是真实可访问的 URL，不允许是 deepseek.com 这类通用官网（必须是具体项目页）
+- github_repo 必须是真实的 GitHub 仓库 URL，不允许留空但声称 open_source=yes
+- 如果某产品找不到真实可验证的项目页，必须在 _source_evidence 中写明"无法确认真实性，可信度低"
+- 如果无法从搜索摘要中确认 product name / website / github_repo 任何一项，丢弃该条目，不要输出
 
 要求：
 - 只输出严格有效的 JSON 数组
@@ -997,7 +1092,11 @@ def discover() -> list[dict]:
                     "tags": (item.get("tags") or [])[:8],
                     "last_verified": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 }
-                new_entries.append(entry)
+                # 验证真实性和可访问性
+                verified = _verify_agent_entry(entry)
+                if verified is None:
+                    continue
+                new_entries.append(verified)
                 existing_ids.add(aid)
                 existing_names.add(name_lower)
 
@@ -1007,9 +1106,11 @@ def discover() -> list[dict]:
             continue
 
     if new_entries:
-        success(f"LLM 发现 {len(new_entries)} 个新 agent")
+        success(f"LLM 验证通过 {len(new_entries)} 个新 agent")
         for e in new_entries:
-            info(f"  ✨ {e['name']} [{e['category']}]")
+            vw = "✓web" if e.get("verified_website") else ""
+            vg = "✓gh" if e.get("verified_github") else ""
+            info(f"  ✨ {e['name']} [{e['category']}] {vw} {vg}")
 
     return new_entries
 

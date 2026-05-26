@@ -285,12 +285,18 @@ with tab2:
                         src_color = "#94a3b8"
 
                     with cols[i % 2]:
-                        st.markdown(f"**[{title}]({url})**")
+                        # Card: title + optional description + metadata
+                        card_html = f'''
+<div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+  <div style="margin-bottom:6px;"><a href="{url}" style="color:#e2e8f0;font-weight:600;font-size:0.9rem;text-decoration:none;line-height:1.4;">{title}</a></div>'''
                         if desc:
-                            st.caption(desc[:120])
-                        st.caption(f":{src_color}[{source}] {meta} · ⏱ {time_ago}" if time_ago else f":{src_color}[{source}] {meta}")
-                        if i < len(items) - 1:
-                            st.divider()
+                            card_html += f'\n  <div style="color:#94a3b8;font-size:0.78rem;margin-bottom:6px;line-height:1.4;">{desc[:100]}</div>'
+                        meta_line = f'<span style="color:{src_color};font-weight:600;">{source}</span> <span style="color:#64748b;">{meta}</span>'
+                        if time_ago:
+                            meta_line += f' <span style="color:#475569;">· ⏱ {time_ago}</span>'
+                        card_html += f'\n  <div style="font-size:0.75rem;">{meta_line}</div>'
+                        card_html += '\n</div>'
+                        st.markdown(card_html, unsafe_allow_html=True)
 
     # ── 版本更新 ────────────────────────────────────────────────
     st.markdown("---")
@@ -737,18 +743,18 @@ with tab1:
 
             link_cols = st.columns([1, 1, 1, 3])
             col_idx = 0
+            links_html = ""
             if a.get("website"):
-                with link_cols[col_idx]:
-                    st.link_button("🌐 官网", a["website"])
+                links_html += f'<a href="{a["website"]}" style="color:#60a5fa;font-size:0.82rem;margin-right:8px;">🌐 官网</a>'
                 col_idx += 1
             if a.get("github_repo"):
-                with link_cols[col_idx]:
-                    st.link_button("🐙 GitHub", a["github_repo"])
+                links_html += f'<a href="{a["github_repo"]}" style="color:#60a5fa;font-size:0.82rem;margin-right:8px;">🐙 GitHub</a>'
                 col_idx += 1
             if a.get("docs_url"):
-                with link_cols[col_idx]:
-                    st.link_button("📄 文档", a["docs_url"])
+                links_html += f'<a href="{a["docs_url"]}" style="color:#60a5fa;font-size:0.82rem;margin-right:8px;">📄 文档</a>'
                 col_idx += 1
+            if links_html:
+                st.markdown(links_html, unsafe_allow_html=True)
 
             stars = ''
             cache = _load_stars_cache()
