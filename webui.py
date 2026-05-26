@@ -238,13 +238,29 @@ with tab2:
         st.caption(f"📅 更新时间: {updated} | 共 {total} 条")
 
         topics = list(news_data.get("topics", {}).items())
+        all_topic_labels = [f"{t.get('icon','📌')} {t.get('label',name)}" for name, t in topics]
+        if len(topics) > 1:
+            selected_topics = st.multiselect(
+                "🗂️ 话题筛选",
+                all_topic_labels,
+                default=all_topic_labels,
+                help="选择想查看的话题，留空则显示全部"
+            )
+        else:
+            selected_topics = all_topic_labels
+
         for idx, (topic_name, topic) in enumerate(topics):
             icon = topic.get("icon", "📌")
             label = topic.get("label", topic_name)
+            topic_label = f"{icon} {label}"
             items = topic.get("items", [])
             count = topic.get("count", len(items))
 
             if not items:
+                continue
+
+            # Skip if topic is filtered out
+            if selected_topics and topic_label not in selected_topics:
                 continue
 
             # 前2个话题默认展开，其余默认折叠

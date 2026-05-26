@@ -1,3 +1,31 @@
+## [2026-05-27 11:00] 第 60 次迭代（Job ID: 603bc53e1dfd）
+
+### 本次分析
+- 检查对象：WebUI (localhost:8501) 资讯 Tab、webui.py、iteration-log.md
+- 发现的问题：
+  - 资讯 Tab 有 6 个话题分组（OpenClaw/Hermes Agent/OpenCode 等），但用户无法选择性查看——所有话题一股脑展示，前 2 个展开后下文全是展开器，操作效率低
+  - 对比 Tab1 产品列表已有「分类 multiselect」精细筛选，资讯 Tab 却缺失话题筛选能力
+  - news.json 正常（35 条，6 个话题），最后更新 2026-05-26 02:11
+  - news.json 已有 55 天前的 HN 热点（Claude Code leak），数据有一定深度但缺少筛选维度
+- 对标参考：Tab1 产品列表的分类 multiselect 是现成的好例子
+- 决定动手的改进点：资讯 Tab 新增话题筛选 multiselect——用户可选择性查看特定话题，减少噪音
+
+### 本次修复
+- webui.py:240-264 — 在时间戳行下方插入 `st.multiselect("🗂️ 话题筛选", all_topic_labels, default=all_topic_labels)`，配合 skip 逻辑实现话题过滤
+  - 当话题数量 > 1 时才显示筛选器（只有 1 个话题时无需筛选）
+  - 用户可取消选择来隐藏不需要的话题分组
+
+### 验证结果
+- python3 -m py_compile webui.py → OK ✓
+- WebUI 已加载并运行 ✓
+- 话题筛选逻辑：在有多个话题时显示，单一话题时跳过
+
+### 待下次修复
+1. 调研 firecrawl 402 根因，或尝试 SerpAPI/Jina 作为替代搜索 API
+2. 检查 meta.json 中超过 60 天未刷新的 agent 并运行 refresh 强制刷新
+3. 检查 agents/ 中各 agent 的 website 字段是否还有失效链接
+4. 调研 news.html 的 HN 搜索结果数量是否偏少（目前 hn_limit=6 可能太少）
+
 ## 2026-05-27 10:00（Job ID: 603bc53e1dfd）
 
 ### 本次分析
