@@ -1,3 +1,37 @@
+## [2026-05-27 12:20] 第 62 次迭代（Job ID: 603bc53e1dfd）
+
+### 本次分析
+- 检查对象：WebUI (localhost:8501) 两个 Tab、iteration-log.md
+- 发现的问题：
+  1. 资讯 Tab 资讯条目用裸文本+caption 展示，视觉上缺乏边界感，与产品卡片区格格不入
+  2. 产品 Tab 每个卡片的链接（官网/GitHub/文档）各自占用一个 Streamlit link_button，77 个卡片 × 3 个按钮 = 231 个独立组件，渲染效率低
+- 参考网站：producthunt.com（卡片视觉一致性）和 github.com/explore（内链文本节省空间）均采用内联链接而非独立按钮
+- 决定动手的改进点：
+  1. 资讯 Tab 条目改为带边框圆角卡片的 HTML 样式
+  2. 产品 Tab 链接从 link_button 改为内联 `<a>` 标签文本（同一行）
+
+### 本次修复
+- webui.py:287-299 — 资讯条目改为 HTML 卡片：
+  - 背景 #1e293b + 边框 #334155 + 圆角 10px，内边距 10px 12px
+  - 标题：e2e8f0 色、0.9rem、粗体，链接可点击
+  - 描述：94a3b8 色、0.78rem，最多 100 字符
+  - 元数据行：source 色高亮 + meta 灰色 + time_ago 更暗灰色
+- webui.py:738-750 — 产品 Tab 链接改为内联 HTML `<a>` 文本：
+  - 删除 `link_cols = st.columns()` 和三个 `with link_cols[col_idx]: st.link_button()`
+  - 改用 `links_html` 字符串累积，内联渲染，同一行排列
+  - 移除无用的 `link_cols` 和 `col_idx` 变量
+
+### 验证结果
+- python3 -m py_compile webui.py → OK ✓
+- WebUI 已加载并运行 ✓
+- 资讯卡片：标题+描述+元数据在一张视觉卡片内，边界清晰
+- 产品链接：官网 · GitHub · 文档 内联在同一行，不占额外高度
+
+### 待下次修复
+1. 调研 firecrawl 402 根因，或尝试 SerpAPI/Jina 作为替代搜索 API
+2. 检查 meta.json 中超过 60 天未刷新的 agent 并运行 refresh 强制刷新
+3. 资讯 Tab 发布时间超过 30 天的条目用灰色显示或折叠
+
 ## [2026-05-27 11:47] 第 61 次迭代
 
 ### 本次分析
