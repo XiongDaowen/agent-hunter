@@ -77,8 +77,15 @@ def fetch_hn(query: str, tags: str = "story", hits_per_page: int = 8, max_retrie
                 story_text = hit.get("story_text") or ""
                 # Decode HTML entities in story_text (e.g. &amp;#x2F; → /)
                 story_text = html.unescape(story_text)
+                # Remove boilerplate
+                story_text = re.sub(r"Originally published at.*", "", story_text).strip()
+                # Truncate at sentence boundary
+                if len(story_text) >= 120:
+                    m = re.search(r'[。！？.!?]', story_text[100:])
+                    if m:
+                        story_text = story_text[:100 + m.start() + 1]
                 # Fallback to title if story_text is empty
-                description = story_text[:150].strip() if story_text else (hit.get("title") or "")[:150].strip()
+                description = story_text[:200].strip() if story_text else (hit.get("title") or "")[:200].strip()
                 results.append({
                     "title": hit.get("title") or hit.get("story_text", "")[:80],
                     "url": hit.get("url") or f"https://news.ycombinator.com/item?id={hit.get('objectID')}",
@@ -132,7 +139,15 @@ def fetch_devto(query: str, per_page: int = 5, max_retries: int = 2) -> list[dic
                 import re as re_module
                 desc_clean = re_module.sub(r"<[^>]+>", "", raw_desc)
                 desc_clean = html.unescape(desc_clean)
-                description = desc_clean[:150].strip()
+                # Remove "Originally published at..." boilerplate
+                desc_clean = re_module.sub(r"Originally published at.*", "", desc_clean).strip()
+                # Truncate at sentence boundary (look for 。！？.!? or full stop)
+                if len(desc_clean) >= 120:
+                    m = re_module.search(r'[。！？.!?]', desc_clean[100:])
+                    if m:
+                        desc_clean = desc_clean[:100 + m.start() + 1]
+                # Fallback to title if description ends up empty
+                description = desc_clean[:200].strip() if desc_clean.strip() else (a.get("title") or "")[:200]
                 results.append({
                     "title": a.get("title", ""),
                     "url": a.get("url", ""),
@@ -157,14 +172,55 @@ def fetch_devto(query: str, per_page: int = 5, max_retries: int = 2) -> list[dic
     return []
 
 
+# ── 36氪 ──────────────────────────────────────────────────────────────────
+
+def fetch_36kr(query: str, max_retries: int = 2) -> list[dict]:
+    """Search 36kr via their public API."""
+    try:
+        encoded = quote(query)
+        url = f"https://36kr.com/api/search-column/article?keyword={encoded}&type=1&page=0&pageSize=8"
+        r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+        if r.status_code != 200:
+            return []
+        data = r.json()
+        items = data.get("data", {}).get("items", [])[:6]
+        results = []
+        for item in items:
+            created = item.get("published_at", "") or item.get("created_at", "")
+            time_ago = relative_time(created) if created else ""
+            raw = item.get("intro") or item.get("summary") or item.get("description", "")[:200]
+            desc = re.sub(r"<[^>]+>", "", raw).strip()
+            desc = re.sub(r" Originally published at.*", "", desc).strip()
+            if len(desc) >= 100:
+                m = re.search(r'[。！？.!?]', desc[90:])
+                if m:
+                    desc = desc[:90 + m.start() + 1]
+            results.append({
+                "title": item.get("title", "")[:150],
+                "url": item.get("news_url") or item.get("url", ""),
+                "reactions": item.get("digg_count", 0),
+                "comments": item.get("comment_count", 0),
+                "author": (item.get("user_info") or {}).get("name", "") if isinstance(item.get("user_info"), dict) else "",
+                "source": "36kr",
+                "description": desc[:200].strip(),
+                "time_ago": time_ago,
+                "_meta": f'赞 {item.get("digg_count",0)} · 评论 {item.get("comment_count",0)}',
+            })
+        return results
+    except Exception as e:
+        print(f"   WARN 36kr search failed: {e}", file=sys.stderr)
+        return []
+
+
 # ── Combined search ────────────────────────────────────────────────────
 
 def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4) -> list[dict]:
-    """Search both HN and Dev.to, merge results."""
+    """Search Dev.to + 36kr + HN, merge results."""
     hn_results = fetch_hn(query, hits_per_page=hn_limit)
     devto_results = fetch_devto(query, per_page=devto_limit)
-    # Dev.to first (often higher-quality articles), then HN
-    combined = devto_results + hn_results
+    kr36_results = fetch_36kr(query)
+    # Quality order: Dev.to (articles) > 36kr (news) > HN (fast)
+    combined = devto_results + kr36_results + hn_results
     return combined
 
 
@@ -174,11 +230,12 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4) -> list
 
 # Fixed topic list (was _DEFAULT_TOPICS before _build_topics_from_agents was removed)
 _TOPICS = {
-    "OpenClaw":   ("OpenClaw",   "🔵", "OpenClaw 资讯"),
-    "Hermes":     ("Hermes Agent", "🟢", "Hermes 资讯"),
-    "OpenCode":   ("OpenCode",   "🟣", "OpenCode 资讯"),
-    "ClaudeCode": ("Claude Code", "🟠", "Claude Code 资讯"),
-    "Cline":      ("Cline",      "🔷", "Cline 资讯"),
+    "OpenClaw":   ("OpenClaw",        "🔵", "OpenClaw 资讯"),
+    "Hermes":     ("Hermes Agent",    "🟢", "Hermes 资讯"),
+    "OpenCode":   ("OpenCode",        "🟣", "OpenCode 资讯"),
+    "ClaudeCode": ("Claude Code",     "🟠", "Claude Code 资讯"),
+    "Aider":      ("Aider AI",        "🔴", "Aider 资讯"),
+    "Cline":      ("Cline agent",     "🟤", "Cline 资讯"),
     "Other":      ("AI coding agent", "🟡", "其他 AI Agent 资讯"),
 }
 
@@ -224,12 +281,12 @@ def render_news_card(item: dict) -> str:
 
 # ── 全局去重 ──────────────────────────────────────────────────────────
 
-def _is_stale(item: dict, max_age_days: int = 90) -> bool:
+def _is_stale(item: dict, max_age_days: int = 30) -> bool:
     """Check if a news item is older than max_age_days.
-    
+
     Items older than this are considered stale and excluded from news feed
     (but still participate in deduplication to prevent duplicates from reappearing).
-    """
+    30 days aligns with the visual "stale" threshold in webui.py (line 292)."""
     time_ago = item.get("time_ago", "")
     if not time_ago:
         return False
@@ -289,7 +346,7 @@ def generate_news_report():
     all_results = {}
     for topic_name, (query, icon, label) in topics.items():
         print(f"   📡 搜索 [{topic_name}]: {query}")
-        results = combined_search(query, hn_limit=6, devto_limit=4)
+        results = combined_search(query, hn_limit=10, devto_limit=6)
         all_results[topic_name] = results
         print(f"      → {len(results)} 条结果")
 
@@ -387,22 +444,66 @@ def generate_news_report():
     return total
 
 
+# ── 搜索历史缓存 (6h 有效期) ────────────────────────────────────────────
+
+SEARCH_HISTORY_FILE = BASE_DIR / "cache" / "search_history.json"
+HISTORY_MAX = 100
+
+def _load_history() -> list:
+    if not SEARCH_HISTORY_FILE.exists():
+        return []
+    try:
+        with open(SEARCH_HISTORY_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+def _save_history(history: list):
+    SEARCH_HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(SEARCH_HISTORY_FILE, "w") as f:
+        json.dump(history[-HISTORY_MAX:], f, ensure_ascii=False)
+
+def get_cached_search(query: str):
+    """Return cached results for a query if < 6h old."""
+    history = _load_history()
+    import time
+    for entry in reversed(history):
+        if entry.get("query") == query and time.time() - entry.get("cached_at", 0) < 6 * 3600:
+            return entry.get("results")
+    return None
+
+def cache_search(query: str, results: list):
+    history = _load_history()
+    history = [h for h in history if h.get("query") != query]
+    import time
+    history.append({"query": query, "cached_at": time.time(), "results": results})
+    _save_history(history)
+
+
 # ── JSON 数据生成 (供 WebUI 消费) ────────────────────────────────────────
 
 NEWS_DATA_FILE = BASE_DIR / "cache" / "news.json"
 
 
 def generate_news_data():
-    """Search all topics and save structured JSON to cache/news.json."""
-    print("🔍 搜索 HN Algolia + Dev.to...")
+    """Search all topics and save structured JSON to cache/news.json.
+    Uses 6h per-query search cache to avoid hammering external APIs.
+    """
+    print("🔍 搜索 HN Algolia + Dev.to + 36kr...")
 
     topics = get_topics()
 
     all_results = {}
     for topic_name, (query, icon, label) in topics.items():
+        cached = get_cached_search(query)
+        if cached:
+            all_results[topic_name] = cached
+            print(f"   CACHE [{topic_name}]: {query} (命中)")
+            continue
         print(f"   📡 搜索 [{topic_name}]: {query}")
-        results = combined_search(query, hn_limit=6, devto_limit=4)
+        results = combined_search(query, hn_limit=10, devto_limit=6)
         all_results[topic_name] = results
+        cache_search(query, results)
         print(f"      → {len(results)} 条结果")
 
     # Global deduplication across topics
