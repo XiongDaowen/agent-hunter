@@ -18,8 +18,8 @@
     "Agent 模式"
   ],
   "position": "跨 IDE 的多模型 AI 编程助手",
-  "website": "https://www.codegpt.com",
-  "docs_url": "https://docs.codegpt.com",
+  "website": "https://codegpt.co",
+  "docs_url": "https://docs.codegpt.co",
   "github_repo": "",
   "pricing": "免费+付费",
   "tags": [
@@ -28,5 +28,5 @@
     "Multi-Model",
     "Agent"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

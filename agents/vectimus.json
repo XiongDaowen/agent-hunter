@@ -2,7 +2,7 @@
   "id": "vectimus",
   "name": "Vectimus",
   "category": "SDK",
-  "description": "开源策略执行引擎，为AI编码代理提供基于Cedar策略的安全控制。",
+  "description": "Vectimus 是基于 AWS Cedar 的开源策略执行引擎，专为 AI 编码代理设计，通过可视化策略管理、细粒度权限控制和完整审计追踪，确保代理行为安全合规。",
   "features": [
     "策略管理",
     "权限控制",

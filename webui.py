@@ -237,7 +237,80 @@ with tab2:
         updated = news_data.get("updated", "")
         st.caption(f"📅 更新时间: {updated} | 共 {total} 条")
 
+        # ── 动态资讯洞察 ────────────────────────────────────────────────
         topics = list(news_data.get("topics", {}).items())
+
+        # 统计 Dev.to / HN
+        devto_count = 0
+        hn_count = 0
+        total_read_time = 0
+        read_time_count = 0
+        hottest_topic = ""
+        hottest_count = 0
+        all_items = []
+        most_recent_item = None
+        most_recent_topic = ""
+        item_hours = {}  # track hours per item to avoid setting attributes on dicts
+
+        for topic_name, topic in topics:
+            items = topic.get("items", [])
+            all_items.extend(items)
+            count = topic.get("count", len(items))
+            if count > hottest_count:
+                hottest_count = count
+                hottest_topic = topic.get("label", topic_name)
+            for item in items:
+                source = item.get("source", "")
+                if "Dev.to" in source or "devto" in source.lower():
+                    devto_count += 1
+                elif "HN" in source or "hn" in source.lower():
+                    hn_count += 1
+                rt = item.get("read_time", 0)
+                if rt and rt > 0:
+                    total_read_time += rt
+                    read_time_count += 1
+                # parse time_ago
+                ta = item.get("time_ago", "")
+                if ta:
+                    import re
+                    h_match = re.match(r"(\d+)h ago", ta)
+                    d_match = re.match(r"(\d+)d ago", ta)
+                    if h_match:
+                        hours = int(h_match.group(1))
+                        item_hours[id(item)] = hours
+                        if most_recent_item is None or hours < item_hours.get(id(most_recent_item), 999):
+                            most_recent_item = item
+                            most_recent_topic = topic.get("label", topic_name)
+                    elif d_match:
+                        days = int(d_match.group(1))
+                        hours = days * 24
+                        item_hours[id(item)] = hours
+                        if most_recent_item is None or hours < item_hours.get(id(most_recent_item), 999):
+                            most_recent_item = item
+                            most_recent_topic = topic.get("label", topic_name)
+
+        avg_read = round(total_read_time / read_time_count, 1) if read_time_count > 0 else 0
+
+        # 中文数字转换
+        def cn(num):
+            return {0:"零",1:"一",2:"二",3:"三",4:"四",5:"五",6:"六",7:"七",8:"八",9:"九"}.get(num, str(num))
+
+        insight_lines = []
+        insight_lines.append(f"📊 共追踪 **{cn(len(topics))} 个话题**，收录 **{total} 条**最新资讯")
+        insight_lines.append(f"🔍 数据来源：**Dev.to {devto_count} 条** · **HN {hn_count} 条**")
+        if hottest_topic:
+            insight_lines.append(f"🔥 最活跃话题：**{hottest_topic}**（{hottest_count} 条），领先第二名 {hottest_count} 个身位")
+        if avg_read > 0:
+            insight_lines.append(f"📖 Dev.to 文章平均阅读时间：**{avg_read} 分钟**")
+        if most_recent_item:
+            insight_lines.append(f"⏰ 最新动态：**{most_recent_topic}** — 「{most_recent_item.get('title', '')[:40]}...」({most_recent_item.get('time_ago', '')})")
+
+        st.divider()
+        st.subheader("💡 资讯洞察")
+        insight_text = "\n\n".join(insight_lines)
+        st.info(insight_text)
+
+        # ── 话题筛选 & 渲染 ──────────────────────────────────────────
         all_topic_labels = [f"{t.get('icon','📌')} {t.get('label',name)}" for name, t in topics]
         if len(topics) > 1:
             selected_topics = st.multiselect(
@@ -267,7 +340,7 @@ with tab2:
             default_expanded = idx < 2
             with st.expander(f"{icon} {label} ({count})", expanded=default_expanded):
                 # Grid layout for news items
-                cols = st.columns(2) if len(items) > 1 else [st]
+                cols = st.columns(2)
                 for i, item in enumerate(items):
                     title = item.get("title", "无标题")
                     url = item.get("url", "#")
@@ -275,6 +348,16 @@ with tab2:
                     source = item.get("source", "")
                     time_ago = item.get("time_ago", "")
                     meta = item.get("_meta", "")
+
+                    # Parse time_ago for stale detection
+                    is_stale = False
+                    stale_days = 0
+                    if time_ago:
+                        d_match = re.match(r"(\d+)d ago", time_ago)
+                        if d_match:
+                            stale_days = int(d_match.group(1))
+                            if stale_days > 30:
+                                is_stale = True
 
                     # Source badge color
                     if source == "HN":
@@ -284,16 +367,32 @@ with tab2:
                     else:
                         src_color = "#94a3b8"
 
+                    # Stale items get dimmed colors
+                    if is_stale:
+                        card_bg = "#2a2a2a"
+                        card_border = "#3a3a3a"
+                        title_color = "#9ca3af"
+                        desc_color = "#6b7280"
+                        meta_color = "#4b5563"
+                        time_color = "#475569"
+                    else:
+                        card_bg = "#1e293b"
+                        card_border = "#334155"
+                        title_color = "#e2e8f0"
+                        desc_color = "#94a3b8"
+                        meta_color = "#64748b"
+                        time_color = "#475569"
+
                     with cols[i % 2]:
                         # Card: title + optional description + metadata
                         card_html = f'''
-<div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-  <div style="margin-bottom:6px;"><a href="{url}" style="color:#e2e8f0;font-weight:600;font-size:0.9rem;text-decoration:none;line-height:1.4;">{title}</a></div>'''
+<div style="background:{card_bg};border:1px solid {card_border};border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+  <div style="margin-bottom:6px;"><a href="{url}" style="color:{title_color};font-weight:600;font-size:0.9rem;text-decoration:none;line-height:1.4;">{title}</a></div>'''
                         if desc:
-                            card_html += f'\n  <div style="color:#94a3b8;font-size:0.78rem;margin-bottom:6px;line-height:1.4;">{desc[:100]}</div>'
-                        meta_line = f'<span style="color:{src_color};font-weight:600;">{source}</span> <span style="color:#64748b;">{meta}</span>'
+                            card_html += f'\n  <div style="color:{desc_color};font-size:0.78rem;margin-bottom:6px;line-height:1.4;">{desc[:100]}</div>'
+                        meta_line = f'<span style="color:{src_color};font-weight:600;">{source}</span> <span style="color:{meta_color};">{meta}</span>'
                         if time_ago:
-                            meta_line += f' <span style="color:#475569;">· ⏱ {time_ago}</span>'
+                            meta_line += f' <span style="color:{time_color};">· ⏱ {time_ago}</span>'
                         card_html += f'\n  <div style="font-size:0.75rem;">{meta_line}</div>'
                         card_html += '\n</div>'
                         st.markdown(card_html, unsafe_allow_html=True)
@@ -444,7 +543,7 @@ with tab1:
     </div>
     """, unsafe_allow_html=True)
 
-    cols = st.columns(6)
+    cols = st.columns(7)
     with cols[0]: st.metric("📦 产品总数", total)
     with cols[1]: st.metric("🏷️ 分类数", cat_count)
     with cols[2]: st.metric("🟢 开源", open_count)
@@ -452,6 +551,16 @@ with tab1:
     with cols[4]: st.metric("🔴 闭源", closed_count)
     gh_count = sum(1 for a in agents if a.get("github_repo"))
     with cols[5]: st.metric("🐙 有GitHub", gh_count)
+    releases_file = BASE_DIR / "data" / "releases.json"
+    releases_count = 0
+    if releases_file.exists():
+        try:
+            with open(releases_file) as f:
+                rdata = json.load(f)
+            releases_count = len(rdata.get("releases", {}))
+        except (json.JSONDecodeError, OSError):
+            pass
+    with cols[6]: st.metric("🚀 版本更新", releases_count)
 
     # Category distribution
     COLORS = {
@@ -510,6 +619,22 @@ with tab1:
         st.caption("🏷️ 热门标签")
         tags_md = " · ".join(f"**{tag}** ({count})" for tag, count in top_tags)
         st.markdown(tags_md)
+
+    # ── 文字洞察 ────────────────────────────────────────────────
+    st.markdown("---")
+    st.subheader("💡 行业洞察")
+    insights = []
+    if top_tags:
+        insights.append(f"🏷️ 当前最热标签是 **「{top_tags[0][0]}」**，被 {top_tags[0][1]} 个产品使用，占比 {round(top_tags[0][1]/total*100)}%")
+    if open_count > closed_count:
+        insights.append(f"🟢 AI Agent 生态以开源为主，开源产品占 {open_pct}%，闭源产品仅 {closed_pct}%——开源正在成为这个领域的主流")
+    else:
+        insights.append(f"🔴 闭源产品占 {closed_pct}%，开源占 {open_pct}%——商业闭源方案仍有重要一席之地")
+    insights.append(f"📦 总计 {total} 个产品覆盖 {cat_count} 个分类，平均每分类 {round(total/cat_count)} 个——完整的产品矩阵正在形成")
+    if gh_count:
+        insights.append(f"🐙 {gh_count} 个产品拥有 GitHub 仓库，开源生态活跃度较高")
+    if insights:
+        st.info("  \n".join(f"- {i}" for i in insights))
 
     # ── Comparison Bar (shown when ≥2 agents selected) ──────────────────
     sel = st.session_state.compare_selected

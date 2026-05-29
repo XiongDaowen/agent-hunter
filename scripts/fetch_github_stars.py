@@ -48,7 +48,12 @@ def get_gh_stars(repo_url: str) -> int:
 
 def load_existing_cache() -> dict:
     if CACHE_FILE.exists():
-        return json.load(open(CACHE_FILE))
+        cache = json.load(open(CACHE_FILE))
+        # Normalize: if entries use "t" instead of "fetched_at", rename for consistency
+        for entry in cache.values():
+            if 't' in entry and 'fetched_at' not in entry:
+                entry['fetched_at'] = entry['t']
+        return cache
     return {}
 
 def main():

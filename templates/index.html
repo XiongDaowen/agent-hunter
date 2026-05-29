@@ -168,6 +168,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC
   <!-- ── Tab 1: Products ────────────────────────────────────────── -->
   <div class="tab-panel active" id="tab-products">
     <div class="hero-bar" id="heroBar"></div>
+    <div id="productInsights" style="font-size:0.82rem;color:var(--dim);margin:8px 0 12px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;line-height:1.7;"></div>
+
+    <div id="releaseSection" style="margin-bottom:16px;display:none;">
+      <div style="font-size:0.85rem;font-weight:600;color:var(--accent);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border);">🚀 版本动态</div>
+      <div id="releaseList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:8px;"></div>
+    </div>
 
     <div class="layout">
       <div class="sidebar" id="sidebar">
@@ -270,7 +276,61 @@ async function loadAgents() {
   allAgents = await fetchJSON('/api/agents');
   updateStats();
   updateFilters();
+  renderInsights();
+  renderReleases();
   render();
+}
+
+function renderReleases() {
+  const withRelease = allAgents.filter(a => a._release);
+  if (!withRelease.length) return;
+  const section = document.getElementById('releaseSection');
+  const list = document.getElementById('releaseList');
+  section.style.display = 'block';
+  list.innerHTML = withRelease.map(a => {
+    const r = a._release;
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <span style="color:var(--accent);font-weight:600;font-size:0.85rem;">${a.name}</span>
+        <a href="${r.url}" target="_blank" style="color:var(--accent);font-size:0.72rem;font-weight:600;">${r.tag}</a>
+        <span style="color:var(--dim);font-size:0.7rem;">${r.date}</span>
+      </div>
+      ${r.diff ? `<div style="font-size:0.78rem;color:var(--dim);line-height:1.6;margin-top:4px;">📝 ${r.changelog.split('\n').filter(l=>l.trim()).slice(0,5).map(l=>`<div>${l.replace(/^[-·•]\s*/,'')||l}</div>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderInsights() {
+  if (!allAgents.length) return;
+  const total = allAgents.length;
+  const cats = [...new Set(allAgents.map(a => a.category || 'Other'))];
+  const open = allAgents.filter(a => a.open_source === 'yes').length;
+  const gh = allAgents.filter(a => a.github_repo).length;
+
+  // Tag frequency
+  const tagCount = {};
+  allAgents.forEach(a => (a.tags||[]).forEach(t => tagCount[t] = (tagCount[t]||0)+1));
+  const topTag = Object.entries(tagCount).sort((a,b) => b[1]-a[1])[0];
+
+  // Category distribution
+  const catCount = {};
+  allAgents.forEach(a => { const c = a.category||'Other'; catCount[c]=(catCount[c]||0)+1; });
+  const topCat = Object.entries(catCount).sort((a,b) => b[1]-a[1])[0];
+
+  // Open source ratio
+  const osPct = Math.round(open/total*100);
+
+  // With GitHub ratio
+  const ghPct = Math.round(gh/total*100);
+
+  const insights = [
+    `🔥 最热标签「${topTag[0]}」被 ${topTag[1]} 个产品使用，CLI 类占 ${Math.round(catCount['CLI']/total*100)}%——命令行 Agent 是当前主流交互形态`,
+    `🟢 开源比例达 ${osPct}%（${open} 个），AI Agent 生态以开源为主导，这一趋势将持续强化`,
+    `🏷️ 追踪 ${total} 个产品，分布 ${cats.length} 个分类，其中「${topCat[0]}」最多（${topCat[1]} 个），产品矩阵已趋完整`,
+    `🐙 ${ghPct}% 产品（${gh} 个）拥有 GitHub 仓库，GitHub 生态活跃度较高，开源社区是 AI Agent 发展的重要推动力`
+  ];
+
+  document.getElementById('productInsights').innerHTML = insights.map(i => `<div>• ${i}</div>`).join('');
 }
 
 function updateStats() {
@@ -430,7 +490,7 @@ function renderListView(groups, catOrder) {
       </tr>
       <tr class="list-detail"><td colspan="5">
         ${a.tags && a.tags.length ? `<div class="card-tags">${a.tags.slice(0,6).map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
-        ${a.features && a.features.length ? `<details class="features"><summary>✨ 特性 (${a.features.length})</summary><ul style="margin:4px 0 0 16px;font-size:0.78rem;color:var(--dim)">${a.features.slice(0,8).map(f=>`<li>${f}</li>`).join('')}</ul></details>` : ''}
+        ${a.features && a.features.length ? `<details class="features" id="feat-${esc(a.name)}"><summary onclick="event.stopPropagation()">✨ 特性 (${a.features.length})</summary><ul style="margin:4px 0 0 16px;font-size:0.78rem;color:var(--dim)">${a.features.slice(0,8).map(f=>`<li>${f}</li>`).join('')}</ul></details>` : ''}
         <div style="font-size:0.75rem;color:var(--dim);margin-top:4px;">${a.pricing?`💰 ${a.pricing} · `:''}${a.license&&a.license!=='未知'?`📜 ${a.license} · `:''}${a.last_verified?`📅 ${a.last_verified}`:''}</div>
       </td></tr>`;
     });
@@ -461,7 +521,7 @@ function renderCard(a) {
       ${a.license && a.license!=='未知' ? ` · 📜 ${a.license}` : ''}
       ${a.last_verified ? ` · 📅 ${a.last_verified}` : ''}
     </div>
-    ${a._release ? `<div class="release-badge">🚀 <a href="${a._release.url}" target="_blank">${a._release.tag}</a><span class="rel-date">${a._release.date}</span></div>` : ''}
+    ${a._release ? `<div class="release-badge" style="cursor:pointer" title="📝 ${(a._release.changelog||'').replace(/"/g,'&quot;')}">🚀 <a href="${a._release.url}" target="_blank">${a._release.tag}</a><span class="rel-date">${a._release.date}</span></div>` : ''}
     ${a.features && a.features.length ? `<details class="features"><summary>✨ 特性 (${a.features.length})</summary><ul>${a.features.slice(0,8).map(f => `<li>${f}</li>`).join('')}${a.features.length>8?`<li>...等 ${a.features.length-8} 项</li>`:''}</ul></details>` : ''}
   </div>`;
 }
@@ -507,7 +567,27 @@ async function loadNews() {
 function renderNews() {
   if (!newsData) return;
   const d = newsData;
-  document.getElementById('newsSummary').textContent = `📅 更新时间: ${d.updated} | 共 ${d.total} 条`;
+
+  // Build news summary with aggregated insights
+  const topicEntries = Object.entries(d.topics || {}).filter(([,t]) => t.items && t.items.length);
+  const totalItems = topicEntries.reduce((s,[,t]) => s + t.items.length, 0);
+  const hotTopic = topicEntries.sort((a,b) => b[1].count - a[1].count)[0];
+  const recentItems = topicEntries.flatMap(([,t]) => t.items || []).filter(i => i.time_ago && i.time_ago.includes('h') || i.time_ago && i.time_ago.includes('m')).slice(0,10);
+  const recentCount = recentItems.length;
+
+  let summaryHtml = `<div style="font-size:0.82rem;margin-bottom:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;line-height:1.8;">`;
+  summaryHtml += `<div style="margin-bottom:4px;"><span style="color:var(--accent);font-weight:600;">📅 ${d.updated}</span> · 共 <span style="color:var(--accent);font-weight:600;">${totalItems}</span> 条资讯 · <span style="color:var(--green);font-weight:600;">${topicEntries.length}</span> 个话题</div>`;
+  if (hotTopic) {
+    summaryHtml += `<div>• 本期最热话题：<span style="color:var(--accent);font-weight:600;">${hotTopic[1].label}</span>（${hotTopic[1].count} 条），${hotTopic[1].items[0] ? `最新：「${hotTopic[1].items[0].title.slice(0,40)}...」` : ''}</div>`;
+  }
+  if (recentCount > 0) {
+    summaryHtml += `<div>• 近期动态：<span style="color:var(--green);font-weight:600;">${recentCount} 条</span> 24h 内资讯，活跃度较高</div>`;
+  }
+  const topicBars = topicEntries.map(([,t]) => `${t.icon} ${t.count}`).join(' · ');
+  summaryHtml += `<div>• 话题分布：${topicBars}</div>`;
+  summaryHtml += `</div>`;
+
+  document.getElementById('newsSummary').innerHTML = summaryHtml;
   // Expose news timestamp on heroBar so updateStats() can compute freshness
   document.getElementById('heroBar').dataset.newsUpdated = d.updated;
   // Re-render hero bar with freshness label

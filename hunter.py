@@ -869,6 +869,25 @@ def _evolve_queries(new_entries: list[dict], unique_sources: list[dict], query_s
     except Exception:
         warning("无法写入迭代日志")
 
+    # 同时输出结构化建议文件供 cron job 直接读取
+    suggestions = {"timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+                   "new_agent_count": len(new_entries),
+                   "delete": low_effort,
+                   "add": []}
+    # 解析 LLM 建议为结构化数据
+    if len(new_entries) < 3:
+        import re as _re
+        add_matches = _re.findall(r'\["([^"]+)",\s*"([^"]+)"\]', suggestions_lines := _llm_query_suggestions(new_entries, entry_names))
+        suggestions["add"] = [[m[0], m[1]] for m in add_matches]
+
+    sug_path = BASE_DIR / "data" / "query_suggestions.json"
+    try:
+        import json as _json2
+        with open(sug_path, "w", encoding="utf-8") as f:
+            _json2.dump(suggestions, f, ensure_ascii=False, indent=2)
+    except Exception:
+        warning("无法写入 query_suggestions.json")
+
 
 def _llm_query_suggestions(current_entries: list[dict], existing_names: set[str]) -> str:
     """调用 LLM 基于本次发现情况，建议新的搜索 query"""

@@ -1,41 +1,138 @@
 {
   "domestic": [
-    ["TUI", "AI 代码助手 工具 推荐"],
-    ["GUI", "AI 生成代码 工具"],
-    ["CLI", "开源 AI 编程 工具"],
-    ["IDE", "Cursor 替代 工具 2025"],
-    ["SDK", "AI Agent 开发 框架"],
-    ["TUI", "终端 AI agent 工具 推荐"],
-    ["GUI", "AI 网页生成器 可视化 工具"],
-    ["IDE", "Cursor 替代 工具 2025"],
-    ["Plugin", "AI代码审查 工具 推荐"],
-    ["Other", "AI 编程 开源 工具 2025"],
-    ["SDK", "AI agent 框架 推荐 2025"],
-    ["Other", "Claude Code 替代 工具"]
+    [
+      "TUI",
+      "AI 代码助手 工具 推荐"
+    ],
+    [
+      "GUI",
+      "AI 生成代码 工具"
+    ],
+    [
+      "CLI",
+      "开源 AI 编程 工具"
+    ],
+    [
+      "IDE",
+      "Cursor 替代 工具 2025"
+    ],
+    [
+      "SDK",
+      "AI Agent 开发 框架"
+    ],
+    [
+      "TUI",
+      "终端 AI agent 工具 推荐"
+    ],
+    [
+      "GUI",
+      "AI 网页生成器 可视化 工具"
+    ],
+    [
+      "IDE",
+      "Cursor 替代 工具 2025"
+    ],
+    [
+      "Plugin",
+      "AI代码审查 工具 推荐"
+    ],
+    [
+      "Other",
+      "AI 编程 开源 工具 2025"
+    ],
+    [
+      "SDK",
+      "AI agent 框架 推荐 2025"
+    ],
+    [
+      "Other",
+      "Claude Code 替代 工具"
+    ]
   ],
   "overseas": [
-    ["IDE",   "best AI code editor IDE tool 2025"],
-    ["CLI",   "AI coding agent CLI tool terminal 2025"],
-    ["TUI",   "terminal AI agent TUI framework 2025"],
-    ["GUI",   "AI web app generator visual builder tool 2025"],
-    ["Plugin","AI coding assistant plugin VS Code JetBrains 2025"],
-    ["SDK",   "AI agent SDK framework library 2025"],
-    ["Other", "AI software engineer autonomous agent platform 2025"],
-    ["Other", "AI coding tool benchmark comparison 2025 2026"],
-    ["Other", "best AI developer tools product hunt 2025"],
-    ["Plugin","AI code completion extension marketplace"],
-    ["IDE",   "Cursor alternative AI code editor 2025"],
-    ["Plugin","AI code review tool GitHub 2025"],
-    ["CLI",   "open source AI coding assistant CLI 2025"],
-    ["Other", "AI programmer assistant tool 2025"],
-    ["SDK",   "multi-agent AI framework library 2025"],
-    ["CLI",   "Claude Code alternative CLI coding agent"],
-    ["CLI",   "DeepSeek coding agent terminal TUI"],
-    ["IDE",   "Cursor替代 AI代码编辑器 2025 2026"],
-    ["CLI",   "Aider alternative AI coding CLI"],
-    ["TUI",   "open source terminal AI agent 2025 2026"],
-    ["Plugin","GitHub Copilot alternative VS Code extension"],
-    ["SDK",   "AI agent framework LangChain AutoGen alternative"],
-    ["GUI",   "bolt.new alternative web app generator"]
+    [
+      "IDE",
+      "best AI code editor IDE tool 2025"
+    ],
+    [
+      "TUI",
+      "terminal AI agent TUI framework 2025"
+    ],
+    [
+      "GUI",
+      "AI web app generator visual builder tool 2025"
+    ],
+    [
+      "Plugin",
+      "AI coding assistant plugin VS Code JetBrains 2025"
+    ],
+    [
+      "SDK",
+      "AI agent SDK framework library 2025"
+    ],
+    [
+      "Other",
+      "AI software engineer autonomous agent platform 2025"
+    ],
+    [
+      "Other",
+      "AI coding tool benchmark comparison 2025 2026"
+    ],
+    [
+      "Other",
+      "best AI developer tools product hunt 2025"
+    ],
+    [
+      "IDE",
+      "Cursor alternative AI code editor 2025"
+    ],
+    [
+      "Plugin",
+      "AI code review tool GitHub 2025"
+    ],
+    [
+      "CLI",
+      "open source AI coding assistant CLI 2025"
+    ],
+    [
+      "Other",
+      "AI programmer assistant tool 2025"
+    ],
+    [
+      "SDK",
+      "multi-agent AI framework library 2025"
+    ],
+    [
+      "CLI",
+      "Claude Code alternative CLI coding agent"
+    ],
+    [
+      "CLI",
+      "deepseek coding agent"
+    ],
+    [
+      "IDE",
+      "Cursor替代 AI代码编辑器 2025 2026"
+    ],
+    [
+      "CLI",
+      "Aider alternative AI coding CLI"
+    ],
+    [
+      "TUI",
+      "open source terminal AI agent 2025 2026"
+    ],
+    [
+      "Plugin",
+      "GitHub Copilot alternative VS Code extension"
+    ],
+    [
+      "SDK",
+      "AI agent framework LangChain AutoGen alternative"
+    ],
+    [
+      "GUI",
+      "bolt.new alternative web app generator"
+    ]
   ]
 }

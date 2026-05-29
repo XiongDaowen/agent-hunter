@@ -18,8 +18,8 @@
     "代码执行"
   ],
   "position": "微软主导的多代理协作框架",
-  "website": "https://microsoft.github.io/autogen",
-  "docs_url": "https://microsoft.github.io/autogen/stable/",
+  "website": "https://github.com/microsoft/autogen",
+  "docs_url": "https://github.com/microsoft/autogen",
   "github_repo": "https://github.com/microsoft/autogen",
   "pricing": "免费",
   "tags": [
@@ -28,5 +28,5 @@
     "Microsoft",
     "Conversation"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

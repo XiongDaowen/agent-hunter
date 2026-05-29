@@ -2,7 +2,7 @@
   "id": "toad",
   "name": "Toad",
   "category": "TUI",
-  "description": "统一的终端UI框架，专为AI编码代理设计，提供可视化交互界面。",
+  "description": "Toad 是专为 AI 编码代理设计的统一终端 UI 框架，提供可视化交互界面和多代理支持，让复杂代理任务以图形化方式运行，降低使用门槛、提升调试效率。",
   "features": [
     "终端集成",
     "多代理支持",

@@ -2,7 +2,7 @@
   "id": "flexpilot",
   "name": "Flexpilot",
   "category": "Plugin",
-  "description": "开源的GitHub Copilot替代方案，提供代码自动补全功能。",
+  "description": "Flexpilot 是一款 VS Code 开源代码补全插件，作为 GitHub Copilot 的免费开源替代方案，支持多语言自动补全、实时代码建议，与 IDE 无缝集成，即装即用。",
   "features": [
     "代码补全",
     "VSCode集成",

@@ -2,7 +2,7 @@
   "id": "zed-ai",
   "name": "Zed AI",
   "category": "IDE",
-  "description": "高性能编辑器 Zed 内置的 AI 功能，内联补全、对话和代理模式。",
+  "description": "Zed AI 是高性能编辑器 Zed 的内置 AI 功能，提供 AI 内联补全、对话交互和 Agent 模式，基于 Rust 底层实现极致性能，为 macOS 开发者带来原生流畅的 AI 编程体验。",
   "features": [
     "高性能原生编辑器体验",
     "AI 内联补全与对话",

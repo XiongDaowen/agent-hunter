@@ -18,8 +18,8 @@
     "开源"
   ],
   "position": "OpenAI 出品的 CLI 编码代理",
-  "website": "https://openai.com/codex",
-  "docs_url": "https://github.com/openai/codex",
+  "website": "https://github.com/openai/codex",
+  "docs_url": "https://github.com/openai/codex#readme",
   "github_repo": "https://github.com/openai/codex",
   "pricing": "付费（按 token 计费）",
   "tags": [
@@ -27,5 +27,5 @@
     "OpenAI",
     "Code Generation"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

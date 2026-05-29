@@ -18,7 +18,7 @@
     "教学友好"
   ],
   "position": "Hugging Face 的轻量 AI 代理框架",
-  "website": "https://huggingface.co/docs/smolagents",
+  "website": "https://huggingface.co/smolagents",
   "docs_url": "https://huggingface.co/docs/smolagents",
   "github_repo": "https://github.com/huggingface/smolagents",
   "pricing": "免费",
@@ -28,5 +28,5 @@
     "Hugging Face",
     "Lightweight"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

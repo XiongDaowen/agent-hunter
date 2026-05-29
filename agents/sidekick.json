@@ -16,13 +16,13 @@
     "开源灵活"
   ],
   "position": "可视化 AI 编码代理活动监控平台",
-  "website": "https://cesarandreslopez.github.io/sidekick-agent-hub/",
-  "docs_url": "https://github.com/cesarandreslopez/sidekick-agent#readme",
+  "website": "https://github.com/cesarandreslopez/sidekick-agent-hub",
+  "docs_url": "https://github.com/cesarandreslopez/sidekick-agent-hub#readme",
   "github_repo": "https://github.com/cesarandreslopez/sidekick-agent-hub",
   "pricing": "免费",
   "tags": [
     "监控",
     "可视化"
   ],
-  "last_verified": "2026-05-20"
+  "last_verified": "2026-05-27"
 }

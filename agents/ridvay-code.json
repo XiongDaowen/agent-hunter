@@ -16,8 +16,8 @@
     "提高编码效率"
   ],
   "position": "VS Code上的AI编码助手",
-  "website": "https://ridvay.com/ridvay-code/",
-  "docs_url": "https://ridvay.com/ridvay-code/",
+  "website": "",
+  "docs_url": "",
   "github_repo": "",
   "pricing": "未知",
   "tags": [
@@ -25,5 +25,5 @@
     "AI coding assistant",
     "plugin"
   ],
-  "last_verified": "2026-05-21"
+  "last_verified": "2026-05-27"
 }

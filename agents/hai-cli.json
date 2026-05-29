@@ -2,7 +2,7 @@
   "id": "hai-cli",
   "name": "hai-cli",
   "category": "CLI",
-  "description": "基于LLM的REPL工具，为开发者提供交互式命令行编程环境。",
+  "description": "hai-cli 是基于大语言模型的终端 REPL 工具，嵌入开发者日常的命令行工作流，支持即时代码生成与执行，大幅降低 AI 编程学习成本，适合快速原型开发和实验性编码。",
   "features": [
     "LLM驱动交互",
     "即时代码生成",

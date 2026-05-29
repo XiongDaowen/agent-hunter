@@ -18,8 +18,8 @@
     "Handoff 优势"
   ],
   "position": "OpenAI 官方 AI 代理开发 SDK",
-  "website": "https://openai.com/index/openai-agents-sdk",
-  "docs_url": "https://platform.openai.com/docs/guides/agents",
+  "website": "https://github.com/openai/openai-agents-python",
+  "docs_url": "https://github.com/openai/openai-agents-python#readme",
   "github_repo": "https://github.com/openai/openai-agents-python",
   "pricing": "免费（按 API 用量计费）",
   "tags": [
@@ -27,5 +27,5 @@
     "OpenAI",
     "Agent Framework"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

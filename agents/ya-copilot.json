@@ -2,7 +2,7 @@
   "id": "ya-copilot",
   "name": "YA Copilot",
   "category": "Plugin",
-  "description": "另一款开源的GitHub Copilot替代品，作为VS Code扩展提供智能代码辅助。",
+  "description": "YA Copilot 是轻量级开源 GitHub Copilot 替代品，以 VS Code 扩展形式提供上下文感知的多语言代码建议和补全功能，由社区驱动，轻量易配置。",
   "features": [
     "代码建议",
     "上下文感知",

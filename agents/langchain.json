@@ -18,8 +18,8 @@
     "企业支持"
   ],
   "position": "LLM 应用开发的事实标准框架",
-  "website": "https://langchain.com",
-  "docs_url": "https://docs.langchain.com",
+  "website": "https://python.langchain.com",
+  "docs_url": "https://python.langchain.com/docs/",
   "github_repo": "https://github.com/langchain-ai/langchain",
   "pricing": "免费+付费 (LangSmith)",
   "tags": [
@@ -28,5 +28,5 @@
     "Agent",
     "LLM"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

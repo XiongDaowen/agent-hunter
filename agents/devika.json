@@ -13,12 +13,12 @@
   "open_source": "yes",
   "license": "MIT",
   "strengths": [
-    "开源轮子",
-    "Devina 类项目",
+    "开源参考",
+    "Devika 类项目",
     "研究能力"
   ],
   "position": "开源的 AI 软件工程师代理",
-  "website": "https://devika.ai",
+  "website": "https://github.com/stitionai/devika",
   "docs_url": "https://github.com/stitionai/devika",
   "github_repo": "https://github.com/stitionai/devika",
   "pricing": "免费",
@@ -27,5 +27,5 @@
     "SWE Agent",
     "Open Source"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

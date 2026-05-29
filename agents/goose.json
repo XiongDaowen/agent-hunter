@@ -18,8 +18,8 @@
     "Block 团队支持"
   ],
   "position": "企业级自托管 AI 代理 CLI 工具",
-  "website": "https://block.github.io/goose",
-  "docs_url": "https://block.github.io/goose/docs",
+  "website": "https://github.com/block/goose",
+  "docs_url": "https://github.com/block/goose#readme",
   "github_repo": "https://github.com/block/goose",
   "pricing": "免费",
   "tags": [
@@ -28,5 +28,5 @@
     "Enterprise",
     "Agent"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }

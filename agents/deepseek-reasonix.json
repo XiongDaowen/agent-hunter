@@ -1,0 +1,31 @@
+{
+  "id": "deepseek-reasonix",
+  "name": "DeepSeek-Reasonix",
+  "category": "CLI",
+  "description": "DeepSeek 原生编码 agent，主打高缓存+低成本的终端编码工具，支持本地运行",
+  "features": [
+    "高缓存降低成本",
+    "DeepSeek 原生集成",
+    "终端/TUI 交互",
+    "本地运行"
+  ],
+  "open_source": "unknown",
+  "license": "Unknown",
+  "strengths": [
+    "成本低",
+    "缓存机制高效",
+    "DeepSeek 深度集成"
+  ],
+  "position": "DeepSeek 原生编码 agent，主打高缓存+低成本的终端编码工具",
+  "website": "",
+  "docs_url": "",
+  "github_repo": "",
+  "pricing": "免费/低成本",
+  "tags": [
+    "DeepSeek",
+    "编码Agent",
+    "TUI",
+    "高缓存"
+  ],
+  "last_verified": "2026-05-27"
+}

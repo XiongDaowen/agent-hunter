@@ -2,7 +2,7 @@
   "id": "gemini-code-assist",
   "name": "Google Gemini Code Assist",
   "category": "Plugin",
-  "description": "Google 推出的 AI 编程助手（原 Duet AI）。",
+  "description": "Google 推出的 AI 编程助手（原 Duet AI），深度集成 Google Cloud，提供代码补全、内联对话与代码审查功能",
   "features": [
     "Gemini 模型驱动的代码补全",
     "内联对话",
@@ -23,10 +23,9 @@
   "github_repo": "",
   "pricing": "免费+付费",
   "tags": [
-    "GUI",
     "Plugin",
     "Google Cloud",
     "Gemini"
   ],
-  "last_verified": "2026-05-17"
+  "last_verified": "2026-05-27"
 }
