@@ -72,6 +72,8 @@ def main():
         if tag and tag != info.get("tag_name", ""):
             print(f"  NEW TAG: {tag}")
             updated += 1
+            # Store the previous tag so we can track version history
+            info["previous_tag"] = info.get("tag_name", "")
             info["diff_summary"] = f"相较上一版本：{make_summary(body)[:80]}"
 
         info["tag_name"] = tag

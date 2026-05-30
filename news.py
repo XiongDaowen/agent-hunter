@@ -117,7 +117,7 @@ DEVTO_URL = "https://dev.to/api/articles"
 def fetch_devto(query: str, per_page: int = 5, max_retries: int = 2) -> list[dict]:
     """Fetch results from Dev.to public API with retry logic."""
     params = {
-        "tag": query.replace(" ", "").lower(),
+        "q": query,
         "per_page": per_page,
     }
     for attempt in range(max_retries + 1):

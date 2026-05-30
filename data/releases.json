@@ -36,12 +36,12 @@
     "anthropics/claude-code": {
       "owner": "anthropics",
       "repo": "claude-code",
-      "tag_name": "v2.1.156",
-      "published_at": "2026-05-29T01:42:23Z",
-      "html_url": "https://github.com/anthropics/claude-code/releases/tag/v2.1.156",
-      "body": "## What's changed\n\n- Fixed an issue when using Opus 4.8 where thinking blocks were modified, leading to API errors.\n",
-      "changelog_zh": "· Fixed an issue when using Opus 4.8 where thinking blocks were modified, leading to API errors.",
-      "diff_summary": "相较上一版本：· - Fixed an issue when using Opus 4.8 where thinking blocks were modified, lead"
+      "tag_name": "v2.1.158",
+      "published_at": "2026-05-30T02:42:16Z",
+      "html_url": "https://github.com/anthropics/claude-code/releases/tag/v2.1.158",
+      "body": "## What's changed\n\n- Auto mode is now available on Bedrock, Vertex, and Foundry for Opus 4.7 and Opus 4.8. Opt in by setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`\n",
+      "changelog_zh": "· Auto mode is now available on Bedrock, Vertex, and Foundry for Opus 4.7 and Opus 4.8. Opt in by setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`",
+      "diff_summary": "相较上一版本：· Auto mode is now available on Bedrock, Vertex, and Foundry for Opus 4.7 and Op"
     },
     "aider-chat/aider": {
       "owner": "aider-chat",
@@ -56,12 +56,12 @@
     "cline/cline": {
       "owner": "cline",
       "repo": "cline",
-      "tag_name": "v3.86.0",
-      "published_at": "2026-05-28T18:24:47Z",
-      "html_url": "https://github.com/cline/cline/releases/tag/v3.86.0",
-      "body": "\n### Added\n\n- Add Claude Opus 4.8 provider support, including 1M-context variants where available.\n- Add Moonshot Kimi K2.6 model support.\n\n### Fixed\n\n- Show prompt-cache support for Qwen 3.7 Max in the Cline provider.\n- Fix the VS Code nightly publish workflow startup permissions.\n\n### Changed\n\n- Move the VS Code extension project into `apps/vscode`.\n\n**Full Changelog**: https://github.com/cline/cline/compare/cli-v3.0.14...v3.86.0\n",
-      "changelog_zh": "· Add Claude Opus 4.8 provider support, including 1M-context variants where available.\n· Add Moonshot Kimi K2.6 model support.\n· Show prompt-cache support for Qwen 3.7 Max in the Cline provider.\n· Fix the VS Code nightly publish workflow startup permissions.\n· Move the VS Code extension project into `apps/vscode`.\n· **Full Changelog**: https://github.com/cline/cline/compare/cli-v3.0.14...v3.86.0",
-      "diff_summary": "相较上一版本：· - Add Claude Opus 4.8 provider support, including 1M-context variants where av"
+      "tag_name": "cli-v3.0.15",
+      "published_at": "2026-05-29T19:20:01Z",
+      "html_url": "https://github.com/cline/cline/releases/tag/cli-v3.0.15",
+      "body": "\n- Add Cline Hub, a web app for monitoring connected clients, viewing and driving sessions, streaming assistant output, and restarting the local hub, with local, LAN, and tunnel usage gated by a room secret.\n- Support global AGENTS rules so agent rules can be applied across all sessions, not just per-project.\n- Let plugins contribute static or dynamic rule content when installed in the sandbox.\n- Bind Discord sessions to individual message authors so different Discord users no longer share chat state in a thread.\n- Support participant mute targets in Discord: resolve `/mute` and `/unmute` from user mentions or raw user IDs to mute a specific participant in a thread.\n- Make OAuth URLs clickable in the TUI.\n- Refresh the bundled model catalog, adding Claude Opus 4.8, Moonshot Kimi K2.6, and Qwen3.7 Max (with cache support).\n- Discover SDK skill directories that are symlinked, including handling circular symlinks.\n- Steer active connector sessions across turn keys by matching on session ID, so replies continue the existing session instead of starting a duplicate.\n- Stop the Discord connector after repeated identical errors (per thread, within a time window) to prevent error messages from flooding a channel.\n- Fix Discord connector registration and reply fallback handling.\n- Fix SAP AI Core to use the AI SDK community provider.\n- Log ACP output as diagnostics instead of errors so normal output no longer appears as errors.\n\n**Full Changelog**: https://github.com/cline/cline/compare/cli-v3.0.14...cli-v3.0.15\n",
+      "changelog_zh": "· Add Cline Hub, a web app for monitoring connected clients, viewing and driving sessions, streaming assistant output, and restarting the local hub, with local, LAN, and tunnel usage gated by a room secret.\n· Support global AGENTS rules so agent rules can be applied across all sessions, not just per-project.\n· Let plugins contribute static or dynamic rule content when installed in the sandbox.\n· Bind Discord sessions to individual message authors so different Discord users no longer share chat state in a thread.\n· Support participant mute targets in Discord: resolve `/mute` and `/unmute` from user mentions or raw user IDs to mute a specific participant in a thread.\n· Make OAuth URLs clickable in the TUI.",
+      "diff_summary": "相较上一版本：· Add Cline Hub, a web app for monitoring connected clients, viewing and driving"
     },
     "openhands/openhands": {
       "owner": "openhands",
@@ -144,5 +144,5 @@
       "diff_summary": "⏳ 等待首次获取"
     }
   },
-  "last_updated": "2026-05-29T17:08:24.165203+00:00"
+  "last_updated": "2026-05-30T12:40:55.416658+00:00"
 }
