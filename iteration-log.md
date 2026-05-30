@@ -1,3 +1,62 @@
+## 2026-05-31 03:05 第 83 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：不满意。** 核心问题是 GitHub stars 数据存在已久，但从未在产品卡片上展示：
+
+**1. GitHub stars 真实数据被浪费（最高优先级，数据缺口）**
+- `github_stars.json` 已有 29 个产品的 stars 数据（OpenClaw 37.5k、Aider 45k、AutoGen 58k 等），但产品卡片只显示「🔥 热度分数」，从未显示真实 GitHub stars
+- 用户无法判断产品真实受欢迎程度——热度分数是基于标签/特性数量的主观计算，stars 才是公开可验证的客观指标
+- 根因：`app.py` 的 `/api/agents` 未将 stars 注入到响应中；`templates/index.html` 的 `renderCard()` 也未读取 stars 字段
+- 修复路径：已在本次实现——`app.py` 注入 `_stars` 字段，卡片/列表视图均显示 ⭐
+
+**2. 无新的资讯话题归属问题（上轮 #82 已修复）**
+- 上轮迭代 #82 已为每条资讯卡片添加 topic icon（🟢/🔵/🟠等），本次无需重复处理
+
+### 本次分析
+- 参考网站：Product Hunt（每个产品卡片显示 upvotes 数量）+ 本地 WebUI 分析
+- 发现的问题：
+  1. `github_stars.json` 有 29 个产品 stars 数据，但 API 未返回 → 卡片无法显示
+  2. `app.py` 中缺少 stars 缓存加载逻辑（之前只有 `webui.py` 有）
+  3. `templates/index.html` 的 `renderCard()` 和 `renderListView()` 均未读取 `_stars` 字段
+- 对比 Product Hunt：upvotes 数字直接显示在产品名称旁，是用户判断产品热度的第一信号
+- 对比本项目：热度只显示「🔥 21」这样的标签计数，没有真实 popularity 信号
+
+### 本次修复
+1. **app.py:29-40 — 新增 `_load_stars_cache()` 函数**
+   - 从 `cache/github_stars.json` 加载 stars 数据（key = agent id，如 `agno`、`openclaw`）
+   - 解决 `app.py` 没有 stars 加载逻辑的问题（之前只有 `webui.py` 有）
+2. **app.py:69-72 — `/api/agents` 注入 `_stars` 字段**
+   - 对每个 agent，若 `name_key`（`name.lower().replace(' ', '-')`）在 stars 缓存中，注入 `_stars` 字段
+   - 影响：API 响应中 29 个产品现在携带真实 GitHub stars
+3. **templates/index.html:523 — 卡片视图显示 stars**
+   - `card-meta` 行：`${a._stars >= 0 ? '· ⭐ 40,403' : ''}`（格式化数字）
+   - 颜色：金色 `#f59e0b`
+4. **templates/index.html:490 — 列表视图显示 stars**
+   - 热度列：`🔥 21 · ⭐ 40,403`（列表视图同样显示 stars）
+
+### 验证结果
+- 重启 app.py（pkill → nohup python3 app.py）✓
+- API 验证：`/api/agents` 返回 29 个带 `_stars` 的产品（Agno⭐40,403、Aider⭐45,462、OpenClaw⭐375,266 等）✓
+- 浏览器验证（卡片视图）：Agno 卡片的 card-meta 显示 `🔥 21 · ⭐ 40,403` ✓
+- Python syntax check → OK ✓
+- git diff 仅 app.py + templates/index.html 变更 ✓
+
+### 待下次修复
+1. **【数据缺口】** github_stars.json 仅 29/78 产品有 stars——剩余 49 个产品需要批量获取 stars
+2. **【数据缺口】** Aider 话题持续 0 条资讯——需扩展搜索词或调整 HN 年龄阈值
+3. **【数据缺口】** 7 个仓库无 releases（Aider/All-Hands/deepseek-coder/mystic/gpt-engineer/webdriverio-agent/multi-on）
+4. **【数据质量】** releases.json 中 `previous_tag` 历史数据不可靠
+
+### 自省
+- 本次发现了一个长期被忽视的数据缺口：stars 数据已采集数周，但从未在 UI 展示——这是典型的 data-in-backend-never-surface 问题
+- 根因分析：`webui.py`（Streamlit）和 `app.py`（Flask）是两套并行的 WebUI，`app.py` 一直缺少 stars 加载逻辑，我之前只检查了 `webui.py` 的 stars 相关代码
+- 改进：以后检查数据可用性时，要同时检查所有入口（`app.py` 和 `webui.py`），而不是假设逻辑一致
+- Product Hunt 的 upvotes 可视化直接启发了本次改进：真实客观数据（stars/upvotes）比主观分数更可信
+
+---
+
 ## 2026-05-31 02:15 第 82 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查

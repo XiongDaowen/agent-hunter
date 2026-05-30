@@ -27,6 +27,18 @@ def _load_releases():
         return json.load(f).get("releases", {})
 
 
+def _load_stars_cache():
+    """Load GitHub stars from cache file (once per Flask process)."""
+    cache_file = BASE_DIR / "cache" / "github_stars.json"
+    if not cache_file.exists():
+        return {}
+    try:
+        with open(cache_file) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
 def _extract_repo_path(gh_url: str) -> str:
     """Extract 'owner/repo' from GitHub URL, case-insensitive."""
     if not gh_url:
@@ -47,11 +59,17 @@ def api_agents():
     agents = load_all_agents()
     meta = load_meta()
     releases = _load_releases()
+    stars_cache = _load_stars_cache()
 
     for a in agents:
         name_key = a.get("name", "").lower().replace(" ", "-")
         if name_key in meta:
             a["last_updated"] = meta[name_key].get("last_updated", "")
+
+        # Inject GitHub stars if available in cache (keyed by agent id = name.lower().replace(' ', '-'))
+        name_key = a.get("name", "").lower().replace(" ", "-")
+        if name_key in stars_cache:
+            a["_stars"] = stars_cache[name_key].get("stars", -1)
 
         # Match release data by github_repo (exact path, then repo-name-only fallback)
         repo_path = _extract_repo_path(a.get("github_repo", ""))
