@@ -605,8 +605,9 @@ function renderNews() {
       <div class="news-grid">`;
     items.forEach(item => {
       const srcClass = item.source === 'HN' ? 'src-hn' : item.source === 'Dev.to' ? 'src-devto' : '';
+      const topicIcon = topic.icon ? `<span style="font-size:0.75rem;">${topic.icon}</span> ` : '';
       html += `<div class="news-card">
-        <div class="news-title"><a href="${item.url}" target="_blank">${item.title}</a></div>
+        <div class="news-title">${topicIcon}<a href="${item.url}" target="_blank">${item.title}</a></div>
         ${item.description ? `<div class="news-desc">${item.description.slice(0,100)}</div>` : ''}
         <div class="news-meta"><span class="${srcClass}">${item.source}</span> ${item._meta||''} ${item.time_ago ? '· ⏱ '+item.time_ago : ''}</div>
       </div>`;
