@@ -84,10 +84,10 @@ def main():
 
         time_module.sleep(0.6)
 
-    data["last_updated"] = datetime.now(timezone.utc).isoformat()
-
-    with open(RELEASES_FILE, "w") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    if updated > 0:
+        data["last_updated"] = datetime.now(timezone.utc).isoformat()
+        with open(RELEASES_FILE, "w") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
 
     print(f"Done. {updated} updated.")
 
