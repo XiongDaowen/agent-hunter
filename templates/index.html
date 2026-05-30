@@ -281,6 +281,8 @@ async function loadAgents() {
   render();
 }
 
+function esc(s) { return String(s).replace(/[^a-zA-Z0-9]/g, '_'); }
+
 function renderReleases() {
   const withRelease = allAgents.filter(a => a._release);
   if (!withRelease.length) return;
@@ -295,7 +297,8 @@ function renderReleases() {
         <a href="${r.url}" target="_blank" style="color:var(--accent);font-size:0.72rem;font-weight:600;">${r.tag}</a>
         <span style="color:var(--dim);font-size:0.7rem;">${r.date}</span>
       </div>
-      ${r.diff ? `<div style="font-size:0.78rem;color:var(--dim);line-height:1.6;margin-top:4px;">📝 ${r.changelog.split('\n').filter(l=>l.trim()).slice(0,5).map(l=>`<div>${l.replace(/^[-·•]\s*/,'')||l}</div>`).join('')}</div>` : ''}
+      ${r.diff && r.diff !== '⏳ 等待首次获取' ? `<div style="font-size:0.78rem;color:var(--dim);line-height:1.6;margin-top:4px;" id="rel-${esc(a.name)}">📝 ${r.changelog.split('\n').filter(l=>l.trim()).slice(0,2).map(l=>`<div>${l.replace(/^[-·•]\s*/,'')||l}</div>`).join('')}<span class="rel-more" style="display:none">${r.changelog.split('\n').filter(l=>l.trim()).slice(2).map(l=>`<div>${l.replace(/^[-·•]\s*/,'')||l}</div>`).join('')}</span><span class="rel-toggle" style="color:var(--accent);cursor:pointer;font-size:0.72rem;" onclick="this.previousElementSibling.style.display='block';this.style.display='none';this.nextElementSibling.style.display='inline';">...展开 ${r.changelog.split('\n').filter(l=>l.trim()).length-2} 行</span><span style="display:none;color:var(--accent);cursor:pointer;font-size:0.72rem;" onclick="document.getElementById('rel-${esc(a.name)}').querySelector('.rel-more').style.display='none';this.style.display='none';this.previousElementSibling.style.display='inline';">收起</span></div>` : ''}
+      ${r.diff === '⏳ 等待首次获取' ? `<div style="font-size:0.72rem;color:var(--dim);margin-top:4px;">📝 暂无版本信息 <a href="${r.url}" target="_blank" style="color:var(--accent);">查看 GitHub</a></div>` : ''}
     </div>`;
   }).join('');
 }
