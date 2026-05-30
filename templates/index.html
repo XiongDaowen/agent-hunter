@@ -591,7 +591,7 @@ function renderNews() {
   const topicEntries = Object.entries(d.topics || {}).filter(([,t]) => t.items && t.items.length);
   const totalItems = topicEntries.reduce((s,[,t]) => s + t.items.length, 0);
   const hotTopic = topicEntries.sort((a,b) => b[1].count - a[1].count)[0];
-  const recentItems = topicEntries.flatMap(([,t]) => t.items || []).filter(i => i.time_ago && i.time_ago.includes('h') || i.time_ago && i.time_ago.includes('m')).slice(0,10);
+  const recentItems = topicEntries.flatMap(([,t]) => t.items || []).filter(i => i.time_ago && (i.time_ago.includes('h') || i.time_ago.includes('m')) && !i.time_ago.includes('d')).slice(0,10);
   const recentCount = recentItems.length;
 
   let summaryHtml = `<div style="font-size:0.82rem;margin-bottom:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;line-height:1.8;">`;
