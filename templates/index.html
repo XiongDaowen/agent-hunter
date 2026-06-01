@@ -326,17 +326,14 @@ function renderInsights() {
   // With GitHub ratio
   const ghPct = Math.round(gh/total*100);
 
-  // Stars coverage insight
+  // Stars coverage insight — find product with highest GitHub stars
   const starsAgents = allAgents.filter(a => a._stars >= 0);
-  const topStars = starsAgents.length > 0
-    ? Object.entries({}).sort((a,b) => b[1]-a[1])[0] || ['',0]
-    : ['',0];
+  let topStars = ['', 0];
   if (starsAgents.length > 0) {
     const starsMap = {};
     starsAgents.forEach(a => starsMap[a.name] = a._stars);
     const topEntry = Object.entries(starsMap).sort((a,b) => b[1]-a[1])[0];
-    topStars[0] = topEntry[0];
-    topStars[1] = topEntry[1];
+    topStars = [topEntry[0], topEntry[1]];
   }
 
   const insights = [
