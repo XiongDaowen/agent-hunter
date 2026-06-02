@@ -1,3 +1,67 @@
+## 2026-06-02 06:20 第 87 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个关键的时效性信息缺失。**
+
+**1. 资讯时效性完全无提示（最高优先级，UX 设计问题）**
+- 资讯Tab摘要显示「📅 2026-05-30 23:02」，但没有任何视觉提示告知用户这个时间是否"新鲜"或"过期"
+- 产品列表 hero bar 有 freshness 指示器（绿色●实时/黄色●今日/红色●需要刷新），但资讯Tab没有
+- 实际数据：news.json 是 2026-05-30 23:02 的内容，距离现在已经超过 48h，属于过期数据，但 UI 上没有警示
+- 根因：`renderNews()` 函数只显示时间戳，没有计算当前时间与更新时间的时间差并显示状态标签
+- 修复路径：在资讯Tab摘要栏加入 freshness 指示器（已实施：显示「● 需要刷新」红色警示）
+
+**2. Insights 区域的 CLI 热度计算方式与实际排序不一致（低优先级，代码质量）**
+- insights 显示「CLI 类占 23%」是硬编码的固定比例（`Math.round(catCount['CLI']/total*100)`），但实际排序使用的 `hotScore()` 函数会根据标签和特性数量动态计算
+- 这导致 insight 说 CLI 占 23%，但排序结果中 CLI 产品的实际排名可能受其他因素影响而不同
+- 根因：insights 使用了不同的热度评估体系（静态计数 vs 动态评分），两者没有关联
+- 建议的修复路径：统一使用 `hotScore()` 计算 CLI 权重，或在 insights 中说明 23% 是"产品数量占比"而非"热度占比"
+
+**3. 数据持续过期（数据维护问题，非本次修复范围）**
+- news.json 已超 48h 未刷新（正常数据时效性周期应在 24h 内）
+- 37 个产品无 GitHub stars 数据
+- Aider 话题持续 0 条资讯（HN 90d 过滤 + Dev.to 无 Aider 专属标签）
+
+### 本次分析
+- 参考网站：Product Hunt（Cloudflare 拦截）+ GitHub Explore（超时）——两个参考网站均无法访问，改为完全基于本地 WebUI 分析
+- 观察到的问题：
+  1. 资讯Tab摘要栏无 freshness 指示器——用户无法判断资讯是否过期（核心 UX 缺失）
+  2. news.json 数据已超 48h（2026-05-30 23:02 → 2026-06-02 06:20），但 UI 无告警
+  3. 产品列表 hero bar 的 freshness 指示器只标注「● 需要刷新」，但没有「点击刷新」的引导
+- 对比本项目：hero bar 有 freshness 但资讯Tab 无，两处体验不一致
+
+### 本次修复
+1. **templates/index.html:594-607 — 资讯Tab摘要增加 freshness 指示器**
+   - 新增 `freshLabel` 计算逻辑：`< 6h 绿色●实时 | < 24h 黄色●今日 | < 48h 橙色●即将过期 | >= 48h 红色●需要刷新`
+   - 将 freshness 标签并入资讯Tab摘要行：「📅 2026-05-30 23:02 · ● 需要刷新 · 共 54 条资讯」
+   - 效果：用户无需切换到产品Tab即可知道资讯是否过期；本次「● 需要刷新」确认 news.json 已超 48h
+
+### 验证结果
+- 重启 app.py（pkill → background）✓
+- 资讯Tab摘要显示「📅 2026-05-30 23:02 · ● 需要刷新 · 共 54 条资讯 · 6 个话题」✓
+- 红色「● 需要刷新」视觉警示生效✓
+- news.json 文件时间戳确认：2026-05-30 23:02（超过 48h）✓
+- git diff 仅 templates/index.html 变更（+13 行，-1 行）✓
+- git push 成功 ✓
+
+### 待下次修复
+1. **【数据缺口】** news.json 已超 48h 未刷新，需运行 `python3 run.py news` 刷新资讯
+2. **【数据缺口】** 37 个产品无 GitHub stars，需批量获取
+3. **【数据缺口】** Aider 话题持续 0 条资讯——根本原因是 HN 90d 过滤，可考虑降低 max_age_days 或扩展搜索词
+4. **【数据缺口】** 7 个仓库无 releases（Aider/All-Hands/deepseek-coder/mystic/gpt-engineer/webdriverio-agent/multi-on）
+5. **【体验优化】** 资讯 freshness 「● 需要刷新」应同时提供「点击刷新」入口，引导用户触发刷新
+6. **【代码质量】** insights 的 CLI 23% 硬编码应统一为 hotScore 体系或加说明
+
+### 自省
+- 本次发现了一个典型的"双轨制"UX 问题：hero bar 有 freshness 指示器但资讯Tab 没有——两处展示同一数据源（news.json）却体验不一致
+- 根因分析：freshLabel 逻辑原本只在 `updateStats()` 中实现（服务于 hero bar），`renderNews()` 中完全缺少同等逻辑
+- 教训：当同一数据在多个位置展示时，必须确保每个展示位置都有相同的辅助信息（如 freshness）
+- 本次 Product Hunt + GitHub Explore 均无法访问，改为完全基于本地 WebUI 分析是务实的备选方案
+- 发现「news.json 超 48h」这个问题本身很重要——说明数据刷新机制可能有间歇性故障，需关注
+
+---
+
 ## 2026-06-01 06:15 第 86 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
