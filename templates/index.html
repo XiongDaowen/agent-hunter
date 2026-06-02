@@ -591,8 +591,20 @@ function renderNews() {
   const recentItems = topicEntries.flatMap(([,t]) => t.items || []).filter(i => i.time_ago && (i.time_ago.includes('h') || i.time_ago.includes('m')) && !i.time_ago.includes('d')).slice(0,10);
   const recentCount = recentItems.length;
 
+  const updated = d.updated || '';
+  let freshLabel = '';
+  if (updated) {
+    const then = new Date(updated.replace(' ', 'T'));
+    const now = new Date();
+    const hours = (now - then) / 3600000;
+    if (hours < 6) freshLabel = '<span style="color:#34d399;font-weight:600">● 实时</span>';
+    else if (hours < 24) freshLabel = '<span style="color:#fbbf24;font-weight:600">● 今日</span>';
+    else if (hours < 48) freshLabel = '<span style="color:#fb923c;font-weight:600">● 即将过期</span>';
+    else freshLabel = '<span style="color:#f87171;font-weight:600">● 需要刷新</span>';
+  }
+
   let summaryHtml = `<div style="font-size:0.82rem;margin-bottom:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;line-height:1.8;">`;
-  summaryHtml += `<div style="margin-bottom:4px;"><span style="color:var(--accent);font-weight:600;">📅 ${d.updated}</span> · 共 <span style="color:var(--accent);font-weight:600;">${totalItems}</span> 条资讯 · <span style="color:var(--green);font-weight:600;">${topicEntries.length}</span> 个话题</div>`;
+  summaryHtml += `<div style="margin-bottom:4px;"><span style="color:var(--accent);font-weight:600;">📅 ${d.updated}</span>${freshLabel ? ' · '+freshLabel : ''} · 共 <span style="color:var(--accent);font-weight:600;">${totalItems}</span> 条资讯 · <span style="color:var(--green);font-weight:600;">${topicEntries.length}</span> 个话题</div>`;
   if (hotTopic) {
     summaryHtml += `<div>• 本期最热话题：<span style="color:var(--accent);font-weight:600;">${hotTopic[1].label}</span>（${hotTopic[1].count} 条），${hotTopic[1].items[0] ? `最新：「${hotTopic[1].items[0].title.slice(0,40)}...」` : ''}</div>`;
   }
