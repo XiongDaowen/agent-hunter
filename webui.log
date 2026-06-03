@@ -1,1 +1,63 @@
-2026-05-28 00:49:02.987 Port 8501 is not available
+🚀 agent-hunter WebUI running at http://localhost:8501
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8501
+ * Running on http://192.168.1.12:8501
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [03/Jun/2026 20:22:34] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:27:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:37:53] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:45:26] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:45:26] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [03/Jun/2026 20:45:41] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:45:44] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:45:51] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:45:59] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:46:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:46:34] "[33mGET /templates/index.html HTTP/1.1[0m" 404 -
+127.0.0.1 - - [03/Jun/2026 20:48:15] "GET / HTTP/1.1" 200 -
+🚀 agent-hunter WebUI running at http://localhost:8501
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8501
+ * Running on http://192.168.1.12:8501
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [03/Jun/2026 20:48:37] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:48:39] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:48:39] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:48:45] "GET /api/news HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 20:57:22] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:20:50] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:23:01] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:23:01] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:23:01] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+🔍 搜索 HN Algolia + Dev.to + 36kr...
+   📡 搜索 [OpenClaw]: OpenClaw
+      → 16 条结果
+   📡 搜索 [Hermes]: Hermes Agent
+      → 16 条结果
+   📡 搜索 [OpenCode]: OpenCode
+      → 16 条结果
+   📡 搜索 [ClaudeCode]: Claude Code
+      → 16 条结果
+   📡 搜索 [Aider]: Aider AI
+      → 16 条结果
+   📡 搜索 [Cline]: Cline agent
+      → 16 条结果
+   📡 搜索 [Other]: AI coding agent
+      → 16 条结果
+   ✅ 全局去重后: 36 条唯一资讯
+✅ 资讯数据已生成: /home/xiowen/agent-hunter/cache/news.json (36 条)
+127.0.0.1 - - [03/Jun/2026 21:24:56] "POST /api/news/refresh HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:25:12] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:25:12] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:25:14] "GET /api/news HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:27:47] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:28:12] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:28:12] "GET /api/agents HTTP/1.1" 200 -
+127.0.0.1 - - [03/Jun/2026 21:28:12] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+127.0.0.1 - - [03/Jun/2026 21:28:32] "GET /api/agents HTTP/1.1" 200 -

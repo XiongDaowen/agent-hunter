@@ -298,7 +298,7 @@ async function loadAgents() {
 function esc(s) { return String(s).replace(/[^a-zA-Z0-9]/g, '_'); }
 
 function renderReleases() {
-  const withRelease = allAgents.filter(a => a._release);
+  const withRelease = allAgents.filter(a => a._release && a._release.tag);
   if (!withRelease.length) return;
   const section = document.getElementById('releaseSection');
   const list = document.getElementById('releaseList');
@@ -367,7 +367,7 @@ function updateStats() {
   const cats = [...new Set(allAgents.map(a => a.category || 'Other'))];
   const open = allAgents.filter(a => a.open_source === 'yes').length;
   const gh = allAgents.filter(a => a.github_repo).length;
-  const withRelease = allAgents.filter(a => a._release).length;
+  const withRelease = allAgents.filter(a => a._release && a._release.tag).length;
 
   // Compute news freshness from heroBar's data-news attribute (set by loadNews)
   const updated = document.getElementById('heroBar').dataset.newsUpdated || '';
