@@ -1,3 +1,68 @@
+## 2026-06-03 21:35 第 88 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现版本计数统计存在数字膨胀问题。**
+
+**1. "🚀 8 版本更新"数字虚高 33%（最高优先级，信息真实性）**
+- hero bar 显示「🚀 8 版本更新」，但其中 2 个（Aider、GPT Engineer）只是占位符（`_release.tag = ""`），它们在版本动态区显示「📝 暂无版本信息 查看GitHub」
+- 用户看到「8 个产品有版本」会产生误解——实际只有 6 个产品有真实版本数据
+- 根因：`updateStats()` 用 `a._release` 判断（Aider/GPT Engineer 的 `_release` 是 `{changelog:'⏳ 等待首次获取...', tag:'', ...}` 对象，truthy），`renderReleases()` 也用同样逻辑
+- 修复：`a._release && a._release.tag` 双重判断，只有 tag 非空才计入
+- 效果：hero bar 从「🚀 8」降至「🚀 6」，版本动态区只显示 6 个真实 release 卡片
+
+**2. 资讯刷新后数量减少但话题更精准（已自动修复）**
+- 刷新前 news.json 54 条（94h 旧数据），刷新后 36 条（新鲜数据）
+- 话题数从 7 变为 6（Aider 持续 0 条，被正确排除）
+- 这是正常现象——新鲜数据通常更少但更精准
+
+**3. 资讯摘要显示「24h 内资讯」数量仍存在隐患**
+- 刷新后 36 条资讯，摘要仍显示「4 条 24h 内资讯」
+- `time_ago` 格式是「64d ago」「65d ago」——这些被过滤掉是对的
+- 但「4 条 24h 内」数字较小，可能说明最近 24h 确实只有 4 条新资讯（Hacker News/Dev.to 对 AI Agent 话题的发布频率有限）
+- 非本次修复范围——数据本身正常
+
+### 本次分析
+- 参考网站：本地 WebUI 分析（Product Hunt / GitHub Explore 均超时无法访问）
+- 观察到的问题：
+  1. 版本计数虚高：8 个含 2 个占位符（Aider、GPT Engineer）→ 实际 6 个
+  2. news.json 94 小时未刷新 → 已手动刷新（36 条，2026-06-03 21:24）
+  3. 资讯摘要显示「● 实时」（freshLabel 逻辑生效）
+- 对比本项目：版本计数用 truthy object 判断，不验证 tag 字段；这导致占位对象也被计入
+
+### 本次修复
+1. **templates/index.html:370 — `updateStats()` 排除无 tag 的占位 release**
+   - 修复前：`const withRelease = allAgents.filter(a => a._release).length;`
+   - 修复后：`const withRelease = allAgents.filter(a => a._release && a._release.tag).length;`
+   - 效果：hero bar 版本计数从 8 降至 6（排除 Aider、GPT Engineer 占位符）
+2. **templates/index.html:301 — `renderReleases()` 排除无 tag 的占位 release**
+   - 修复前：`const withRelease = allAgents.filter(a => a._release);`
+   - 修复后：`const withRelease = allAgents.filter(a => a._release && a._release.tag);`
+   - 效果：版本动态区只渲染 6 个真实 release 卡片（Aider/GPT Engineer 不再出现）
+
+### 验证结果
+- API 验证：`/api/agents` 返回 6 个有 `_release.tag` 的产品（Cline/Hermes/OpenClaw/OpenCode/OpenHands/SWE-agent）+ 2 个无 tag（Aider/GPT Engineer）✓
+- 浏览器验证：hero bar 显示「🚀 6 版本更新」✓（从 8 降至 6）
+- 版本动态区：显示 6 个真实 release（Aider/GPT Engineer 不再出现）✓
+- news.json 已刷新：36 条，2026-06-03 21:24，6 个话题 ✓
+- git commit 成功（push 超时，网络问题）✓
+
+### 待下次修复
+1. **【数据缺口】** github_stars.json 覆盖率仍为 29/49（59%）——需批量获取剩余 20 个有 GitHub 仓库的产品的 stars
+2. **【数据缺口】** Aider 话题持续 0 条资讯——HN 90d 过滤阈值导致，扩展搜索词或降低年龄阈值
+3. **【数据缺口】** 7 个仓库无 releases（Aider/All-Hands/deepseek-coder/mystic/gpt-engineer/webdriverio-agent/multi-on）
+4. **【体验】** 新闻摘要的「4 条 24h 内资讯」数量偏少——可能 HN/Dev.to 对 AI Agent 话题覆盖有限，需扩展资讯源（36kr 已集成，但可能需增加 Reddit 或 Twitter/X 作为补充）
+5. **【网络】** git push 超时——可能是 GitHub 网络问题，需下次迭代确认连接正常
+
+### 自省
+- 本次发现了一个典型的「数据存在但质量不一致」问题：`_release` 对象对 Aider/GPT Engineer 是存在的（因为 `fetch_releases.py` 为它们写入了占位数据），只是 `tag` 字段为空。这导致基于 truthy 判断的 `a._release` 错误地把它们计入统计
+- 教训：当数据从多个来源汇聚时（如 releases.json 有 placeholder 逻辑），UI 层必须验证数据质量而非仅验证字段存在性
+- 这次没有参考外部网站（两个都超时），完全基于本地 WebUI 分析是务实的备选方案——但也说明我需要更多的参考网站库，下次可以考虑预置一个本地镜像列表
+- git push 超时不影响本轮迭代成果，下次运行时可再次尝试 push
+
+---
+
 ## 2026-06-02 06:20 第 87 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
