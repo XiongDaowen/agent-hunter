@@ -1,3 +1,51 @@
+## 2026-06-04 01:50 第 90 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个影响信息时效性判断的关键体验问题。**
+
+**1. 英雄栏在首次加载时缺少新闻 freshness 指示器（最高优先级，UX 设计问题）**
+- 用户打开产品列表 Tab 时，hero bar 没有显示"实时更新/今日更新/需要刷新"等状态
+- 原因：`loadNews()` 只在用户点击"每日资讯" Tab 时才被调用（line 278），而 `loadAgents()` → `updateStats()` 时 news 数据尚未加载
+- 所以 hero bar 的 `document.getElementById('heroBar').dataset.newsUpdated` 在 `updateStats()` 首次执行时是 `undefined`，导致 freshness 标签无法渲染
+- 用户必须主动切换到资讯 Tab 才能看到 news 时效性状态——但产品 Tab 的 hero bar 才是用户第一眼看到的内容
+- 根因：初始化流程的设计问题——news freshness 是全局状态，应该在首屏就可见
+- 修复路径：让 `loadNews()` 在页面加载时就触发（与 `loadAgents()` 并行），这样 hero bar 的 `updateStats()` 执行时就能拿到 freshness 数据
+
+### 本次分析
+- 参考网站：本地 WebUI 分析（Product Hunt / GitHub Explore 均被拦截/超时）
+- 观察到的问题：
+  1. 产品列表 hero bar 无 freshness 指示器（但资讯 Tab 摘要有）
+  2. hero bar 的 news 数据依赖用户在资讯 Tab 点击触发初始化
+  3. `loadAgents()` → `updateStats()` → `loadNews()` 的调用链路导致 freshness 状态延迟加载
+- 对比本项目：产品 Tab 是默认入口，但 freshness 状态藏在资讯 Tab 里——双 Tab 设计造成信息不对称
+
+### 本次修复
+1. **templates/index.html:717 — 页面初始化时并行加载 news 数据**
+   - 在 `loadAgents()` 后立即调用 `loadNews()`，让 news freshness 数据与产品数据并行加载
+   - `loadNews()` 内部有 `if (newsData) return;` 保护，不会重复加载
+   - 效果：hero bar 在首屏即可显示 news freshness 标签（"实时更新"/"今日更新"等）
+
+### 验证结果
+- curl 验证：`<title>` 页面 HTML 中包含"实时更新"字符串 ✓
+- 浏览器验证：产品列表 hero bar 显示「🚀 6 版本更新 · 实时更新 · ⭐ 30/49 ⭐覆盖」✓
+- news.json 数据未刷新（2026-06-03 21:24，约 4.5h 旧），仍显示"实时更新"（< 6h）✓
+
+### 待下次修复
+1. **【数据缺口】** github_stars.json 覆盖率 30/49（61%）——需批量获取剩余 19 个 GH 产品的 stars（PydanticAI、Vercel AI SDK、OpenAI Codex CLI、SWE-agent、Zed AI 等）
+2. **【数据缺口】** Aider 话题持续 0 条资讯——HN 90d 过滤导致，扩展搜索词或降低年龄阈值
+3. **【数据缺口】** 7 个仓库无 releases（Aider/All-Hands/deepseek-coder/mystic/gpt-engineer/webdriverio-agent/multi-on）
+4. **【体验】** 资讯 freshness「实时更新」点击后应直接跳转到资讯 Tab，减少操作步骤
+
+### 自省
+- 本次发现了一个典型的"Tab 隔离导致的信息不对称"问题：news freshness 是全局状态，应该在首屏可见，但实现上被隔离在资讯 Tab 的初始化流程里
+- 教训：当同一份数据（news.json）在多个 Tab 中展示时，必须确保数据加载流程是全局共享的，而不是每个 Tab 各自初始化
+- `loadNews()` 的 `if (newsData) return;` 保护机制保证了并行调用不会导致重复加载，这个细节很重要
+- 这次改动虽小（1 行代码），但解决了"用户第一眼看不到 news 时效性"的体验问题
+
+---
+
 ## 2026-06-04 00:15 第 89 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
