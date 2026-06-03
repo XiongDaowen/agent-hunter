@@ -696,6 +696,12 @@ document.getElementById('searchInput').addEventListener('input', () => {
   document.getElementById('searchClear').style.display = hasText ? 'inline' : 'none';
   render();
 });
+document.getElementById('searchInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    render();
+  }
+});
 document.getElementById('osOnly').addEventListener('change', render);
 document.getElementById('ghOnly').addEventListener('change', render);
 document.getElementById('sortBy').addEventListener('change', render);
