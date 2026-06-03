@@ -455,6 +455,10 @@ function hotScore(a) {
   if (a.github_repo) s += 2;
   if (['MIT','Apache-2.0','GPL','BSD'].includes((a.license||'').toUpperCase())) s += 1;
   s += (a.tags||[]).length + (a.features||[]).length * 2;
+  // Real GitHub stars bonus (log scale, matches backend agent_hot_score)
+  if (a._stars != null && a._stars > 0) {
+    s += Math.log10(a._stars + 1) * 5;
+  }
   return s;
 }
 
