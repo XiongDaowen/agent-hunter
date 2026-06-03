@@ -340,8 +340,13 @@ function renderInsights() {
   // With GitHub ratio
   const ghPct = Math.round(gh/total*100);
 
+  // Compute stars coverage globally so both updateStats and renderInsights can reference it
+  // An agent has stars coverage if: it has a github_repo AND _stars field exists (any value incl -1/0)
+  window._fullGh = gh;
+  window._fullStarsCount = allAgents.filter(a => a.github_repo && a._stars !== undefined).length;
+
   // Stars coverage insight — find product with highest GitHub stars
-  const starsAgents = allAgents.filter(a => a._stars >= 0);
+  const starsAgents = allAgents.filter(a => a._stars > 0);
   let topStars = ['', 0];
   if (starsAgents.length > 0) {
     const starsMap = {};
@@ -355,8 +360,8 @@ function renderInsights() {
     `🟢 开源比例达 ${osPct}%（${open} 个），AI Agent 生态以开源为主导，这一趋势将持续强化`,
     `🏷️ 追踪 ${total} 个产品，分布 ${cats.length} 个分类，其中「${topCat[0]}」最多（${topCat[1]} 个），产品矩阵已趋完整`,
     `🐙 ${ghPct}% 产品（${gh} 个）拥有 GitHub 仓库，GitHub 生态活跃度较高，开源社区是 AI Agent 发展的重要推动力`,
-    // Stars coverage insight
-    `${starsAgents.length} 个产品有 ⭐ 数据（覆盖率 ${Math.round(starsAgents.length/gh*100)}%），最高 ⭐ <span style="color:#f59e0b;font-weight:600">${topStars[1].toLocaleString()}</span>（${topStars[0]}），GitHub 热度真实可量化`
+    // Stars coverage insight — use _fullGh and _fullStarsCount to avoid filter-dependent distortion
+    `${_fullStarsCount} 个产品有 ⭐ 数据（覆盖率 ${gh > 0 ? Math.round(_fullStarsCount/gh*100) : 0}%），最高 ⭐ <span style="color:#f59e0b;font-weight:600">${topStars[1].toLocaleString()}</span>（${topStars[0]}），GitHub 热度真实可量化`
   ];
 
   document.getElementById('productInsights').innerHTML = insights.map(i => `<div>• ${i}</div>`).join('');
@@ -392,6 +397,7 @@ function updateStats() {
     <span class="hero-stat">🐙 <b>${gh}</b> GitHub</span>
     ${withRelease > 0 ? `<span class="hero-stat">🚀 <b>${withRelease}</b> 版本更新</span>` : ''}
     ${newsHTML}
+    ${gh > 0 && (() => { const sc = allAgents.filter(a => a.github_repo && a._stars !== undefined).length; return sc > 0 ? `<span class="hero-stat">⭐ <b>${sc}</b>/${gh} ⭐覆盖</span>` : ''; })()}
   `;
 }
 

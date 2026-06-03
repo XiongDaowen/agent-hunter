@@ -66,10 +66,38 @@ def api_agents():
         if name_key in meta:
             a["last_updated"] = meta[name_key].get("last_updated", "")
 
-        # Inject GitHub stars if available in cache (keyed by agent id = name.lower().replace(' ', '-'))
-        name_key = a.get("name", "").lower().replace(" ", "-")
-        if name_key in stars_cache:
-            a["_stars"] = stars_cache[name_key].get("stars", -1)
+        # Inject GitHub stars if available in cache
+        # Primary: match by github_repo path (handles name mismatches like pydanticai vs pydantic-ai)
+        repo_path_stars = _extract_repo_path(a.get("github_repo", ""))
+        star_val = None
+        if repo_path_stars:
+            if repo_path_stars in stars_cache:
+                star_val = stars_cache[repo_path_stars].get("stars", -1)
+            else:
+                # Fallback: match by repo name only (handles org renames like opencode-ai → anomalyco)
+                repo_name = repo_path_stars.split("/")[-1] if "/" in repo_path_stars else ""
+                # Also check direct key match (e.g. stars key is "pydantic-ai" vs path "pydantic/pydantic-ai")
+                if repo_name in stars_cache:
+                    star_val = stars_cache[repo_name].get("stars", -1)
+                else:
+                    match = next((v for k, v in stars_cache.items() if k.endswith("/" + repo_name)), None)
+                    if match:
+                        star_val = match.get("stars", -1)
+        # Fallback: match by name_key directly
+        if star_val is None:
+            name_key = a.get("name", "").lower().replace(" ", "-")
+            if name_key in stars_cache and stars_cache[name_key].get("stars", -1) > 0:
+                star_val = stars_cache[name_key]["stars"]
+            else:
+                # Try stripping common suffixes (e.g. "Hermes Agent" -> "hermes" matches cache key "hermes")
+                for suffix in ("-agent", "-cli", "-tui", "-sdk"):
+                    if name_key.endswith(suffix):
+                        shorter = name_key[:-len(suffix)]
+                        if shorter in stars_cache and stars_cache[shorter].get("stars", -1) > 0:
+                            star_val = stars_cache[shorter]["stars"]
+                            break
+        if star_val is not None and star_val > 0:
+            a["_stars"] = star_val
 
         # Match release data by github_repo (exact path, then repo-name-only fallback)
         repo_path = _extract_repo_path(a.get("github_repo", ""))
