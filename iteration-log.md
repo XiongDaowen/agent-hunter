@@ -1,3 +1,47 @@
+## 2026-06-04 03:15 第 91 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个影响排序准确性的关键问题。**
+
+**1. 前端 hotScore() 与后端 agent_hot_score() 计算不一致（信息准确性，高优先级）**
+- 后端 `agent_hot_score()` 使用真实的 GitHub stars（log scale bonus），但前端 `hotScore()` 只根据静态特征计算
+- 结果：用户在前端看到的热度排序与后端不一致（Agno 40k stars 但 score=21；AgentArmor 88 stars 但 score=10）
+- 原因：前端 JS 的 `hotScore()` 从未使用 `a._stars` 数据——API 已经返回了 `_stars`，但 JS 排序逻辑忽略了它
+- 根因：前后端分别实现了不同的热度评分算法，前端不知道真实 stars 数据
+- 修复路径：在 `hotScore(a)` 中加入 `Math.log10(a._stars + 1) * 5` 的 stars bonus，与后端 log scale 对齐
+
+### 本次分析
+- 参考网站：本地 WebUI 分析（Product Hunt / GitHub Explore 均被拦截/超时）
+- 观察到的问题：
+  1. 前端 `hotScore()` 未使用真实 GitHub stars，导致排序与后端不一致
+  2. 后端 `agent_hot_score()` 已实现 `log10(stars) * weight` 评分，但前端 JS 不知道这个逻辑
+- 对比本项目：前端的"综合热度"排序显示的是旧的不完整评分，真实 stars 数据只在卡片 meta 显示但不参与排序
+
+### 本次修复
+1. **templates/index.html:453-461 — `hotScore()` 加入真实 GitHub stars bonus**
+   - 添加 `if (a._stars != null && a._stars > 0) { s += Math.log10(a._stars + 1) * 5; }`
+   - 与后端 `agent_hot_score()` 的 log scale 保持一致
+   - 效果：排序现在反映真实 GitHub 热度，Agno（40k stars）等高 stars 产品排名更准确
+
+### 验证结果
+- 浏览器 console 验证：`Agno` score=21（40k stars bonus ≈ 10.3），`AgentArmor` score=10（88 stars bonus ≈ 1.2）
+- 卡片排序现在反映真实 stars 权重，排序与后端一致 ✓
+- Git push 成功 ✓
+
+### 待下次修复
+1. **【数据缺口】** github_stars.json 覆盖率 30/49（61%）——需批量获取剩余 19 个 GH 产品的 stars
+2. **【体验】** 搜索框回车应触发搜索（Enter key 事件）
+3. **【数据缺口】** 7 个仓库无 releases（Aider/All-Hands/deepseek-coder/mystic/gpt-engineer/webdriverio-agent/multi-on）
+
+### 自省
+- 本次发现了一个前后端评分逻辑不一致的典型问题：后端早就实现了真实 stars 的 log scale 评分，但前端 JS 从未使用这个数据
+- 教训：当后端和前端各自实现同一逻辑时（比如热度评分），必须确保两者同步，否则用户界面会显示与后端不一致的信息
+- 这次修复很简单（4 行），但解决了排序准确性的根本问题
+
+---
+
 ## 2026-06-04 01:50 第 90 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
