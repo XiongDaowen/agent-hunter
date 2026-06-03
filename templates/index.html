@@ -150,6 +150,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC
 .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top:2px solid var(--accent); border-radius:50%; animation:spin .6s linear infinite; margin-right:6px; vertical-align:middle; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.85)} }
+@keyframes pulse-dot-warn { 0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 0 0 rgba(248,113,113,0.4)} 50%{opacity:0.7;transform:scale(0.9);box-shadow:0 0 0 4px rgba(248,113,113,0)} }
+.news-dot { display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle;flex-shrink:0; }
+.news-dot.fresh { background:#34d399; animation:pulse-dot 2s ease-in-out infinite; }
+.news-dot.stale { background:#fb923c; animation:pulse-dot 2.5s ease-in-out infinite; }
+.news-dot.warn { background:#f87171; animation:pulse-dot-warn 1.5s ease-in-out infinite; }
+.news-dot.old { background:#f87171; animation:pulse-dot-warn 1s ease-in-out infinite; }
+.news-indicator { display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:0.78rem;font-weight:600;cursor:pointer;border:none;transition:.15s; }
+.news-indicator:hover { filter:brightness(1.15); }
+.news-indicator.fresh { background:rgba(52,211,153,0.15);color:#34d399; }
+.news-indicator.stale { background:rgba(251,191,36,0.15);color:#fb923c; }
+.news-indicator.warn { background:rgba(248,113,113,0.15);color:#f87171; }
+.news-indicator.old { background:rgba(248,113,113,0.25);color:#f87171;border:1px solid rgba(248,113,113,0.4); }
+
 @media (max-width:900px) {
   .layout { flex-direction:column; }
   .sidebar { width:100%; }
@@ -357,15 +371,17 @@ function updateStats() {
 
   // Compute news freshness from heroBar's data-news attribute (set by loadNews)
   const updated = document.getElementById('heroBar').dataset.newsUpdated || '';
-  let freshLabel = '';
+  let newsHTML = '';
   if (updated) {
     const then = new Date(updated.replace(' ', 'T'));
     const now = new Date();
     const hours = (now - then) / 3600000;
-    if (hours < 6) freshLabel = '<span style="color:#34d399;font-weight:600">● 实时更新</span>';
-    else if (hours < 24) freshLabel = '<span style="color:#fbbf24;font-weight:600">● 今日更新</span>';
-    else if (hours < 48) freshLabel = '<span style="color:#fb923c;font-weight:600">● 即将过期</span>';
-    else freshLabel = '<span style="color:#f87171;font-weight:600">● 需要刷新</span>';
+    const age = hours < 6 ? 'fresh' : hours < 24 ? 'stale' : hours < 48 ? 'warn' : 'old';
+    const label = hours < 6 ? '实时更新' : hours < 24 ? '今日更新' : hours < 48 ? '即将过期' : '需要刷新';
+    const dotClass = `news-dot ${age}`;
+    const btnClass = `news-indicator ${age}`;
+    const clickHandler = hours >= 24 ? `onclick="refreshNews()"` : '';
+    newsHTML = `<span class="${btnClass}" ${clickHandler} title="点击刷新资讯"><span class="${dotClass}"></span>${label}</span>`;
   }
 
   document.getElementById('heroBar').innerHTML = `
@@ -375,7 +391,7 @@ function updateStats() {
     <span class="hero-stat">🟢 <b>${open}</b> 开源</span>
     <span class="hero-stat">🐙 <b>${gh}</b> GitHub</span>
     ${withRelease > 0 ? `<span class="hero-stat">🚀 <b>${withRelease}</b> 版本更新</span>` : ''}
-    ${freshLabel ? `<span class="hero-stat">${freshLabel}</span>` : ''}
+    ${newsHTML}
   `;
 }
 
@@ -499,7 +515,7 @@ function renderListView(groups, catOrder) {
       html += `<tr>
         <td><span class="list-name" style="color:${catColors[a.category||'Other']||'#94a3b8'}"><a href="${a.website||'#'}" target="_blank">${a.name}</a></span> <span class="badge ${osBadge[a.open_source]||'badge-no'}" style="font-size:0.65rem">${osLabel[a.open_source]||a.open_source}</span></td>
         <td><div class="list-desc">${a.description||''}</div></td>
-        <td><span class="list-hot">🔥 ${hotScore(a)}</span>${a._stars >= 0 ? `<span style="color:#f59e0b"> · ⭐ ${a._stars.toLocaleString()}</span>` : ''}</td>
+        <td><span class="list-hot">🔥 ${hotScore(a)}</span>${a._stars != null ? `<span style="color:#f59e0b"> · ⭐ ${a._stars.toLocaleString()}</span>` : ''}</td>
         <td class="list-links">${a.website?`<a href="${a.website}" target="_blank">🌐</a>`:''}${a.github_repo?`<a href="${a.github_repo}" target="_blank">🐙</a>`:''}${a.docs_url?`<a href="${a.docs_url}" target="_blank">📄</a>`:''}${a._release?`<a href="${a._release.url}" target="_blank">🚀${a._release.tag}</a>`:''}</td>
         <td><span class="list-expand ${checked?'checked':''}" onclick="toggleCompare('${a.name}')">${checked?'☑':'☐'}</span> <span class="list-expand" onclick="this.textContent=this.textContent==='▶'?'▼':'▶';this.closest('tr').nextElementSibling?.classList.toggle('open')">▶</span></td>
       </tr>
@@ -532,7 +548,7 @@ function renderCard(a) {
     </div>
     <div class="card-meta">
       <span class="hot">🔥 ${hotScore(a)}</span>
-      ${a._stars >= 0 ? ` · <span style="color:#f59e0b">⭐ ${a._stars.toLocaleString()}</span>` : ''}
+      ${a._stars != null ? ` · <span style="color:#f59e0b">⭐ ${a._stars.toLocaleString()}</span>` : ''}
       ${a.pricing ? ` · 💰 ${a.pricing}` : ''}
       ${a.license && a.license!=='未知' ? ` · 📜 ${a.license}` : ''}
       ${a.last_verified ? ` · 📅 ${a.last_verified}` : ''}
@@ -600,7 +616,7 @@ function renderNews() {
     if (hours < 6) freshLabel = '<span style="color:#34d399;font-weight:600">● 实时</span>';
     else if (hours < 24) freshLabel = '<span style="color:#fbbf24;font-weight:600">● 今日</span>';
     else if (hours < 48) freshLabel = '<span style="color:#fb923c;font-weight:600">● 即将过期</span>';
-    else freshLabel = '<span style="color:#f87171;font-weight:600">● 需要刷新</span>';
+    else freshLabel = '<span style="color:#f87171;font-weight:600;cursor:pointer;text-decoration:underline;" onclick="refreshNews()">● 需要刷新</span>';
   }
 
   let summaryHtml = `<div style="font-size:0.82rem;margin-bottom:12px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;line-height:1.8;">`;
