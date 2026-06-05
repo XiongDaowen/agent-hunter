@@ -659,7 +659,18 @@ function renderNews() {
   let html = '';
   for (const [name, topic] of Object.entries(d.topics || {})) {
     const items = topic.items || [];
-    if (!items.length) continue;
+    if (!items.length) {
+      // Show explicit empty state so users know data is missing, not broken
+      html += `<div class="news-topic">
+        <div class="news-topic-title">${topic.icon} ${topic.label} (0)</div>
+        <div class="news-grid">
+          <div class="news-card" style="color:var(--dim);font-size:0.82rem;padding:12px;opacity:0.7;">
+            暂无相关资讯（HN 无专门讨论，切换到「全部」话题查看社区讨论）
+          </div>
+        </div>
+      </div>`;
+      continue;
+    }
     // Compute topic freshness from newest item (items[0] is newest due to API sort)
     const first = items[0];
     let freshnessBadge = '';

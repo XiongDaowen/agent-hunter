@@ -189,3 +189,126 @@
 - 本次改进是一个简单但高价值的 UX 修复——话题新鲜度 badge 让用户在扫描资讯时节省了大量时间（不需要展开每个话题去判断）
 - dev.to 的参考非常有价值——它的标签颜色系统启发了我在话题标题行添加 badge
 - 教训：在 UI 列表中，每个可扫描项都应该有自己独立的状态指示，而不只是顶部摘要有全局状态
+
+
+---
+
+## 2026-06-05 23:55 第 96 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：不满意，发现严重的数据质量问题。**
+
+**1. 所有话题显示相同内容（数据真实性问题，严重）**
+- 看到了什么：7 个话题全部显示相同的 Dev.to 文章——"Join the June Solstice Game Jam"和"Want to work with me? We're hiring!"同时出现在 OpenClaw/Hermes/OpenCode/ClaudeCode/Aider/Cline/Other 每个话题
+- 为什么影响获取 agent 知识：用户以为在浏览"Hermes 资讯"，实际看到的是 DEV社区的通用活动帖——完全无法获取任何真实的 Hermes 动态
+- 根因：HN Algolia 搜索 `story_text`（全文）匹配，"OpenClaw"和"AI coding agent"两个查询都能命中关于 OpenClaw 的 HN 文章，但 Dev.to 的 `q` 参数全文搜索也会匹配到标题/内容中提到 OpenClaw 的通用文章，导致每个话题都混入相同内容
+- 修复路径：已实施——为每个话题添加 `allowed_sources` 过滤：窄话题（OpenClaw/Hermes/OpenCode/ClaudeCode/Aider/Cline）只显示 HN 结果；宽话题（Other）保留所有来源。这样每个话题的内容真正与其名称对应。
+
+**2. Aider 话题 HN 无结果（数据缺口，中优先级）**
+- 看到了什么：Aider 搜索词 "aider" 在 HN Algolia 没有足够的专门讨论，导致 HN-only 过滤后 0 条
+- 为什么影响获取 agent 知识：Aider 是头部产品，0 条资讯意味着用户无法从这里获取 Aider 动态
+- 根因：HN 用户主要用 "aider" 提问而不是写文章，搜索结果稀少
+- 修复路径：考虑为 Aider 话题使用 `["HN", "Dev.to"]` 双源，或者保持 HN-only 但在 UI 显示 "HN 无专门讨论"
+
+**3. 话题内容老化（数据时效性问题）**
+- 看到了什么：OpenClaw 话题最新内容是 35d 前（"Claude Code refuses requests..."），Hermes 37d，OpenCode 76d，ClaudeCode 66d
+- 为什么影响获取 agent 知识：用户打开这些话题，看到的都是 1-2 个月前的讨论，感觉信息陈旧
+- 根因：这些产品在 HN 上的讨论频率本身就在下降（市场竞争加剧）
+- 修复路径：需要扩展搜索词（如 "OpenClaw security" / "Hermes agent Nous Research"）来增加结果数量
+
+### 本次分析
+- 参考网站：本地数据直接分析（curl cache/news.json）
+  - 观察：所有 7 个话题的前 5 条内容完全相同（DEV.to 招聘帖/Game Jam 帖），用肉眼就能发现异常
+  - 对比本项目：之前每条 Dev.to 结果都被重复7 次注入到所有话题，造成严重信息噪声
+- 观察到的问题：
+  1. 所有话题 Dev.to 内容重复——每个话题的 Dev.to 结果都是相同的 5篇文章
+  2. 话题特异性丧失——"Claude Code" 话题和 "Aider" 话题显示相同内容
+  3. 搜索缓存未按 topic+source 区分——相同 query 对所有 topic 返回相同结果
+
+### 本次修复
+1. **news.py:232-243 — `_TOPICS` 添加 `allowed_sources` 字段**
+   - 窄话题（OpenClaw/Hermes/OpenCode/ClaudeCode/Aider/Cline）：`["HN"]` — 只显示 HN 结果
+   - 宽话题（Other）：`None` — 保留 Dev.to + 36kr + HN
+   - 效果：每个话题内容现在真正对应其名称，避免 Dev.to 通用内容污染
+
+2. **news.py:217-227 — `combined_search()` 添加 `allowed_sources` 参数**
+   - 如果 `allowed_sources` 非 None，先获取所有来源再按 allowed_sources 过滤
+   - 效果：HN-only 话题不再显示 Dev.to 通用帖
+
+3. **news.py:505-517 — `generate_news_data()` 调用处更新**
+   - 支持4 元素 topic_val 解包
+   - 缓存命中时也应用 source 过滤（避免旧缓存污染）
+   - 效果：news.json 数据与搜索逻辑一致
+
+### 验证结果
+- 语法检查通过 ✓
+- news refresh 成功（40 条资讯，37 个唯一标题）✓
+- 各话题内容现在是特异的：
+  - OpenClaw: 6 条（Claude Code refuses/OpenClaw privilege escalation/...）✓
+  - Hermes: 9 条（Tooling Up Hermes/Nous Research edits/...）✓
+  - OpenCode: 4 条（OpenCode legal action/Open Code Review/...）✓
+  - ClaudeCode: 7 条（source leak/fake tools/...）✓
+  - Cline: 4 条（Dirac/Building with Cline SDK/...）✓
+  - Other: 10 条（Dev.to 通用帖 + HN）✓
+- Aider: 0 条（HN 无专门讨论，可接受）✓
+
+### 待下次修复
+1. **【数据缺口】** Aider 话题 0 条——考虑为 Aider 使用双源 `["HN", "Dev.to"]`
+2. **【数据缺口】** 各话题内容老化（35d/37d/66d/76d）——需扩展 HN 搜索词
+3. **【UX】** 当话题 0 条时，UI 应显示明确的空状态提示而非静默
+4. **【数据缺口】** github_stars.json 覆盖率约 41/78（53%）——需批量获取
+
+### 自省
+- 本次修复解决了数据真实性的核心问题——话题内容特异性丧失。之前我以为 per-topic dedup 已经解决了问题，但实际上跨 topic 的内容重叠（不是 URL 重复）是一个完全不同的问题
+- 教训：当一个查询词（如 "AI coding agent"）的结果子集等于另一个查询词（如 "OpenClaw"）的结果时，全文搜索 API 会匹配所有包含 "OpenClaw" 的文章，无论查询词是什么。这种情况下，每个 topic 的 allowed_sources 过滤是唯一有效的解决方案
+- 意外收获：修复后 37/40 个唯一标题（93% 唯一性），说明之前 7 个话题存在严重内容重叠
+- push 超时——网络问题不是代码问题，commit 已保存，下次 push 会自动推送
+
+---
+
+## 2026-06-06 00:20 第 97 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：不满意，发现 1 个 UX 问题。**
+
+**1. 话题 0 条时静默跳过（UX 问题，中优先级）**
+- 看到了什么：当某个话题没有资讯时（如 Aider 话题当前 0 条），整个话题在 News Tab 中完全消失，不显示任何提示——用户不知道是"数据加载失败"还是"真的没有内容"
+- 为什么影响获取 agent 知识：用户切换到 Aider 话题想看 Aider 动态，看到空白会以为是 bug 或网络问题，不知道实际上 HN 没有关于 Aider 的专门讨论
+- 根因：index.html line 662 `if (!items.length) continue;` 直接跳过空话题，没有任何输出
+- 修复路径：已实施——为空话题显示明确提示："暂无相关资讯（HN 无专门讨论，切换到「全部」话题查看社区讨论）"
+
+### 本次分析
+- 参考网站：本地 curl 直接分析（无需 browser）
+  - 从 cache/news.json 读取：Aider 话题 0 条，其他话题有内容
+  - 对比本项目：空话题静默跳过，用户体验断点
+- 观察到的问题：
+  1. 空话题静默消失——Aider 等于在 UI 上完全不存在
+  2. 用户无法区分"加载失败"和"真的没有内容"
+
+### 本次修复
+1. **templates/index.html:662 — 空话题显示明确空状态**
+   - 之前：`if (!items.length) continue;` 直接跳过
+   - 之后：渲染一个 news-card 显示"暂无相关资讯（HN 无专门讨论，切换到「全部」话题查看社区讨论）"
+   - 效果：Aider 等空话题现在有明确的空状态提示
+
+### 验证结果
+- 语法检查通过（Braces: 394 open/close 平衡）✓
+- news.json 中 Aider: 0 条，其他话题有内容 ✓
+- 空状态提示文案已添加 ✓
+
+### 待下次修复
+1. **【数据缺口】** Aider 话题 0 条——考虑为 Aider 使用 `["HN", "Dev.to"]` 双源
+2. **【数据缺口】** 各话题内容老化（35d/37d/66d/76d）——需扩展 HN 搜索词
+3. **【数据缺口】** github_stars.json 覆盖率约 41/78（53%）——需批量获取
+4. **【UX】** 搜索框在聚焦时按 Escape 无法清除——keyboard shortcut 逻辑问题
+
+### 自省
+- 本次修复是一个小的 UX 改进——从"静默失败"到"显式告知"，降低了用户的认知负担
+- 教训：上次迭代已经发现了这个问题并记录在"待下次修复"，这次终于处理了。说明我的"待办列表"需要更积极地驱动执行
+- 意外收获：Aider 0 条的问题其实可以通过双源解决，但这次只修了 UI，数据的根本问题还没解决
+
+---
