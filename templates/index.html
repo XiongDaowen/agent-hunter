@@ -750,6 +750,9 @@ document.addEventListener('keydown', (e) => {
     document.getElementById('searchInput').focus();
   }
   if (e.key === 'Escape') {
+    if (document.activeElement === document.getElementById('searchInput')) {
+      clearSearch();
+    }
     document.getElementById('searchInput').blur();
   }
 });
