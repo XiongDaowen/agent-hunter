@@ -325,3 +325,57 @@
 3. **【数据缺口】** github_stars.json 覆盖率约 41/78（53%）——需批量获取
 4. **【UX】** ~~搜索框在聚焦时按 Escape 无法清除~~ ✅ 已修复
 
+### 自省
+- 本次完成了两个小 UX 改进：空话题显式提示 + Escape 清空搜索框
+- 教训：上次迭代已记录空话题问题，这次终于处理了。说明"待下次修复"需要更积极驱动执行，不能只记录不执行
+- 意外收获：browser 工具有故障（ENOTEMPTY），改用 curl + 本地数据文件分析完全可行，效率反而更高（不需要等待页面渲染）
+- push成功，网络恢复正常
+
+---
+
+## 2026-06-06 第 98 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但仍有数据缺口影响信息获取体验。**
+
+**1. Aider 话题 0 条内容（数据缺口）**
+- 看到了什么：Aider 话题始终为空，但 dev.to 搜索 "aider" 能返回大量真实文章
+- 为什么影响获取 agent 知识：Aider 是头部产品，0 条资讯意味着用户完全无法从这里获取 Aider 动态
+- 根因：Aider topic 的 allowed_sources=["HN"]，而 HN 上 "aider" 搜索结果稀少，导致 Aider 话题永远为空
+- 修复路径：已将 Aider 的 allowed_sources 改为 None（允许 Dev.to + 36kr），下次 fetch 后应能获取到内容
+
+**2. 多个话题数据老化（数据缺口）**
+- 看到了什么：Hermes（最新4d）、Cline（最新 6d）、OpenCode（最新 14h，但含 77d 旧条目）、ClaudeCode（最新 35d）数据老化严重
+- 为什么影响获取 agent 知识：用户想了解某个 agent 最新动态时，点进去发现最新内容是 30+ 天前的
+- 根因：HN 搜索词固定为 "OpenClaw"/"Hermes Agent" 等，无法捕获所有相关讨论；且 HN 上活跃讨论集中在特定几条
+- 修复路径：需要扩展搜索词（如 "OpenClaw alternative"/"Claude Code vs OpenClaw"）来补充新鲜内容
+
+### 本次分析
+- 参考网站：本地 curl + JSON 分析（browser 工具有 ENOTEMPTY 故障）
+- 观察：news.json 中 Aider topic 数据为空；releases.json 中 Aider tag_name 为空（等待首次获取）
+- 观察到的问题：
+  1. Aider 话题 0 条——HN-only 导致数据稀缺
+  2. Hermes/Cline/ClaudeCode 话题最新条目超 30d——HN搜索词覆盖不足
+
+### 本次修复
+1. **news.py:242 — Aider 话题 allowed_sources 从 ["HN"] 改为 None**
+   - 效果：允许 Dev.to + 36kr 数据源，不再限于 HN
+   - 理由：改动极小（1行），解除 HN-only 限制后 Aider 话题下次 fetch 应有数据
+
+### 验证结果
+- news.py 语法检查通过 ✓
+
+### 待下次修复
+1. **【数据缺口】** Aider 话题仍需验证是否获取到内容（下次迭代观察 news.json）
+2. **【数据缺口】** Hermes/Cline/ClaudeCode 话题超过 30d 未更新——需扩展 HN 搜索词
+3. **【数据缺口】** releases.json 中 Aider tag_name 为空——需触发首次获取
+4. **【数据缺口】** github_stars.json 覆盖率约 41/78（53%）——需批量获取剩余产品 stars
+
+### 自省
+- 本次改进方向明确：Aider 的 HN-only 限制是数据为0 的根因，改1 行字即解除
+- 教训：browser 工具故障时，curl + python 分析 JSON效率更高，下次遇到工具故障可提前切换策略
+- 意外收获：确认 global_deduplicate 已经是 per-topic 的（代码注释说明跨 topic 去重已被移除），Aider 0 条不是去重问题，是数据源问题
+
+---
