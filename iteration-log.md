@@ -48,9 +48,54 @@
 ### 自省
 - 本次两个改进方向：话题新鲜度警告（Aider 话题透明化）和 staleTopics 检测。两者都是低工作量、高用户价值的改进
 - Aider 0 条的根本原因是 deduplication 机制设计问题：先搜索的话题会"拦截"后续话题的结果。这个问题跨迭代多次出现，建议在下个版本中重新设计 deduplication 逻辑（按话题隔离去重，或给每个话题独立的搜索缓存 key）
-- 教训：即使是"正确"的搜索词修复（"aider"），也因为 deduplication 机制而无效。修改数据源时需要同时考虑下游处理流程
+---
 
-## 2026-06-04 05:35 第 92 次迭代（Job ID: acc61aa9502c）
+## 2026-06-05 21:55 第 95 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个长期未解决的数据缺口问题。**
+
+**1. Aider 话题持续 0 条资讯（数据缺口，严重）**
+- 看到了什么：news.json 中 Aider 话题始终为空，这是自第 92 次迭代就已知的问题
+- 为什么影响获取 agent 知识：Aider 是头部产品，0 条资讯意味着用户完全无法从这里获取 Aider 动态
+- 根因：global_deduplicate() 的跨话题去重机制——"Other"话题（AI coding agent）先搜索Broad结果，消耗了所有共享 URL；后续 Aider 搜索到的相同文章被去重拦截，导致 Aider 0 条
+- 修复路径：已实施——将 global_deduplicate 改为 per-topic deduplication（每个话题独立去重上下文）
+
+### 本次分析
+- 参考网站：news.py自身逻辑分析
+  - 观察：global_deduplicate 函数使用全局 `seen_urls`/`seen_normalized_titles` set，遍历 topics 顺序中后面的话题会被前面话题"消耗" URL
+  - 对比本项目：OpenClaw/Hermes/OpenCode/ClaudeCode/Aider/Cline/Other 7 个话题，Aider 排在第 5 位，"Other"排在第 7 位但先搜索Broad查询，"拦截"了 Aider 的结果
+- 观察到的问题：
+  1. Aider 话题 0 条——跨话题去重导致 narrow话题被 broad 话题"污染"
+  2. 所有话题数据都是 1d ago（刷新成功）
+
+### 本次修复
+1. **news.py:301-338 — global_deduplicate 改为 per-topic deduplication**
+   - 旧逻辑：全局 `seen_urls`/`seen_normalized_titles` set，跨话题共享，导致 broad 话题消耗 narrow 话题结果
+   - 新逻辑：每个话题有独立的 `seen_urls`/`seen_normalized_titles` set，只做同话题内去重
+   - 额外修复：stale 检查从"注册后检查"改为"注册前检查"，避免无效注册
+   - 效果：Aider: 0 条 → 6 条，所有话题都有 1d ago 新鲜数据
+
+### 验证结果
+- news.py 语法检查通过 ✓
+- news refresh成功（耗时约 90s）✓
+- Aider: 0 条 → 6 条 ✓
+- 所有话题最新条目都是 1d ago ✓
+- 总资讯从 36 条增加到 76 条 ✓
+
+### 待下次修复
+1. **【数据质量】** Hermes/Cline/OpenCode/ClaudeCode 话题数据突然全部变为 1d ago——需要验证这些是否真的是新数据，还是缓存问题
+2. **【数据缺口】** github_stars.json 覆盖率 41/78（53%）——需批量获取剩余 37 个产品的 stars
+3. **【UX】** 话题新鲜度 badge 在资讯 Tab折叠状态下不可见——考虑在摘要区也显示各话题的 freshness badge
+
+### 自省
+- 本次修复解决了第 92 次迭代遗留的 Aider 0 条问题，根因定位准确（跨话题 dedup），修复简洁（per-topic dedup）
+- 教训：修改数据处理流程（如 deduplication）时，必须同时考虑上游（搜索顺序）和下游（每个 topic 的独立结果）的影响
+- 意外收获：修复后总资讯从 36 条增加到 76 条，说明之前有很多结果被错误去重
+
+## 2026-06-05 22:50 第 94 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
 > **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**

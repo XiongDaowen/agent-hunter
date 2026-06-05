@@ -299,36 +299,38 @@ def _is_stale(item: dict, max_age_days: int = 30) -> bool:
 
 
 def global_deduplicate(all_results: dict, max_age_days: int = 90) -> dict:
-    """Remove duplicate URLs and near-duplicate titles across all search topics.
+    """Remove duplicate URLs and near-duplicate titles WITHIN each topic.
 
-    Deduplication strategy:
-    - Exact URL match → skip (same article already seen)
-    - Normalized title match (strip punctuation, lowercase) → skip (cross-platform duplicate)
-    - Items older than max_age_days are excluded from results (but still participate in
-      deduplication to prevent stale duplicates from resurfacing in other topics)
+    Deduplication strategy (per-topic, not cross-topic):
+    - Exact URL match within same topic → skip
+    - Normalized title match within same topic → skip (handles platform variants)
+    - Items older than max_age_days are excluded from results
+
+    NOTE: Cross-topic dedup was removed — it caused broad-query topics (e.g. "AI coding agent")
+    to consume URLs that narrow-query topics (e.g. "aider") also return, making narrow topics
+    end up with 0 results. Each topic now gets its own dedup context.
     """
-    seen_urls = set()
-    seen_normalized_titles = set()
     deduped = {}
     for topic_name, items in all_results.items():
+        seen_urls = set()
+        seen_normalized_titles = set()
         deduped_section = []
         for item in items:
+            # Skip stale items first (before registering in dedup sets)
+            if _is_stale(item, max_age_days):
+                continue
             url_val = item.get("url", "")
             title_val = item.get("title", "")
-            # Normalize title for cross-platform duplicate detection
+            # Normalize title for within-topic duplicate detection
             normalized = re.sub(r'[\W_]+', ' ', title_val.lower()).strip()
             url_dup = url_val and url_val in seen_urls
             title_dup = normalized and normalized in seen_normalized_titles
             if url_dup or title_dup:
                 continue
-            # Always register in dedup sets to prevent stale items from leaking via other topics
             if url_val:
                 seen_urls.add(url_val)
             if normalized:
                 seen_normalized_titles.add(normalized)
-            # Skip stale items (older than max_age_days)
-            if _is_stale(item, max_age_days):
-                continue
             deduped_section.append(item)
         deduped[topic_name] = deduped_section
     return deduped
