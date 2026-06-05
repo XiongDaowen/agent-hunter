@@ -214,13 +214,16 @@ def fetch_36kr(query: str, max_retries: int = 2) -> list[dict]:
 
 # ── Combined search ────────────────────────────────────────────────────
 
-def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4) -> list[dict]:
-    """Search Dev.to + 36kr + HN, merge results."""
+def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed_sources: list | None = None) -> list[dict]:
+    """Search Dev.to + 36kr + HN, merge results. Filter by allowed_sources if provided."""
     hn_results = fetch_hn(query, hits_per_page=hn_limit)
     devto_results = fetch_devto(query, per_page=devto_limit)
     kr36_results = fetch_36kr(query)
     # Quality order: Dev.to (articles) > 36kr (news) > HN (fast)
     combined = devto_results + kr36_results + hn_results
+    # Filter by source if topic has source restrictions
+    if allowed_sources is not None:
+        combined = [r for r in combined if r.get("source") in allowed_sources]
     return combined
 
 
@@ -229,19 +232,21 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4) -> list
 # ── Dynamic topics from agents ────────────────────────────────────────────
 
 # Fixed topic list (was _DEFAULT_TOPICS before _build_topics_from_agents was removed)
+# Each entry: (search_query, icon, label, allowed_sources)
+# allowed_sources=None means all sources; ["HN"] means HN only (excludes Dev.to/36kr spam)
 _TOPICS = {
-    "OpenClaw":   ("OpenClaw",        "🔵", "OpenClaw 资讯"),
-    "Hermes":     ("Hermes Agent",    "🟢", "Hermes 资讯"),
-    "OpenCode":   ("OpenCode",        "🟣", "OpenCode 资讯"),
-    "ClaudeCode": ("Claude Code",     "🟠", "Claude Code 资讯"),
-    "Aider":      ("aider",          "🔴", "Aider 资讯"),
-    "Cline":      ("Cline agent",     "🟤", "Cline 资讯"),
-    "Other":      ("AI coding agent", "🟡", "其他 AI Agent 资讯"),
+    "OpenClaw":   ("OpenClaw",        "🔵", "OpenClaw 资讯",   ["HN"]),
+    "Hermes":     ("Hermes Agent",    "🟢", "Hermes 资讯",     ["HN"]),
+    "OpenCode":   ("OpenCode","🟣", "OpenCode 资讯",   ["HN"]),
+    "ClaudeCode": ("Claude Code",     "🟠", "Claude Code 资讯", ["HN"]),
+    "Aider":      ("aider",          "🔴", "Aider 资讯",      ["HN"]),
+    "Cline":      ("Cline agent","🟤", "Cline 资讯",     ["HN"]),
+    "Other":      ("AI coding agent", "🟡", "其他 AI Agent 资讯", None),
 }
 
 
 def get_topics():
-    """Return topics dict: {key: (search_query, icon, label)}"""
+    """Return topics dict: {key: (search_query, icon, label, allowed_sources)}"""
     return dict(_TOPICS)
 
 
@@ -346,9 +351,10 @@ def generate_news_report():
     topic_empty_default = '<p style=\'color:#666;padding:20px;\'>暂无相关资讯</p>'
 
     all_results = {}
-    for topic_name, (query, icon, label) in topics.items():
+    for topic_name, topic_val in topics.items():
+        query, icon, label, allowed_sources = topic_val if len(topic_val) == 4 else (*topic_val, None)
         print(f"   📡 搜索 [{topic_name}]: {query}")
-        results = combined_search(query, hn_limit=10, devto_limit=6)
+        results = combined_search(query, hn_limit=10, devto_limit=6, allowed_sources=allowed_sources)
         all_results[topic_name] = results
         print(f"      → {len(results)} 条结果")
 
@@ -363,7 +369,8 @@ def generate_news_report():
 
     # Build HTML
     sections_html = ""
-    for topic_name, (query, icon, label) in topics.items():
+    for topic_name, topic_val in topics.items():
+        query, icon, label, _allowed_sources = topic_val if len(topic_val) == 4 else (*topic_val, None)
         items = all_results.get(topic_name, [])
         cards_html = "".join(render_news_card(i) for i in items)
         empty_html = topic_empty_default if not items else ""
@@ -496,14 +503,18 @@ def generate_news_data():
     topics = get_topics()
 
     all_results = {}
-    for topic_name, (query, icon, label) in topics.items():
+    for topic_name, topic_val in topics.items():
+        query, icon, label, allowed_sources = topic_val if len(topic_val) == 4 else (*topic_val, None)
         cached = get_cached_search(query)
         if cached:
+            # Apply source filter to cached results if topic has restrictions
+            if allowed_sources is not None:
+                cached = [r for r in cached if r.get("source") in allowed_sources]
             all_results[topic_name] = cached
-            print(f"   CACHE [{topic_name}]: {query} (命中)")
+            print(f"   CACHE [{topic_name}]: {query} (命中,过滤后 {len(cached)} 条)")
             continue
         print(f"   📡 搜索 [{topic_name}]: {query}")
-        results = combined_search(query, hn_limit=10, devto_limit=6)
+        results = combined_search(query, hn_limit=10, devto_limit=6, allowed_sources=allowed_sources)
         all_results[topic_name] = results
         cache_search(query, results)
         print(f"      → {len(results)} 条结果")
@@ -521,7 +532,8 @@ def generate_news_data():
         "total": total,
         "topics": {},
     }
-    for topic_name, (query, icon, label) in topics.items():
+    for topic_name, topic_val in topics.items():
+        query, icon, label, _allowed_sources = topic_val if len(topic_val) == 4 else (*topic_val, None)
         items = all_results.get(topic_name, [])
         data["topics"][topic_name] = {
             "icon": icon,
