@@ -637,8 +637,17 @@ function renderNews() {
   if (recentCount > 0) {
     summaryHtml += `<div>• 近期动态：<span style="color:var(--green);font-weight:600;">${recentCount} 条</span> 24h 内资讯，活跃度较高</div>`;
   }
+  const staleTopics = topicEntries.filter(([,t]) => {
+    const first = t.items && t.items[0];
+    if (!first || !first.time_ago) return false;
+    const m = first.time_ago.match(/(\d+)d/);
+    return m && parseInt(m[1]) > 7;
+  });
   const topicBars = topicEntries.map(([,t]) => `${t.icon} ${t.count}`).join(' · ');
   summaryHtml += `<div>• 话题分布：${topicBars}</div>`;
+  if (staleTopics.length > 0) {
+    summaryHtml += `<div style="margin-top:4px;">⚠️ <span style="color:#f87171;">以下话题超过7 天未更新：${staleTopics.map(([n,t]) => t.label).join('、')}</span></div>`;
+  }
   summaryHtml += `</div>`;
 
   document.getElementById('newsSummary').innerHTML = summaryHtml;

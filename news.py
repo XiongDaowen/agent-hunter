@@ -234,7 +234,7 @@ _TOPICS = {
     "Hermes":     ("Hermes Agent",    "🟢", "Hermes 资讯"),
     "OpenCode":   ("OpenCode",        "🟣", "OpenCode 资讯"),
     "ClaudeCode": ("Claude Code",     "🟠", "Claude Code 资讯"),
-    "Aider":      ("Aider AI",        "🔴", "Aider 资讯"),
+    "Aider":      ("aider",          "🔴", "Aider 资讯"),
     "Cline":      ("Cline agent",     "🟤", "Cline 资讯"),
     "Other":      ("AI coding agent", "🟡", "其他 AI Agent 资讯"),
 }
