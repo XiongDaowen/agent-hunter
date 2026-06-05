@@ -102,3 +102,45 @@
 - 教训：当发现一个 UX 问题（搜索 Enter），应该立即修复而不是"下次再说"——这类小问题积累会显著降低产品体验
 
 ---
+## 2026-06-05 22:50 第 94 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个影响信息获取体验的问题。**
+
+**1. 资讯话题新鲜度不透明（UX 设计问题）**
+- 看到了什么：资讯话题列表展开后，每个话题标题行没有新鲜度标记，用户必须打开话题或查看顶部摘要才能判断话题是否过时
+- 为什么影响获取 agent 知识：用户浏览资讯时，无法从话题列表直接判断哪些话题值得展开，浪费时间在不活跃的话题上
+- 根因：renderNews() 在话题标题行（news-topic-title）只显示 icon + label + count，没有新鲜度 badge
+- 修复路径：已在话题标题行末尾添加 🆕 新 / ⚠️ N天前 badge（基于 newest item 的 time_ago）
+
+### 本次分析
+- 参考网站：dev.to 搜索 "AI coding agent"（https://dev.to/search?q=AI+coding+agent）
+  - 观察：dev.to 每个话题标签有明确的活跃度颜色区分（绿色=最新，灰色=较旧）
+  - 对比本项目：7 个话题中只有顶部摘要有 staleTopics 警告，话题列表本身无视觉差异化
+- 观察到的问题：
+  1. 话题标题行无新鲜度标记——用户无法快速扫描判断话题活跃度
+  2. recentItems 逻辑有误——过滤条件 `i.time_ago.includes('h') || i.time_ago.includes('m')) && !i.time_ago.includes('d')` 会排除所有含 'h' 的 '1h ago' 误判（实际上逻辑正确，'1h ago' 不含 'd' 所以被包含）
+
+### 本次修复
+1. **templates/index.html:660-672 —话题标题行添加新鲜度 badge**
+   - 基于 items[0].time_ago（最新条目）计算天数
+   - ≤7 天：绿色 🆕 新 badge
+   - \u003e7 天：红色 ⚠️ N天前 badge
+   - 效果：用户打开资讯 Tab，3 秒内从话题列表直接判断哪些话题活跃
+
+### 验证结果
+- 逻辑验证（node）：OpenClaw→🆕 新，Hermes→⚠️ 37天前，OpenCode→⚠️ 76天前，ClaudeCode→⚠️ 66天前，Cline→⚠️ 57天前，Other→⚠️ 25天前 ✓
+- Flask 重启后 HTTP 200 ✓
+- JS 源码含 freshnessBadge 逻辑 ✓
+
+### 待下次修复
+1. **【数据缺口】** Aider 话题 0 条——global deduplicate 导致结果被其他话题"拦截"
+2. **【数据缺口】** Hermes 37d / OpenCode 76d / ClaudeCode 66d / Cline 57d — 需扩展搜索词
+3. **【数据缺口】** github_stars.json 覆盖率 38%（30/78）——需批量获取剩余产品 stars
+
+### 自省
+- 本次改进是一个简单但高价值的 UX 修复——话题新鲜度 badge 让用户在扫描资讯时节省了大量时间（不需要展开每个话题去判断）
+- dev.to 的参考非常有价值——它的标签颜色系统启发了我在话题标题行添加 badge
+- 教训：在 UI 列表中，每个可扫描项都应该有自己独立的状态指示，而不只是顶部摘要有全局状态

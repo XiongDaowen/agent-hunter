@@ -660,8 +660,19 @@ function renderNews() {
   for (const [name, topic] of Object.entries(d.topics || {})) {
     const items = topic.items || [];
     if (!items.length) continue;
+    // Compute topic freshness from newest item (items[0] is newest due to API sort)
+    const first = items[0];
+    let freshnessBadge = '';
+    if (first && first.time_ago) {
+      const m = first.time_ago.match(/(\d+)d/);
+      if (m) {
+        const days = parseInt(m[1]);
+        if (days <= 7) freshnessBadge = '<span style="font-size:0.72rem;margin-left:6px;color:#34d399;font-weight:600;">🆕 新</span>';
+        else freshnessBadge = `<span style="font-size:0.72rem;margin-left:6px;color:#f87171;font-weight:600;">⚠️ ${days}天前</span>`;
+      }
+    }
     html += `<div class="news-topic">
-      <div class="news-topic-title" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'grid':'none'">${topic.icon} ${topic.label} (${items.length})</div>
+      <div class="news-topic-title" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'grid':'none'">${topic.icon} ${topic.label} (${items.length})${freshnessBadge}</div>
       <div class="news-grid">`;
     items.forEach(item => {
       const srcClass = item.source === 'HN' ? 'src-hn' : item.source === 'Dev.to' ? 'src-devto' : '';
