@@ -333,49 +333,61 @@
 
 ---
 
-## 2026-06-06 第 98 次迭代（Job ID: acc61aa9502c）
+## 2026-06-06 第 99 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
 > **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
 
-**答案：基本满意，但仍有数据缺口影响信息获取体验。**
+**答案：基本满意，但发现 GitHub stars 匹配算法的系统性缺陷导致 23/49 产品无法显示 stars（39% 覆盖率缺口）。**
 
-**1. Aider 话题 0 条内容（数据缺口）**
-- 看到了什么：Aider 话题始终为空，但 dev.to 搜索 "aider" 能返回大量真实文章
-- 为什么影响获取 agent 知识：Aider 是头部产品，0 条资讯意味着用户完全无法从这里获取 Aider 动态
-- 根因：Aider topic 的 allowed_sources=["HN"]，而 HN 上 "aider" 搜索结果稀少，导致 Aider 话题永远为空
-- 修复路径：已将 Aider 的 allowed_sources 改为 None（允许 Dev.to + 36kr），下次 fetch 后应能获取到内容
+**1. GitHub stars 匹配算法缺陷（代码 bug，严重）**
+- 看到了什么：26/49 有 GitHub 的产品能匹配到 stars cache；其余 23 个产品（包括 AutoGPT Platform、Tabby、SWE-agent、Vercel AI SDK、Sourcegraph Cody）显示为"MISSING"
+- 为什么影响获取 agent 知识：stars 是判断产品热度的核心信号，缺失时用户无法判断产品活跃度
+- 根因：stars 匹配逻辑中，suffix stripping 只应用于 `name_key`（产品名），未应用于 `repo_name`（GitHub 仓库名） fallback；且 cache key 命名与 agent github_repo URL 的命名存在系统差异（如 TabbyML/tabby → cache key "tabbyml/tabby"）
+- 修复路径：已实施——扩展 suffix stripping 到 repo_name fallback，添加 compound key 匹配（owner/stripped-name），添加 broad `in` 搜索兜底
 
-**2. 多个话题数据老化（数据缺口）**
-- 看到了什么：Hermes（最新4d）、Cline（最新 6d）、OpenCode（最新 14h，但含 77d 旧条目）、ClaudeCode（最新 35d）数据老化严重
-- 为什么影响获取 agent 知识：用户想了解某个 agent 最新动态时，点进去发现最新内容是 30+ 天前的
-- 根因：HN 搜索词固定为 "OpenClaw"/"Hermes Agent" 等，无法捕获所有相关讨论；且 HN 上活跃讨论集中在特定几条
-- 修复路径：需要扩展搜索词（如 "OpenClaw alternative"/"Claude Code vs OpenClaw"）来补充新鲜内容
+**2. 4 个产品仍无 stars 数据（数据缺口，需单独修复）**
+- 看到了什么：Sourcegraph Cody、Tabby、SWE-agent、Vercel AI SDK 仍然 MISSING——这些是 cache key 本身在原始 batch_fetch_stars.py 采集时就使用了错误的 key
+- 为什么影响获取 agent 知识：这 4 个产品是知名开源产品，无 stars 降低了信息可信度
+- 根因：原始 batch_fetch_stars.py 使用 agent 文件名（f.stem）作为 cache key，但 github_repo URL 中的 owner/name 与 f.stem 不匹配
+- 修复路径：需单独触发这 4 个 repos 的 stars 采集，使用正确的 key
 
 ### 本次分析
-- 参考网站：本地 curl + JSON 分析（browser 工具有 ENOTEMPTY 故障）
-- 观察：news.json 中 Aider topic 数据为空；releases.json 中 Aider tag_name 为空（等待首次获取）
+- 参考网站：本地 curl + JSON 直接分析（browser 工具有 ENOTEMPTY 故障，改用 API + python 分析）
+  - 观察：github_stars.json 的 key 命名规则：使用 discover 时采集到的 repo name，不是 github_repo URL 的标准路径
+  - 对比本项目：stars 匹配逻辑有 3 层（exact path → name_key → suffix-stripped），但 repo_name fallback 层缺少 suffix stripping
 - 观察到的问题：
-  1. Aider 话题 0 条——HN-only 导致数据稀缺
-  2. Hermes/Cline/ClaudeCode 话题最新条目超 30d——HN搜索词覆盖不足
+  1. repo_name fallback 未应用 suffix stripping——"AutoGPT Platform" 的 repo_name="autogpt" 无法匹配 cache key "autogpt-platform"
+  2. Compound key 未被考虑——tabbyml/tabby 的 cache key 是 "tabbyml/tabby"，但 agent github_repo URL 是 https://github.com/TabbyML/tabby
+  3. 4 个产品 cache key 错误——batch_fetch_stars.py 采集时就用了错误 key
 
 ### 本次修复
-1. **news.py:242 — Aider 话题 allowed_sources 从 ["HN"] 改为 None**
-   - 效果：允许 Dev.to + 36kr 数据源，不再限于 HN
-   - 理由：改动极小（1行），解除 HN-only 限制后 Aider 话题下次 fetch 应有数据
+1. **app.py:45-54 — 新增 `_strip_suffixes()` 辅助函数**
+   - 统一 suffix 列表：("-agent", "-cli", "-tui", "-sdk", "-ai", "-hub", "-studio")
+   - 返回所有可能的 stripped 候选名
+
+2. **app.py:79-121 — 扩展 stars 匹配逻辑**
+   - repo_name fallback 现在也应用 suffix stripping（之前只有 name_key 有）
+   - 添加 compound key 匹配：owner + stripped repo_name（如 tabbyml + tabby = "tabbyml/tabby"）
+   - 添加 broad `in` 搜索兜底：任何 cache key 包含 repo_name 的都匹配
+   - name_key fallback 也添加 broad `in` 搜索兜底
+   - 效果：stars 覆盖率从 26/49 提升到 30/49（+4 个产品）
 
 ### 验证结果
-- news.py 语法检查通过 ✓
+- 语法检查通过 ✓
+- API 验证：AutoGPT Platform ✓（184606）、Anthropic MCP Servers ✓（86404）、Tabby/SWE-agent/Vercel AI SDK/Sourcegraph Cody 仍 MISSING（cache 本身缺失，非匹配逻辑问题）✓
+- Stars 覆盖：30/49 products（61%，之前 53%）
 
 ### 待下次修复
-1. **【数据缺口】** Aider 话题仍需验证是否获取到内容（下次迭代观察 news.json）
-2. **【数据缺口】** Hermes/Cline/ClaudeCode 话题超过 30d 未更新——需扩展 HN 搜索词
-3. **【数据缺口】** releases.json 中 Aider tag_name 为空——需触发首次获取
-4. **【数据缺口】** github_stars.json 覆盖率约 41/78（53%）——需批量获取剩余产品 stars
+1. **【数据缺口】** 4 个产品（Sourcegraph Cody/Tabby/SWE-agent/Vercel AI SDK）stars cache key 错误——需用正确 key 重新采集
+2. **【数据缺口】** github_stars.json 另有 10 个 repos 是 -1（fetch 失败）——需重新触发采集
+3. **【数据缺口】** releases.json 只覆盖 14/49 repos（28%）——需扩展采集脚本
+4. **【UX】** 新闻 freshness 标签在 hero bar 占用空间且不够显眼——需优化显示位置
 
 ### 自省
-- 本次改进方向明确：Aider 的 HN-only 限制是数据为0 的根因，改1 行字即解除
-- 教训：browser 工具故障时，curl + python 分析 JSON效率更高，下次遇到工具故障可提前切换策略
-- 意外收获：确认 global_deduplicate 已经是 per-topic 的（代码注释说明跨 topic 去重已被移除），Aider 0 条不是去重问题，是数据源问题
+- 本次发现了一个系统性的算法缺陷：suffix stripping 只在 `name_key` 路径有，在 `repo_name` 路径没有，导致很多 repo 无法通过 repo_name fallback 找到正确的 cache key
+- 教训：设计多路径 fallback 匹配算法时，每个路径必须有一致的功能（suffix stripping、broad search 等），否则部分产品会系统性无法匹配
+- browser 工具 ENOTEMPTY 故障时，curl + python 分析 JSON 完全可用，效率反而更高（不需要等页面渲染）
+- 意外收获：确认 10 个 cache entries 是 -1（fetch failed），说明 github_stars.json 本身需要定期重建
 
 ---

@@ -47,6 +47,16 @@ def _extract_repo_path(gh_url: str) -> str:
     return m.group(1).lower().rstrip("/") if m else ""
 
 
+def _strip_suffixes(name: str) -> list:
+    """Strip common product name suffixes and return candidates in order."""
+    suffixes = ("-agent", "-cli", "-tui", "-sdk", "-ai", "-hub", "-studio")
+    candidates = []
+    for suffix in suffixes:
+        if name.endswith(suffix):
+            candidates.append(name[:-len(suffix)])
+    return candidates
+
+
 # ── API ────────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -74,13 +84,23 @@ def api_agents():
             if repo_path_stars in stars_cache:
                 star_val = stars_cache[repo_path_stars].get("stars", -1)
             else:
-                # Fallback: match by repo name only (handles org renames like opencode-ai → anomalyco)
+                # Fallback: match by repo name (with suffix stripping)
                 repo_name = repo_path_stars.split("/")[-1] if "/" in repo_path_stars else ""
-                # Also check direct key match (e.g. stars key is "pydantic-ai" vs path "pydantic/pydantic-ai")
-                if repo_name in stars_cache:
-                    star_val = stars_cache[repo_name].get("stars", -1)
-                else:
-                    match = next((v for k, v in stars_cache.items() if k.endswith("/" + repo_name)), None)
+                for key_candidate in [repo_name] + _strip_suffixes(repo_name):
+                    if key_candidate in stars_cache and stars_cache[key_candidate].get("stars", -1) > 0:
+                        star_val = stars_cache[key_candidate]["stars"]
+                        break
+                if star_val is None:
+                    # Fallback: combine owner + stripped repo_name (e.g. tabbyml/tabby from TabbyML/tabby)
+                    owner = repo_path_stars.split("/")[0] if "/" in repo_path_stars else ""
+                    for c in _strip_suffixes(repo_name):
+                        compound = f"{owner}/{c}"
+                        if compound in stars_cache and stars_cache[compound].get("stars", -1) > 0:
+                            star_val = stars_cache[compound]["stars"]
+                            break
+                if star_val is None:
+                    # Last resort: search by any key containing the repo_name
+                    match = next((v for k, v in stars_cache.items() if repo_name in k and stars_cache[k].get("stars", -1) > 0), None)
                     if match:
                         star_val = match.get("stars", -1)
         # Fallback: match by name_key directly
@@ -90,12 +110,15 @@ def api_agents():
                 star_val = stars_cache[name_key]["stars"]
             else:
                 # Try stripping common suffixes (e.g. "Hermes Agent" -> "hermes" matches cache key "hermes")
-                for suffix in ("-agent", "-cli", "-tui", "-sdk"):
-                    if name_key.endswith(suffix):
-                        shorter = name_key[:-len(suffix)]
-                        if shorter in stars_cache and stars_cache[shorter].get("stars", -1) > 0:
-                            star_val = stars_cache[shorter]["stars"]
-                            break
+                for shorter in _strip_suffixes(name_key):
+                    if shorter in stars_cache and stars_cache[shorter].get("stars", -1) > 0:
+                        star_val = stars_cache[shorter]["stars"]
+                        break
+            # Last resort: search any cache key containing the name_key
+            if star_val is None:
+                match = next((v for k, v in stars_cache.items() if name_key in k and stars_cache[k].get("stars", -1) > 0), None)
+                if match:
+                    star_val = match.get("stars", -1)
         if star_val is not None and star_val > 0:
             a["_stars"] = star_val
 
