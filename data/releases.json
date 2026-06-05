@@ -43,16 +43,6 @@
       "changelog_zh": "· Auto mode is now available on Bedrock, Vertex, and Foundry for Opus 4.7 and Opus 4.8. Opt in by setting `CLAUDE_CODE_ENABLE_AUTO_MODE=1`",
       "diff_summary": "相较上一版本：· Auto mode is now available on Bedrock, Vertex, and Foundry for Opus 4.7 and Op"
     },
-    "aider-chat/aider": {
-      "owner": "aider-chat",
-      "repo": "aider",
-      "tag_name": "",
-      "published_at": "",
-      "html_url": "https://github.com/aider-chat/aider/releases",
-      "body": "",
-      "changelog_zh": "⏳ 等待首次获取...",
-      "diff_summary": "⏳ 等待首次获取"
-    },
     "cline/cline": {
       "owner": "cline",
       "repo": "cline",
@@ -83,66 +73,456 @@
       "changelog_zh": "· We're very excited to announce our new project [SWE-smith](https://swesmith.com/), generating 10s of thousands of training trajectories for SWE agents.\n· Using this training data, our LM SWE-agent-LM-32b achieves open-weights SotA on SWE-bench verified with SWE-agent!\n· ![image](https://github.com/user-attachments/assets/e930ed68-de04-45e1-bd0d-776d87f202c0)\n· Apart from that, v1.1.0 is mostly a fix release with minor improvements, in particular adding compatibility with SWE-bench multilingual/multimodal, and SWE-smith. However, please pay attention to the breaking changes below.\n· Changes to trajectory data format. The `messages` field is replaced by `query` by @klieret in https://github.com/SWE-agent/SWE-agent/pull/1107\n· Renamed many tool bundles that used \"windowed\" file viewer (`defaults` and more) by @klieret in https://github.com/SWE-agent/SWE-agent/pull/1147",
       "diff_summary": "相较上一版本：· We're very excited to announce our new project [SWE-smith](https://swesmith.co"
     },
-    "All-Hands/agents": {
-      "owner": "All-Hands",
-      "repo": "agents",
+    "agno-agi/agno": {
+      "owner": "agno-agi",
+      "repo": "agno",
       "tag_name": "",
       "published_at": "",
-      "html_url": "https://github.com/All-Hands/agents/releases",
+      "html_url": "https://github.com/agno-agi/agno/releases",
       "body": "",
       "changelog_zh": "⏳ 等待首次获取...",
       "diff_summary": "⏳ 等待首次获取"
     },
-    "deepseek-ai/deepseek-coder": {
-      "owner": "deepseek-ai",
-      "repo": "deepseek-coder",
+    "cesarandreslopez/sidekick-agent-hub": {
+      "owner": "cesarandreslopez",
+      "repo": "sidekick-agent-hub",
       "tag_name": "",
       "published_at": "",
-      "html_url": "https://github.com/deepseek-ai/deepseek-coder/releases",
+      "html_url": "https://github.com/cesarandreslopez/sidekick-agent-hub/releases",
       "body": "",
       "changelog_zh": "⏳ 等待首次获取...",
       "diff_summary": "⏳ 等待首次获取"
     },
-    "mistralai/mystic": {
-      "owner": "mistralai",
-      "repo": "mystic",
+    "pydantic/pydantic-ai": {
+      "owner": "pydantic",
+      "repo": "pydantic-ai",
       "tag_name": "",
       "published_at": "",
-      "html_url": "https://github.com/mistralai/mystic/releases",
+      "html_url": "https://github.com/pydantic/pydantic-ai/releases",
       "body": "",
       "changelog_zh": "⏳ 等待首次获取...",
       "diff_summary": "⏳ 等待首次获取"
     },
-    "gpt-engineer/gpt-engineer": {
-      "owner": "gpt-engineer",
+    "allwefantasy/auto-coder": {
+      "owner": "allwefantasy",
+      "repo": "auto-coder",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/allwefantasy/auto-coder/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "openai/codex": {
+      "owner": "openai",
+      "repo": "codex",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/openai/codex/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "vercel/ai": {
+      "owner": "vercel",
+      "repo": "ai",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/vercel/ai/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "braincore/hai-cli": {
+      "owner": "braincore",
+      "repo": "hai-cli",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/braincore/hai-cli/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "gpt-engineer-org/gpt-engineer": {
+      "owner": "gpt-engineer-org",
       "repo": "gpt-engineer",
       "tag_name": "",
       "published_at": "",
-      "html_url": "https://github.com/gpt-engineer/gpt-engineer/releases",
+      "html_url": "https://github.com/gpt-engineer-org/gpt-engineer/releases",
       "body": "",
       "changelog_zh": "⏳ 等待首次获取...",
       "diff_summary": "⏳ 等待首次获取"
     },
-    "cognigy/webdriverio-agent": {
-      "owner": "cognigy",
-      "repo": "webdriverio-agent",
+    "flexpilot-ai/flexpilot": {
+      "owner": "flexpilot-ai",
+      "repo": "flexpilot",
       "tag_name": "",
       "published_at": "",
-      "html_url": "https://github.com/cognigy/webdriverio-agent/releases",
+      "html_url": "https://github.com/flexpilot-ai/flexpilot/releases",
       "body": "",
       "changelog_zh": "⏳ 等待首次获取...",
       "diff_summary": "⏳ 等待首次获取"
     },
-    "multi-on/multi-on": {
-      "owner": "multi-on",
-      "repo": "multi-on",
+    "significant-gravitas/autogpt": {
+      "owner": "Significant-Gravitas",
+      "repo": "AutoGPT",
       "tag_name": "",
       "published_at": "",
-      "html_url": "https://github.com/multi-on/multi-on/releases",
+      "html_url": "https://github.com/Significant-Gravitas/AutoGPT/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "continuedev/continue": {
+      "owner": "continuedev",
+      "repo": "continue",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/continuedev/continue/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "flowiseai/flowise": {
+      "owner": "FlowiseAI",
+      "repo": "Flowise",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/FlowiseAI/Flowise/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "phillipclapham/flowscript": {
+      "owner": "phillipclapham",
+      "repo": "flowscript",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/phillipclapham/flowscript/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "tabbyml/tabby": {
+      "owner": "TabbyML",
+      "repo": "tabby",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/TabbyML/tabby/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "vectimus/vectimus": {
+      "owner": "vectimus",
+      "repo": "vectimus",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/vectimus/vectimus/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "moogar0880/go-tui": {
+      "owner": "moogar0880",
+      "repo": "go-tui",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/moogar0880/go-tui/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "agastya910/agentarmor": {
+      "owner": "Agastya910",
+      "repo": "agentarmor",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/Agastya910/agentarmor/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "agoraio/ya-copilot": {
+      "owner": "AgoraIO",
+      "repo": "ya-copilot",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/AgoraIO/ya-copilot/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "crewaiinc/crewai": {
+      "owner": "crewAIInc",
+      "repo": "crewAI",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/crewAIInc/crewAI/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "nicklausw/firecrawl": {
+      "owner": "nicklausw",
+      "repo": "firecrawl",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/nicklausw/firecrawl/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "mediar-ai/screenpipe": {
+      "owner": "mediar-ai",
+      "repo": "screenpipe",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/mediar-ai/screenpipe/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "openinterpreter/open-interpreter": {
+      "owner": "OpenInterpreter",
+      "repo": "open-interpreter",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/OpenInterpreter/open-interpreter/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "microsoft/autogen": {
+      "owner": "microsoft",
+      "repo": "autogen",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/microsoft/autogen/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "bytedance/deer-flow": {
+      "owner": "bytedance",
+      "repo": "deer-flow",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/bytedance/deer-flow/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "langchain-ai/langgraph": {
+      "owner": "langchain-ai",
+      "repo": "langgraph",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/langchain-ai/langgraph/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "stitionai/devika": {
+      "owner": "stitionai",
+      "repo": "devika",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/stitionai/devika/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "alinaqi/claude-bootstrap": {
+      "owner": "alinaqi",
+      "repo": "claude-bootstrap",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/alinaqi/claude-bootstrap/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "zed-industries/zed": {
+      "owner": "zed-industries",
+      "repo": "zed",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/zed-industries/zed/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "huggingface/smolagents": {
+      "owner": "huggingface",
+      "repo": "smolagents",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/huggingface/smolagents/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "sourcegraph/cody": {
+      "owner": "sourcegraph",
+      "repo": "cody",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/sourcegraph/cody/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "danielmiessler/fabric": {
+      "owner": "danielmiessler",
+      "repo": "fabric",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/danielmiessler/fabric/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "langgenius/dify": {
+      "owner": "langgenius",
+      "repo": "dify",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/langgenius/dify/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "opencode-ai/opencode": {
+      "owner": "opencode-ai",
+      "repo": "opencode",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/opencode-ai/opencode/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "princeton-nlp/swe-agent": {
+      "owner": "princeton-nlp",
+      "repo": "SWE-agent",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/princeton-nlp/SWE-agent/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "rjmacarthy/twinny": {
+      "owner": "rjmacarthy",
+      "repo": "twinny",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/rjmacarthy/twinny/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "block/goose": {
+      "owner": "block",
+      "repo": "goose",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/block/goose/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "aider-ai/aider": {
+      "owner": "Aider-AI",
+      "repo": "aider",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/Aider-AI/aider/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "openai/openai-agents-python": {
+      "owner": "openai",
+      "repo": "openai-agents-python",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/openai/openai-agents-python/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "crawl4ai/crawl4ai": {
+      "owner": "crawl4ai",
+      "repo": "crawl4ai",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/crawl4ai/crawl4ai/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "geekan/metagpt": {
+      "owner": "geekan",
+      "repo": "MetaGPT",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/geekan/MetaGPT/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "langchain-ai/langchain": {
+      "owner": "langchain-ai",
+      "repo": "langchain",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/langchain-ai/langchain/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "all-hands-ai/openhands": {
+      "owner": "All-Hands-AI",
+      "repo": "OpenHands",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/All-Hands-AI/OpenHands/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "modelcontextprotocol/servers": {
+      "owner": "modelcontextprotocol",
+      "repo": "servers",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/modelcontextprotocol/servers/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "varun369/superlocalmemoryv2": {
+      "owner": "varun369",
+      "repo": "SuperLocalMemoryV2",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/varun369/SuperLocalMemoryV2/releases",
+      "body": "",
+      "changelog_zh": "⏳ 等待首次获取...",
+      "diff_summary": "⏳ 等待首次获取"
+    },
+    "batrachianai/toad": {
+      "owner": "batrachianai",
+      "repo": "toad",
+      "tag_name": "",
+      "published_at": "",
+      "html_url": "https://github.com/batrachianai/toad/releases",
       "body": "",
       "changelog_zh": "⏳ 等待首次获取...",
       "diff_summary": "⏳ 等待首次获取"
     }
   },
-  "last_updated": "2026-05-30T12:40:55.416658+00:00"
+  "last_updated": ""
 }
