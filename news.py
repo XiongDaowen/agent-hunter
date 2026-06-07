@@ -234,12 +234,14 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed
 # Fixed topic list (was _DEFAULT_TOPICS before _build_topics_from_agents was removed)
 # Each entry: (search_query, icon, label, allowed_sources)
 # allowed_sources=None means all sources; ["HN"] means HN only (excludes Dev.to/36kr spam)
+# Narrow agent topics use HN-only to avoid Dev.to full-text search returning generic articles
+# that appear across all topics (e.g. "coding agent" Game Jam posts matching every query).
 _TOPICS = {
-    "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   None),
-    "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     None),
-    "OpenCode":   ("opencode-ai",              "🟣", "OpenCode 资讯",   None),
-    "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", None),
-    "Cline":      ("cline cli coding agent",   "🟤", "Cline 资讯",      None),
+    "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   ["HN"]),
+    "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     ["HN"]),
+    "OpenCode":   ("opencode-ai",              "🟣", "OpenCode 资讯",   ["HN"]),
+    "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", ["HN"]),
+    "Cline":      ("cline cli coding agent",   "🟤", "Cline 资讯",      ["HN"]),
     "Aider":      ("aider ai",                 "🔴", "Aider 资讯",      None),
     "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }

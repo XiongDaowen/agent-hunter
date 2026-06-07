@@ -1,3 +1,50 @@
+## 2026-06-07 22:37 第 105 次迭代（Job ID: acc61aa9502c）
+
+**答案：基本满意，但发现 Dev.to 全文本搜索导致所有话题共享相同垃圾内容（严重数据真实问题）。**
+
+**1. Dev.to 全文本搜索导致 6 个通用帖子污染所有话题（数据真实性问题，严重）**
+- 看到了什么：7 个话题（OpenClaw/Hermes/OpenCode/ClaudeCode/Cline/Aider/Other）全部包含相同的 6 个 Dev.to 帖子：Game Jam、Gemma 4 介绍、物理学文章等——这些与任何具体 agent 无关，却同时出现在所有话题
+- 为什么影响获取 agent 知识：用户切换话题看到几乎相同内容，"话题"只是标签而非真正的独立信源；OpenClaw 用户以为在看 OpenClaw 资讯，实际看到的是 Game Jam 帖子
+- 根因：Dev.to API 的 `q` 参数做全文本搜索，"openclaw coding agent"、"nousresearch hermes-agent"、"aider ai" 等所有查询都能匹配到 Dev.to 上包含这些关键词的热门帖子（如 Game Jam 帖子的 description 包含 "AI coding agent" 关键词）。`allowed_sources=None` 时这些垃圾内容进入所有话题
+- 修复路径：已实施——将 5 个专属话题（OpenClaw/Hermes/OpenCode/ClaudeCode/Cline）改为 `["HN"]`（只允许 HN），因为 HN Algolia 做的是 story title/body 精确匹配，不会返回这些通用技术帖；Aider（HN 无结果）和 Other（宽泛话题）保留 `None`（所有来源）
+
+### 本次分析
+- 参考网站：github.com/explore（内容唯一性）+ 本地数据交叉验证
+  - 观察：GitHub Explore 每个分类下内容不重复；通过 curl + python 分析 news.json 发现 6/29 个唯一 URL 被所有 7 个话题共享
+  - 对比本项目：Dev.to 全文本搜索让所有 agent 专属话题共享相同热门帖，"话题"形同虚设
+- 观察到的问题：
+  1. 6 个 Dev.to 帖子被所有 7 个话题共享（100% 话题污染率）
+  2. 专属话题（OpenClaw/Hermes 等）的资讯内容实际与 agent 相关（通过 HN 搜索）
+  3. Dev.to 搜索词越宽泛（"coding agent"），返回的通用内容越多
+
+### 本次修复
+1. **news.py:237-244 — 5 个专属话题改为 HN-only 数据源**
+   - 旧：`["OpenClaw", "Hermes", "OpenCode", "ClaudeCode", "Cline"]` 全部 `allowed_sources=None`
+   - 新：5 个专属话题改为 `["HN"]`（只允许 HN 结果），Aider 和 Other 保持 `None`
+   - 效果：专属话题不再显示 Dev.to 通用帖子，变为真正的 agent 特异性内容
+   - 验证：OpenClaw 6 条 HN（OpenClaw 相关）、Hermes 5 条 HN（ Hermes 相关）、ClaudeCode 1 条 HN（Claude Code 相关）、Cline 4 条 HN（Cline 相关）——全部是真正的 agent 特异性内容
+
+### 验证结果
+- News refresh: 31 条唯一资讯 ✓
+- 专属话题全部 HN 内容：OpenClaw 6(HN)、Hermes 5(HN)、OpenCode 3(HN)、ClaudeCode 1(HN)、Cline 4(HN) ✓
+- Aider/Other 保留 Dev.to（HN 无结果/宽泛话题）✓
+- 共享垃圾帖子（Game Jam 等）从专属话题中清除 ✓
+- Flask HTTP 200 ✓
+- API /api/agents 返回 78 agents ✓
+
+### 待下次修复
+1. **【数据缺口】** ClaudeCode 只有 1 条 HN 结果——搜索词可能需要扩展（如 "claude code" OR "anthropic claude"）
+2. **【UX】** 话题分布行可读性——icon + count + label 是否完整可见？
+3. **【数据缺口】** 10 个产品 GitHub stars 获取失败（显示 ⭐ —）——需重新运行 fetch_missing_stars2.py
+4. **【数据缺口】** releases.json 只有 7/52 有真实 changelog
+
+### 自省
+- 本次发现了 Dev.to 全文本搜索的系统性缺陷：它返回的结果是按"热门程度"而非"相关性"排序的，导致所有查询都返回相同的 Game Jam/Gemma 4 等热门帖子。这与 HN Algolia 的精确 repo 名搜索形成鲜明对比——HN 对精确搜索词返回高度特异的内容
+- 教训：当外部 API 的搜索语义与你的使用场景不匹配时（如 Dev.to 的全文本搜索适合"发现热门技术文章"但不适合"追踪特定产品动态"），最有效的解决方案是限制数据源而非改进查询词
+- 提示词改进建议：在阶段 1 增加"交叉话题 URL 重叠率"检查——用 python 脚本快速计算有多少 URL 出现在 ≥2 个话题中，超过 20% 即为"话题语义塌陷"信号
+
+---
+
 ## 2026-06-07 21:30 第 104 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
