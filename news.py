@@ -235,13 +235,13 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed
 # Each entry: (search_query, icon, label, allowed_sources)
 # allowed_sources=None means all sources; ["HN"] means HN only (excludes Dev.to/36kr spam)
 _TOPICS = {
-    "OpenClaw":   ("OpenClaw",        "🔵", "OpenClaw 资讯",   ["HN"]),
-    "Hermes":     ("Hermes Agent",    "🟢", "Hermes 资讯",     ["HN"]),
-    "OpenCode":   ("OpenCode","🟣", "OpenCode 资讯",   ["HN"]),
-    "ClaudeCode": ("Claude Code",     "🟠", "Claude Code 资讯", ["HN"]),
-    "Aider":      ("aider",          "🔴", "Aider 资讯",      None),
-    "Cline":      ("Cline agent","🟤", "Cline 资讯",     ["HN"]),
-    "Other":      ("AI coding agent", "🟡", "其他 AI Agent 资讯", None),
+    "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   None),
+    "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     None),
+    "OpenCode":   ("opencode-ai",              "🟣", "OpenCode 资讯",   None),
+    "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", None),
+    "Cline":      ("cline cli coding agent",   "🟤", "Cline 资讯",      None),
+    "Aider":      ("aider ai",                 "🔴", "Aider 资讯",      None),
+    "Other":      ("AI coding agent",          "🟡", "其他 AI Agent 资讯", None),
 }
 
 
