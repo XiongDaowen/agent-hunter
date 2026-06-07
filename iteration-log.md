@@ -551,3 +551,64 @@
 - github.com/explore 的参考很有价值——它的 Trending 列表每个产品都有精确的 ⭐数字，启发我重视 stars 数据的完整性
 - push 超时：网络问题不是代码问题，commit 已保存，下次 push 自动推送（已在后台运行）
 
+
+
+---
+
+## 2026-06-07 15:05 第 103 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个信息可信度问题。**
+
+**1. 3 个产品无法核实其存在性（数据真实性问题）**
+- 看到了什么：DeepSeek-Reasonix（无 website、无 GitHub）、Google Antigravity（标注"unverified"但无视觉区分）、Ridvay Code（无 website、无 GitHub）这三个产品既没有官网也没有 GitHub，却和其他经过验证的产品混在一起显示
+- 为什么影响获取 agent 知识：用户无法区分"这是一个经过验证的真实产品"和"这是一个来源不明、可能不存在的产品"。这 3 个产品的描述也很泛（"DeepSeek 原生编码 agent"、"VS Code 的 AI 编码助手插件"），缺乏具体产品细节
+- 根因：`discover()` 添加这些产品时没有 `_source_evidence` 字段，且没有验证链接有效性。Google Antigravity 甚至在描述里写明"未见正式发布"
+- 修复路径：添加 `❓ 待核实` 灰色虚线徽章，让无法核实的产品在视觉上与其他产品明确区分
+
+**2. Hero bar 的 "● 部分话题过期" 标签可点击性不明显（UX 小问题）**
+- 看到了什么：资讯新鲜度标签显示"● 部分话题过期"（橙色），但用户不知道点击可以刷新
+- 修复路径：已在之前迭代中实现可点击刷新，本次无需修改
+
+### 本次分析
+- 参考网站：producthunt.com（产品可信度标签设计）
+  - 观察：Product Hunt 对未正式发布的产品有 "Coming Soon" / "Beta" 标签，对无法验证的产品有明显标记
+  - 对比本项目：3 个既无官网也无 GitHub 的产品没有任何可信度标记，与其他正常产品视觉上一致
+- 观察到的问题：
+  1. DeepSeek-Reasonix / Google Antigravity / Ridvay Code 无 website 无 GitHub，无法核实真实性
+  2. Google Antigravity 的 `unverified` 标签只存在于 tags 数组中，不构成可信度标识
+  3. 78 个产品中这 3 个（3.8%）是"幽灵产品"，需要视觉区分
+
+### 本次修复
+1. **templates/index.html:100 — CSS 新增 `.badge-unverified` 样式**
+   - 灰色虚线边框 + 灰色文字 + 半透明背景，与其他 badge 视觉风格一致但明显不同
+   - 效果：无法核实的产品从此有明确的视觉标识
+
+2. **templates/index.html:551 — 卡片视图添加待核实徽章**
+   - 条件：`!a.website && !a.github_repo` → 显示 `<span class="badge badge-unverified">❓ 待核实</span>`
+   - 效果：DeepSeek-Reasonix / Google Antigravity / Ridvay Code 卡片头部显示灰色虚线"❓ 待核实"徽章
+
+3. **templates/index.html:527 — 列表视图同步添加待核实徽章**
+   - 同样逻辑：两种视图模式处理一致
+   - 效果：列表视图中这 3 个产品也显示待核实徽章
+
+### 验证结果
+- Flask 重启后 HTTP 200 ✓
+- API 确认 3 个产品：无 website、无 github_repo ✓
+- CSS/模板修改确认：3 处修改（1 CSS + 2 视图）✓
+- 徽章条件逻辑：空字符串 `!""` → `true`，正常 URL `!"https://..."` → `false` ✓
+
+### 待下次修复
+1. **【数据缺口】** 45 个产品 releases.json 占位符（`⏳ 等待首次获取...`）——需 `python3 scripts/fetch_releases.py` 批量填充
+2. **【数据缺口】** 多个新闻话题超过 30d 未更新（OpenCode 78d / ClaudeCode 67d / Cline 58d）——需扩展搜索词
+3. **【数据缺口】** 11 个产品 GitHub stars 获取失败（显示 ⭐ —）——需重新采集
+4. **【信息质量】** Google Antigravity 描述已写明"未见正式发布"——应考虑移除该条目或标记为"传闻"并降低排序权重
+5. **【信息质量】** DeepSeek-Reasonix 无链接但描述为"DeepSeek 原生编码 agent"——需确认是否与 DeepSeek-Coder 或其他 DeepSeek 产品重复
+
+### 自省
+- 本次发现了"幽灵产品"问题：3 个产品既无官网也无 GitHub，无法核实其存在性，却与其他正常产品混合显示。这是典型的"信息真实性"维度问题
+- 教训：`discover()` 的两层验证（prompt-level `_source_evidence` + HTTP 验证）应该能防止这种情况，但这些产品是在更早的迭代中添加的，早期版本可能没有严格的验证流程
+- 意外收获：Google Antigravity 的 description 里自己写了"（注：此为2025年初的传言产品，未见正式发布）"——说明数据录入时就知道这是不可靠的，但没有对应的 UI 标记
+- 提示词改进建议：在阶段 1 增加"检查无法核实的产品（无 website 无 GitHub）是否有可信度标记"，作为信息真实性的必检项

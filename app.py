@@ -119,7 +119,7 @@ def api_agents():
                 match = next((v for k, v in stars_cache.items() if name_key in k and stars_cache[k].get("stars", -1) > 0), None)
                 if match:
                     star_val = match.get("stars", -1)
-        if star_val is not None and star_val > 0:
+        if star_val is not None:
             a["_stars"] = star_val
 
         # Match release data by github_repo (exact path, then repo-name-only fallback)
