@@ -242,7 +242,7 @@ _TOPICS = {
     "OpenCode":   ("opencode-ai",              "🟣", "OpenCode 资讯",   ["HN"]),
     "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", ["HN"]),
     "Cline":      ("cline cli coding agent",   "🟤", "Cline 资讯",      ["HN"]),
-    "Aider":      ("aider ai",                 "🔴", "Aider 资讯",      None),
+    "Aider":      ("aider ai coding assistant",   "🔴", "Aider 资讯",     ["HN"]),
     "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }
 
@@ -306,29 +306,27 @@ def _is_stale(item: dict, max_age_days: int = 30) -> bool:
 
 
 def global_deduplicate(all_results: dict, max_age_days: int = 90) -> dict:
-    """Remove duplicate URLs and near-duplicate titles WITHIN each topic.
+    """Remove duplicate URLs and near-duplicate titles WITHIN each topic, then across topics.
 
-    Deduplication strategy (per-topic, not cross-topic):
-    - Exact URL match within same topic → skip
-    - Normalized title match within same topic → skip (handles platform variants)
-    - Items older than max_age_days are excluded from results
+    Deduplication strategy (two-pass):
+    - Pass 1: Per-topic dedup (exact URL + normalized title within same topic)
+    - Pass 2: Cross-topic dedup — earlier-iterated topics get priority for shared URLs.
+      This means narrow topics (Aider, OpenClaw, etc.) that appear earlier in _TOPICS
+      get to claim URLs before broad topics (Other) that appear later.
 
-    NOTE: Cross-topic dedup was removed — it caused broad-query topics (e.g. "AI coding agent")
-    to consume URLs that narrow-query topics (e.g. "aider") also return, making narrow topics
-    end up with 0 results. Each topic now gets its own dedup context.
+    Items older than max_age_days are excluded from results.
     """
-    deduped = {}
+    # Pass 1: Per-topic dedup
+    deduped_per_topic = {}
     for topic_name, items in all_results.items():
         seen_urls = set()
         seen_normalized_titles = set()
         deduped_section = []
         for item in items:
-            # Skip stale items first (before registering in dedup sets)
             if _is_stale(item, max_age_days):
                 continue
             url_val = item.get("url", "")
             title_val = item.get("title", "")
-            # Normalize title for within-topic duplicate detection
             normalized = re.sub(r'[\W_]+', ' ', title_val.lower()).strip()
             url_dup = url_val and url_val in seen_urls
             title_dup = normalized and normalized in seen_normalized_titles
@@ -339,8 +337,29 @@ def global_deduplicate(all_results: dict, max_age_days: int = 90) -> dict:
             if normalized:
                 seen_normalized_titles.add(normalized)
             deduped_section.append(item)
-        deduped[topic_name] = deduped_section
-    return deduped
+        deduped_per_topic[topic_name] = deduped_section
+
+    # Pass 2: Cross-topic dedup — earlier topics get priority for shared URLs
+    seen_urls_global = set()
+    final_results = {}
+    for topic_name, items in deduped_per_topic.items():
+        unique_items = []
+        for item in items:
+            url_val = item.get("url", "")
+            title_val = item.get("title", "")
+            normalized = re.sub(r'[\W_]+', ' ', title_val.lower()).strip()
+            # Skip if this URL or normalized title was already claimed by an earlier topic
+            if url_val and url_val in seen_urls_global:
+                continue
+            if normalized and normalized in seen_urls_global:
+                continue
+            seen_urls_global.add(url_val)
+            if normalized:
+                seen_urls_global.add(normalized)
+            unique_items.append(item)
+        final_results[topic_name] = unique_items
+
+    return final_results
 
 
 # ── 主报告生成 ─────────────────────────────────────────────────────────
@@ -452,6 +471,27 @@ def generate_news_report():
         f.write(html)
 
     print(f"✅ 资讯报告已生成: {NEWS_REPORT_FILE} ({total} 条)")
+
+    # Also update the JSON cache so Flask API gets fresh data
+    data = {
+        "updated": now,
+        "total": total,
+        "topics": {},
+    }
+    for topic_name, topic_val in topics.items():
+        query, icon, label, _allowed_sources = topic_val if len(topic_val) == 4 else (*topic_val, None)
+        items = all_results.get(topic_name, [])
+        data["topics"][topic_name] = {
+            "icon": icon,
+            "label": label,
+            "count": len(items),
+            "items": items,
+        }
+    NEWS_DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(NEWS_DATA_FILE, "w") as f:
+        json.dump(data, f, ensure_ascii=False)
+    print(f"✅ 资讯数据已同步: {NEWS_DATA_FILE} ({total} 条)")
+
     return total
 
 
