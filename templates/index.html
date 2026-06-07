@@ -525,7 +525,7 @@ function renderListView(groups, catOrder) {
       html += `<tr>
         <td><span class="list-name" style="color:${catColors[a.category||'Other']||'#94a3b8'}"><a href="${a.website||'#'}" target="_blank">${a.name}</a></span> <span class="badge ${osBadge[a.open_source]||'badge-no'}" style="font-size:0.65rem">${osLabel[a.open_source]||a.open_source}</span></td>
         <td><div class="list-desc">${a.description||''}</div></td>
-        <td><span class="list-hot">🔥 ${hotScore(a)}</span>${a._stars != null ? `<span style="color:#f59e0b"> · ⭐ ${a._stars.toLocaleString()}</span>` : ''}</td>
+        <td><span class="list-hot">🔥 ${hotScore(a)}</span>${a._stars > 0 ? `<span style="color:#f59e0b"> · ⭐ ${a._stars.toLocaleString()}</span>` : ''}${a.github_repo && a._stars == null ? `<span style="color:#6b7280"> · ⭐ —</span>` : ''}</td>
         <td class="list-links">${a.website?`<a href="${a.website}" target="_blank">🌐</a>`:''}${a.github_repo?`<a href="${a.github_repo}" target="_blank">🐙</a>`:''}${a.docs_url?`<a href="${a.docs_url}" target="_blank">📄</a>`:''}${a._release?`<a href="${a._release.url}" target="_blank">🚀${a._release.tag}</a>`:''}</td>
         <td><span class="list-expand ${checked?'checked':''}" onclick="toggleCompare('${a.name}')">${checked?'☑':'☐'}</span> <span class="list-expand" onclick="this.textContent=this.textContent==='▶'?'▼':'▶';this.closest('tr').nextElementSibling?.classList.toggle('open')">▶</span></td>
       </tr>
@@ -558,7 +558,8 @@ function renderCard(a) {
     </div>
     <div class="card-meta">
       <span class="hot">🔥 ${hotScore(a)}</span>
-      ${a._stars != null ? ` · <span style="color:#f59e0b">⭐ ${a._stars.toLocaleString()}</span>` : ''}
+      ${a._stars > 0 ? ` · <span style="color:#f59e0b">⭐ ${a._stars.toLocaleString()}</span>` : ''}
+      ${a.github_repo && a._stars == null ? ` · <span style="color:#6b7280">⭐ —</span>` : ''}
       ${a.pricing ? ` · 💰 ${a.pricing}` : ''}
       ${a.license && a.license!=='未知' ? ` · 📜 ${a.license}` : ''}
       ${a.last_verified ? ` · 📅 ${a.last_verified}` : ''}
