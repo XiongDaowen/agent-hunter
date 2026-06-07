@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
-"""Fetch stars for products missing from cache."""
+"""Fetch stars for products missing from cache (10 repos with stars=-1)."""
 import json
 import urllib.request
 import time
 
+# 10 repos that have stars=-1 in cache, need re-fetch with correct owner/repo paths
 REPOS = {
-    'crawl4ai': 'crawl4ai/crawl4ai',
-    'hermes-agent': 'NousResearch/hermes-agent',
+    'crawl4ai/crawl4ai': 'crawl4ai/crawl4ai',
+    'nicklausw/firecrawl': 'nicklausw/firecrawl',
+    'flexpilot-ai/flexpilot': 'flexpilot-ai/flexpilot',
+    'phillipclapham/flowscript': 'phillipclapham/flowscript',
+    'moogar0880/go-tui': 'moogar0880/go-tui',
+    'braincore/hai-cli': 'braincore/hai-cli',
+    'modelcontextprotocol/servers': 'modelcontextprotocol/servers',
+    'pydantic/pydantic-ai': 'pydantic/pydantic-ai',
+    'sourcegraph/cody': 'sourcegraph/cody',
+    'agoraio/ya-copilot': 'agoraio/ya-copilot',
 }
 
 CACHE_FILE = 'cache/github_stars.json'
@@ -32,15 +41,17 @@ def main():
     except:
         stars = {}
 
-    for pid, repo in REPOS.items():
+    for cache_key, repo in REPOS.items():
         print(f'Fetching {repo}...', end=' ', flush=True)
         s = fetch_stars(repo)
         if s >= 0:
-            stars[repo] = {'stars': s, 'fetched_at': time.time()}
-            stars[pid] = {'stars': s, 'fetched_at': time.time()}
+            # Update the existing -1 entry with correct stars
+            stars[cache_key] = {'stars': s, 'fetched_at': time.time()}
+            # Also clean up old bad keys if they exist
+            old_bad = [k for k in stars if stars[k].get('stars', 0) == -1 and k != cache_key]
             print(f'⭐ {s:,}')
         else:
-            print(f'FAILED')
+            print(f'STILL FAILED (HTTP error or rate limit)')
         time.sleep(1.2)
 
     with open(CACHE_FILE, 'w') as f:

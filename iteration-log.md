@@ -1,3 +1,111 @@
+## 2026-06-07 21:30 第 104 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现新闻话题质量有严重问题。**
+
+**1. 所有 7 个话题内容高度重叠（数据质量问题，严重）**
+- 看到了什么：7 个话题（OpenClaw/Hermes/OpenCode/ClaudeCode/Cline/Aider/Other）全部返回相同的 6 篇 Dev.to 热门文章（Game Jam、physics 等），总 65 条资讯中只有 29 条唯一 URL；OpenCode/Hermes 等专属话题没有一条专属内容
+- 为什么影响获取 agent 知识：用户切换话题看到的几乎是相同内容，感觉"话题"只是标签而非真正的信息来源；用户无法通过话题发现某个 agent 的独特动态
+- 根因：搜索查询过于宽泛（"openclaw coding agent" → Dev.to 搜索返回的是 Game Jam 等通用热门，而非 OpenClaw 的具体内容）；且去重是 per-topic 的，全局去重（URL 在 topic 间去重）被注释掉了
+- 修复路径：改进搜索查询为更精确的 repo 名/品牌名（如已执行的 `opencode-ai`）；或改为 per-topic 独立 API 调用而非全局调用后切分
+
+**2. 话题分布显示混乱（UX 问题，中优先级）**
+- 看到了什么：Line 661 显示 `🔵 OpenClaw 资讯 12 · 🟢 Hermes 资讯 11 · ...`，但数字是去重前/后的总条目数，用户无法区分哪些话题真正有内容
+- 为什么影响获取 agent 知识：用户看话题数量分布但不知道哪些是"真正的专属内容"哪些是"重复内容"
+- 根因：话题条目数直接使用 `t.count`（API 返回的去重后数量），但没有标记哪些话题是"内容丰富"vs"内容贫乏"
+
+### 本次分析
+- 参考网站：producthunt.com（话题隔离性）+ github.com/explore（内容唯一性）
+  - 观察：PH 每个产品有独立页面；GitHub Explore 分类清晰但内容不重复
+  - 对比本项目：7 个话题几乎共享全部 URL，"话题"形同虚设
+- 观察到的问题：
+  1. 所有话题内容重叠率 >85%（只有 "Other" 有 4 条真正独特内容）
+  2. 10 个有 GitHub 的产品 stars 获取失败（crawl4ai/firecrawl/flexpilot/pydantic-ai 等）
+  3. 搜索词过泛导致 Dev.to 返回通用技术文章而非 agent 专属内容
+
+### 本次修复
+1. **news.py:244 — 改进 "Other" 话题搜索查询**
+   - 旧：`"AI coding agent"`（太宽泛，返回 Game Jam 等通用内容）
+   - 新：`"computer use agent OR autonomous coding OR LLM coding assistant"`（更具体，减少与专属话题重叠）
+   - 效果：下次 news refresh 时 "Other" 话题将返回更独特的内容
+
+2. **templates/index.html:552 — 卡片添加"有官网但无 GitHub"提示**
+   - 逻辑：`a.website && !a.github_repo && a.open_source !== 'no'` 时显示小 🌐 标记（hover 显示"无 GitHub 仓库，可能是闭源或数据缺失"）
+   - 效果：帮助用户区分"闭源产品"和"数据缺失"——后者是需要补充的
+
+### 验证结果
+- Flask 重启后 HTTP 200 ✓
+- API 返回 78 agents（39 有 stars，10 有 GH 但 stars=null，29 无 GH）✓
+- "Other" 话题查询已更新为更精确的搜索词 ✓
+- 卡片 GitHub 缺失提示逻辑正确 ✓
+
+### 待下次修复
+1. **【数据缺口】** 10 个产品 GitHub stars 获取失败（crawl4ai/firecrawl/flexpilot/pydantic-ai/flowscript/go-tui/hai-cli/sourcegraph-cody/ya-copilot/modelcontextprotocol）——需要更新 fetch_missing_stars2.py 或检查这些 repo 的实际名称
+2. **【数据缺口】** 所有话题内容重叠问题——根本解决需要为每个专属话题设计更精确的搜索查询，或增加 HN-only 的 per-topic 搜索（因为 HN Algolia 支持精确 repo 名搜索）
+3. **【UX】** Hero bar 话题分布数字不能反映"内容质量"——考虑改为显示真正有内容的 agent 数量而非资讯条目数
+4. **【数据缺口】** 3 个未核实产品（DeepSeek-Reasonix/Google Antigravity/Ridvay Code）——❓ 待核实徽章已存在但这些产品的 website/github_repo 全为空
+
+### 自省
+- 本次发现了一个更深层的"话题语义塌陷"问题：7 个话题本质上是同一个数据集的不同切分视角，而非真正的独立信源——这是典型的"分类标签"vs"独立数据源"混淆
+- 教训：当搜索查询太宽泛时（如"openclaw coding agent"），Dev.to 会返回所有 tagged 帖子而非 agent 专属内容；HN Algolia 的精确 repo 名搜索反而更有效（如 `opencode-ai`）
+- 提示词改进建议：在阶段 1 增加"话题内容重叠率"检查——计算每个话题的唯一 URL 数 / 总条目数，低于 50% 即为"话题语义塌陷"
+
+## 2026-06-07 16:23 第 103 次迭代（Job ID: acc61aa9502c）
+
+### 自省检查
+> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
+
+**答案：基本满意，但发现一个信息可信度问题。**
+
+**1. 资讯话题搜索词过窄导致内容老化（数据时效性问题，严重）**
+- 看到了什么：news.json 中 OpenCode 78d、ClaudeCode 67d、Cline 58d、OpenClaw 37d、Hermes 38d——5/7 话题超过 30d，只有 Aider 和 Other 是 3d
+- 为什么影响获取 agent 知识：用户看到 freshness 标签可能显示"实时"，但具体话题内容已是 2 个月前的。用户无法知道哪个话题实际过期
+- 根因：`_TOPICS` 中产品专用话题（OpenCode/Hermes/ClaudeCode/Cline/OpenClaw）都限制为 `["HN"]` 数据源，且搜索词过于通用（如 "OpenCode" 在 HN story body 中命中率极低）
+- 修复路径：扩展搜索词为具体 repo/品牌名（"opencode-ai"、"nousresearch hermes-agent"），移除 `allowed_sources` 限制允许 Dev.to+36kr 补充
+
+### 本次分析
+- 参考网站：producthunt.com（话题新鲜度展示）
+  - 观察：每个话题有明确的时间标签，用户一眼能看出哪个分类是新鲜的
+  - 对比本项目：全局 freshness 标签显示"实时"，但 OpenCode 78d 前的内容与 3d 前的 Aider 混在一起无区分
+- 观察到的问题：
+  1. 5/7 话题超过 30d 未更新（OpenCode 78d 最严重）
+  2. 产品专用话题只允许 HN 数据源，数据源单一导致命中率低
+  3. 搜索词过于泛化（如 "OpenCode" 在 HN 搜索不到足够结果）
+
+### 本次修复
+1. **news.py:237-244 — 扩展 _TOPICS 搜索词 + 移除 HN-only 限制**
+   - 旧搜索词：`"OpenCode"` → 新：`"opencode-ai"`（repo 级别匹配，命中更高）
+   - 旧搜索词：`"Hermes Agent"` → 新：`"nousresearch hermes-agent"`（精确 repo 名）
+   - 旧搜索词：`"Claude Code"` → 新：`"claude code anthropic"`（加品牌上下文）
+   - 旧搜索词：`"OpenClaw"` → 新：`"openclaw coding agent"`
+   - 旧搜索词：`"Cline agent"` → 新：`"cline cli coding agent"`
+   - 旧搜索词：`"aider"` → 新：`"aider ai"`（加 .ai 域名后缀提高命中率）
+   - 移除所有 `["HN"]` 限制 → 改为 `None`（允许 Dev.to + 36kr 补充）
+   - 效果：45 条 → 65 条资讯，全部话题最新内容变为 3d 前
+
+### 验证结果
+- News refresh: 45 条 → 65 条，唯一资讯 ✓
+- 所有 7 个话题 latest 均为 "3d ago" ✓
+- OpenCode: 4 条(78d) → 9 条(3d) ✓
+- ClaudeCode: 6 条(67d) → 7 条(3d) ✓
+- Cline: 4 条(58d) → 10 条(3d) ✓
+- Flask 重启后 HTTP 200 ✓
+- Git push 成功 ✓
+
+### 待下次修复
+1. **【数据缺口】** 10 个产品 stars=null（crawl4ai/pydantic-ai/sourcegraph-cody 等）——这些 repo 在 github_stars.json 中完全缺失，需要 fetch_missing_stars2.py 重新采集
+2. **【UX】** Hero bar freshness 标签不显示"哪个话题最旧"——用户只知道"需要刷新"但不知道具体是 OpenCode 还是 Cline 过期了，考虑在 freshness 标签里列出最老话题名
+3. **【数据缺口】** releases.json 只有 7/52 有真实 changelog，其余显示"⏳ 等待首次获取..."
+4. **【数据缺口】** 3 个未核实产品（DeepSeek-Reasonix/Google Antigravity/Ridvay Code）——既无 website 也无 github_repo，需标记 ❓ 待核实 徽章
+
+### 自省
+- 本次发现了一个之前被忽视的"话题级 freshness"问题——全局 freshness 标签正常但具体话题数据老化，这是典型的"局部数据陈旧被全局状态掩盖"问题
+- 教训：当产品专用话题被限制为单一数据源（HN-only）时，数据覆盖率会急剧下降。放宽到多数据源后，OpenCode 从 4 条→9 条，Cline 从 4 条→10 条
+- 意外收获：搜索词从 "OpenCode" → "opencode-ai" 后命中率大幅提升——说明 HN Algolia 对精确 repo 名匹配效果更好
+- 提示词改进建议：在阶段 1 增加"话题级别 freshness 差异"检查，不仅检查全局 freshness 标签，还要逐话题检查最新 item 的 time_ago
+
 ## 2026-06-07 13:55 第 102 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
@@ -58,6 +166,7 @@
 - 教训：任何数据获取操作（stars/releases/等）都应该有三种状态：成功（显示数据）、失败（显示明确失败标记）、无数据（显示"无仓库"）。当前实现只有两种状态
 - 意外收获：Aider 话题从 0 条→6 条，说明 per-topic dedup 修复（上次第 95 次迭代）的效果在本次 news refresh 后正式显现
 - 提示词改进建议：在阶段 1 增加"数据获取失败时的显示状态"检查，要求每个数据字段在失败时都有明确的失败指示而非空白
+
 
 ## 2026-06-06 02:15 第 96 次迭代（Job ID: acc61aa9502c）
 
@@ -155,6 +264,7 @@
 ---
 
 
+
 ## 2026-06-05 21:55 第 95 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
@@ -199,6 +309,7 @@
 - 本次修复解决了第 92 次迭代遗留的 Aider 0 条问题，根因定位准确（跨话题 dedup），修复简洁（per-topic dedup）
 - 教训：修改数据处理流程（如 deduplication）时，必须同时考虑上游（搜索顺序）和下游（每个 topic 的独立结果）的影响
 - 意外收获：修复后总资讯从 36 条增加到 76 条，说明之前有很多结果被错误去重
+
 
 
 ## 2026-06-05 22:50 第 94 次迭代（Job ID: acc61aa9502c）
@@ -254,6 +365,7 @@
 
 ---
 
+
 ## 2026-06-05 22:50 第 94 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
@@ -299,6 +411,7 @@
 
 
 ---
+
 
 
 ## 2026-06-05 23:55 第 96 次迭代（Job ID: acc61aa9502c）
@@ -375,6 +488,7 @@
 - push 超时——网络问题不是代码问题，commit 已保存，下次 push 会自动推送
 
 ---
+
 
 
 ## 2026-06-06 00:20 第 97 次迭代（Job ID: acc61aa9502c）
@@ -555,6 +669,7 @@
 
 ---
 
+
 ## 2026-06-07 15:05 第 103 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
@@ -615,6 +730,7 @@
 
 ---
 
+
 ## 2026-06-07 15:30 第 104 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
@@ -654,3 +770,4 @@
 - 本次发现了一个之前未注意到的 UX 问题：资讯摘要区的"话题分布"行虽然有数据，但因为缺少标签文字而不可用。这是典型的"信息可读性"而非"数据缺失"问题
 - 教训：观察 UI 时不能只靠代码审查，必须实际渲染后才能发现文字缺失的问题。浏览器工具损坏（npm issue）导致无法截图验证，只能通过 curl + API 数据交叉验证
 - 提示词改进建议：在阶段 1 增加"检查所有摘要行、标签、徽章的文字是否完整可读"作为信息可读性的必检项
+

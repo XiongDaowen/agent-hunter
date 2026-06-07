@@ -241,7 +241,7 @@ _TOPICS = {
     "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", None),
     "Cline":      ("cline cli coding agent",   "🟤", "Cline 资讯",      None),
     "Aider":      ("aider ai",                 "🔴", "Aider 资讯",      None),
-    "Other":      ("AI coding agent",          "🟡", "其他 AI Agent 资讯", None),
+    "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }
 
 

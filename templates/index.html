@@ -549,6 +549,7 @@ function renderCard(a) {
       <span class="card-name" style="color:${catColors[cat]||'#94a3b8'}"><a href="${a.website||'#'}" target="_blank">${icons[cat]||'🤖'} ${a.name}</a></span>
       <span class="badge ${osBadge[a.open_source]||'badge-no'}">${osLabel[a.open_source]||a.open_source}</span>
       ${!a.website && !a.github_repo ? '<span class="badge badge-unverified">❓ 待核实</span>' : ''}
+      ${a.website && !a.github_repo && a.open_source !== 'no' ? '<span style="font-size:0.65rem;color:#94a3b8;cursor:help;" title="无 GitHub 仓库，可能是闭源或数据缺失">🌐</span>' : ''}
       <span class="compare-toggle ${checked?'checked':''}" onclick="toggleCompare('${a.name}')">${checked?'☑':'☐'}</span>
     </div>
     ${a.description ? `<div class="card-desc">${a.description.slice(0,100)}${a.description.length>100?'…':''}</div>` : ''}
