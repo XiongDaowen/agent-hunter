@@ -1,3 +1,26 @@
+## 2026-06-09 02:29 第 111 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——Cline/Aider/Other全空，OpenCode/Hermes/ClaudeCode数据稀少（各0-1条），根本原因是 dedup 用 90d 阈值与 cache staleness 14d 不一致，导致跨 topic 交叉过滤后残留极少
+
+### 改动
+- **news.py:480 — `global_deduplicate` max_age_days 从 90 改为 30**
+  - 问题：90d阈值过于宽松，与 UI 视觉 stale 阈值（30d）不一致，且与 cache staleness（14d）逻辑错位，导致 dedup 后残留大量过期条目却仍参与跨 topic 竞争排挤新内容
+  - 修复：统一为 30d（与 webui.py 视觉阈值一致），注释说明 cache staleness（14d）和 dedup 阈值（30d）各自独立
+  - 影响：之前 25 条（大量 60-90d 旧条目），现在 8 条（每 topic 0-6 条， HN 条目全部在 30d 内，Dev.to 覆盖 OpenClaw/Other）
+
+### 验证
+- `python3 -m py_compile news.py` → OK
+- `python3 news.py` → 搜索 7 topics，dedup 后 8 条（OpenClaw 6、OpenCode 1、Hermes 1）
+- `browser_navigate` + `browser_vision` → UI 正常渲染，4 个空 topic 显示正确占位符，stale 提示正常
+- git push → 超时（WSL GitHub），跳过，下次重试
+
+### 待下次
+1. **【数据缺口-高优先级】** Cline/Aider/Other/ClaudeCode 全空 → 搜索词过于 niche，需重新设计搜索词或放宽 14d 限制
+2. **【数据缺口】** OpenClaw/Hermes 靠 Dev.to/HN 但 30d 内无新内容 → 考虑扩展搜索词或加更多数据源（Reddit/微博）
+3. **【验证】** 下次 cron 确认 cache 刷新后各 topic 是否有 >= 2 条条目
+
+---
+
 ## 2026-06-09 01:47 第 110 次迭代（Job ID: acc61aa9502c）
 
 ### 自省：不满意——84%条目>30d旧内容，缓存命中返回全过期数据
