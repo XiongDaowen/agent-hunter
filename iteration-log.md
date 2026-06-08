@@ -897,6 +897,19 @@
 - 教训：观察 UI 时不能只靠代码审查，必须实际渲染后才能发现文字缺失的问题。浏览器工具损坏（npm issue）导致无法截图验证，只能通过 curl + API 数据交叉验证
 - 提示词改进建议：在阶段 1 增加"检查所有摘要行、标签、徽章的文字是否完整可读"作为信息可读性的必检项
 
+## 2026-06-09 第 110 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意 + Aider=0条、Cline=1条(78d)、ClaudeCode全>30d、Hermes 4/5条>30d，数据缺口严重；根因是 Aider 仍 HN-only（上次移除其他话题 HN-only 但漏了 Aider）+ Cline 搜索词太窄
+
+### 改动：news.py _TOPICS — (1) Aider: 移除 HN-only 限制，搜索词改为 "aider chat assistant" 全源；(2) Cline: 搜索词从 "cline coding agent" 改为 "cline ai coding agent vs cursor" 增加覆盖；Python 语法验证通过
+
+### 验证：python3 -m py_compile news.py → OK；git commit d205d3c；git push 超时 skip
+
+### 待下次：
+1. 重新运行 news fetcher 验证 Aider 应从 0→≥2 条，Cline 从 1→≥3 条
+2. 验证 Hermes/ClaudeCode 最旧条目改善（应 < 30d）
+3. 确认重叠率仍为 0%（全局去重未被破坏）
+
 ## 2026-06-08 第 107 次迭代（Job ID: acc61aa9502c）
 
 ### 自省：不满意 + Aider 仅 1 条/67d，OpenCode 最旧 87d，HN-only 限制在精确搜索词下导致数据荒

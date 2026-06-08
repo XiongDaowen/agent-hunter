@@ -245,7 +245,7 @@ _TOPICS = {
     "OpenCode":   ("opencode coding agent",    "🟣", "OpenCode 资讯",   None),
     "ClaudeCode": ("claude code", "🟠", "Claude Code 资讯", None),
     "Cline":      ("cline ai coding agent vs cursor", "🟤", "Cline 资讯",      None),
-    "Aider":      ("aider chat assistant", "🔴", "Aider 资讯",      None),
+    "Aider":      ("aider OR aiderai", "🔴", "Aider 资讯",      None),
     "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }
 
