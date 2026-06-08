@@ -236,12 +236,15 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed
 # allowed_sources=None means all sources; ["HN"] means HN only (excludes Dev.to/36kr spam)
 # Narrow agent topics use HN-only to avoid Dev.to full-text search returning generic articles
 # that appear across all topics (e.g. "coding agent" Game Jam posts matching every query).
+# However, HN-only topics (OpenClaw/Hermes/Cline/ClaudeCode) are returning 60-90d old content
+# because the niche queries have low HN volume. We broaden them to all-sources to get fresh
+# Dev.to/36kr coverage while relying on stricter cross-topic dedup to prevent pollution.
 _TOPICS = {
-    "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   ["HN"]),
-    "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     ["HN"]),
+    "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   None),
+    "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     None),
     "OpenCode":   ("opencode coding agent",    "🟣", "OpenCode 资讯",   None),
-    "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", ["HN"]),
-    "Cline":      ("cline coding agent",       "🟤", "Cline 资讯",      ["HN"]),
+    "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", None),
+    "Cline":      ("cline coding agent","🟤", "Cline 资讯",      None),
     "Aider":      ("aider chat assistant OR aider-code", "🔴", "Aider 资讯", None),
     "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }

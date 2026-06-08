@@ -887,3 +887,13 @@
 - 教训：观察 UI 时不能只靠代码审查，必须实际渲染后才能发现文字缺失的问题。浏览器工具损坏（npm issue）导致无法截图验证，只能通过 curl + API 数据交叉验证
 - 提示词改进建议：在阶段 1 增加"检查所有摘要行、标签、徽章的文字是否完整可读"作为信息可读性的必检项
 
+## 2026-06-08 第 107 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意 + Aider 仅 1 条/67d，OpenCode 最旧 87d，HN-only 限制在精确搜索词下导致数据荒
+### 改动：news.py _TOPICS — Aider 改用 "aider chat assistant OR aider-code" 开放全源；OpenCode 改用 "opencode coding agent" 开放全源；Cline 移除 "cli" 减少误匹配
+### 验证：python3 -m py_compile news.py → OK；git commit ef06275 推送超时（WSL 网络），下次重试
+### 待下次：
+1. 重新运行 news fetcher 验证新搜索词效果
+2. Aider 应从 1 条增至 ≥ 3 条
+3. OpenCode 最旧条目应 < 60d
+
