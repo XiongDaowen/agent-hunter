@@ -897,3 +897,13 @@
 2. Aider 应从 1 条增至 ≥ 3 条
 3. OpenCode 最旧条目应 < 60d
 
+## 2026-06-08 第 108 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意 + 数据缺口严重（OpenClaw85d/Hermes87d/OpenCode87d/Cline90d 全部超过30d阈值），根因是 HN-only 话题太窄搜不到新鲜内容
+### 改动：news.py _TOPICS — 移除 OpenClaw/Hermes/ClaudeCode/Cline 的 HN-only 限制，改为全源搜索（None），依赖更严格的全局去重防止跨话题污染
+### 验证：python3 -m py_compile news.py → OK；git push 超时 skip
+### 待下次：
+1. 重新运行 news fetcher 验证新鲜度改善（各话题最旧条目应 < 30d）
+2. 验证跨话题去重仍然有效（重叠率 0%）
+3. 确认 Dev.to/36kr 未引入重复内容
+
