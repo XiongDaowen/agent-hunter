@@ -1,3 +1,31 @@
+## 2026-06-09 06:27 第 113 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——上次 Dev.to tag 修复后，cache 命中但仍返回大量 >30d 旧条目（OpenClaw 6 条中 0 条新鲜，最旧 118d），根本原因是 `get_cached_search` 只检查"至少有一条 ≤14d"就放行全部结果，没有在返回时过滤掉 >30d 的条目
+
+### 根因分析
+`get_cached_search` 逻辑：
+1. 缓存 < 6h → 检查是否有至少一条 ≤14d → 有 → 返回全部结果（16条，含10条>30d）
+2. 返回后 `global_deduplicate` 过滤 >30d，但此时 10 条旧条目已参与跨 topic 去重竞争
+
+导致：OpenClaw 先到先得占满去重表，其他 topic 空（如 OpenCode 3条全 HN 旧内容）。
+
+### 改动
+- **news.py:750-761 — `get_cached_search` 增加返回前过滤**：缓存有效（至少一条 ≤14d）时，返回前过滤掉 >30d 条目，与 dedup 阈值对齐
+  - 缓存命中 7 topics，全部过滤后有效条目：OpenClaw 6、OpenCode 7、ClaudeCode 6、Cline 6（都是 Dev.to 新鲜内容）
+  - 修复后下次 cron 运行会使用过滤后的缓存
+
+### 验证
+- `python3 -m py_compile news.py` → OK
+- 模拟过滤效果：OpenClaw raw=16 filtered=6，OpenCode raw=16 filtered=7，ClaudeCode raw=16 filtered=6
+- git push → 成功
+
+### 待下次
+1. **【验证】** 下次 cron 确认 7 topics 全部有 >= 2 条，且最旧条目 < 30d
+2. **【数据缺口】** ClaudeCode 仅 1 条（39d），Aider 仅 1 条（68d）→ 搜索词不够精准
+3. **【观察】** OpenClaw/Hermes/Cline 缓存均命中 Dev.to 新鲜内容，需确认跨 topic 去重后各 topic 是否仍有 >= 2 条
+
+---
+
 ## 2026-06-09 03:14 第 112 次迭代（Job ID: acc61aa9502c）
 
 ### 自省：不满意——ClaudeCode/Cline/Aider/Other/Hermes 全空（5/7 topics），OpenCode 仅 1 条，根本原因是 Dev.to 搜索 API 行为异常（q= 参数只改变排序不改变内容）
