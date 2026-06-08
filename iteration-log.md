@@ -1,3 +1,26 @@
+## 2026-06-09 01:47 第 110 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——84%条目>30d旧内容，缓存命中返回全过期数据
+
+### 改动
+- **news.py:689-721 — `get_cached_search` 增加 staleness 检查**
+  - 问题：缓存6h内但所有结果>14d时仍被使用，导致窄话题（openclaw/hermes/claude code）全部返回60-90d旧内容
+  - 修复：缓存命中后检查是否至少有一条结果≤14d；否则拒绝缓存，触发新搜索
+  - 原理：6h缓存保护API限额；14d阈值保证内容基本可用
+
+### 验证
+- `python3 -m py_compile news.py` → OK
+- 模拟检查10个缓存查询：fresh=False的5个（openclaw 60-86d、hermes 65-88d、opencode 40d、claude-code 39-69d、aider旧搜索）将被拒绝 → 触发新搜索
+- fresh=True的5个（aider OR aiderai、cline vs cursor、claude code、opencode coding agent、computer use）缓存命中
+- git push → 超时（WSL GitHub网络），跳过，下次重试
+
+### 待下次
+1. **【验证】** 下次cron执行时验证新搜索是否真正刷新了>14d的缓存条目
+2. **【数据缺口】** 窄话题HN无新内容 → 考虑给openclaw/hermes/claude-code等加Dev.to/36kr作为备选源
+3. **【代码质量】** `relative_time`函数中"999d"最旧条目问题（8h/15h/4h被解析为0d导致max(ages)=999d而非真实值）
+
+---
+
 ## 2026-06-08 23:30 第 109 次迭代（Job ID: acc61aa9502c）
 
 ### 自省：不满意——ClaudeCode 1条、Aider 0条，数据缺口严重
