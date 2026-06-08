@@ -115,12 +115,34 @@ def fetch_hn(query: str, tags: str = "story", hits_per_page: int = 8, max_retrie
 DEVTO_URL = "https://dev.to/api/articles"
 
 
-def fetch_devto(query: str, per_page: int = 5, max_retries: int = 2) -> list[dict]:
-    """Fetch results from Dev.to public API with retry logic."""
+# Dev.to tag mapping — maps agent topic to Dev.to tag for more targeted search.
+# Dev.to search is broken: the /api/articles?q= query only reorders trending posts
+# rather than filtering. Using tag= narrows results to the relevant community.
+# Source: https://developers.forem.com/api/v1#tag/articles
+_DEVTO_TAG_MAP = {
+    "OpenClaw":   "openclaw",
+    "Hermes":     "hermes",
+    "OpenCode":   "opencode",
+    "ClaudeCode": "claudecode",
+    "Cline":      "cline",
+    "Aider":      "aider",
+    "Other":      "ai",
+}
+
+def fetch_devto(query: str, per_page: int = 5, topic: str | None = None, max_retries: int = 2) -> list[dict]:
+    """Fetch results from Dev.to public API with retry logic.
+
+    When topic is provided, uses tag= parameter to filter to relevant community
+    (Dev.to search is broken — q= only reorders trending posts, tag= actually filters).
+    """
     params = {
         "q": query,
         "per_page": per_page,
     }
+    # Apply tag filter if topic is in our known mapping
+    tag = _DEVTO_TAG_MAP.get(topic) if topic else None
+    if tag:
+        params["tag"] = tag
     for attempt in range(max_retries + 1):
         try:
             r = requests.get(DEVTO_URL, params=params, timeout=15)
@@ -383,10 +405,13 @@ def fetch_36kr(query: str, max_retries: int = 2) -> list[dict]:
 
 # ── Combined search ────────────────────────────────────────────────────
 
-def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed_sources: list | None = None) -> list[dict]:
-    """Search Dev.to + 36kr + HN, merge results. Filter by allowed_sources if provided."""
+def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed_sources: list | None = None, topic: str | None = None) -> list[dict]:
+    """Search Dev.to + 36kr + HN, merge results. Filter by allowed_sources if provided.
+
+    Pass topic= to fetch_devto so it can apply tag-based filtering (Dev.to search is broken).
+    """
     hn_results = fetch_hn(query, hits_per_page=hn_limit)
-    devto_results = fetch_devto(query, per_page=devto_limit)
+    devto_results = fetch_devto(query, per_page=devto_limit, topic=topic)
     kr36_results = fetch_36kr(query)
     # Quality order: Dev.to (articles) > 36kr (news) > HN (fast)
     combined = devto_results + kr36_results + hn_results
@@ -549,7 +574,7 @@ def generate_news_report():
     for topic_name, topic_val in topics.items():
         query, icon, label, allowed_sources = topic_val if len(topic_val) == 4 else (*topic_val, None)
         print(f"   📡 搜索 [{topic_name}]: {query}")
-        results = combined_search(query, hn_limit=10, devto_limit=6, allowed_sources=allowed_sources)
+        results = combined_search(query, hn_limit=10, devto_limit=6, allowed_sources=allowed_sources, topic=topic_name)
         all_results[topic_name] = results
         print(f"      → {len(results)} 条结果")
 
@@ -758,7 +783,7 @@ def generate_news_data():
             print(f"   CACHE [{topic_name}]: {query} (命中,过滤后 {len(cached)} 条)")
             continue
         print(f"   📡 搜索 [{topic_name}]: {query}")
-        results = combined_search(query, hn_limit=10, devto_limit=6, allowed_sources=allowed_sources)
+        results = combined_search(query, hn_limit=10, devto_limit=6, allowed_sources=allowed_sources, topic=topic_name)
         all_results[topic_name] = results
         cache_search(query, results)
         print(f"      → {len(results)} 条结果")
