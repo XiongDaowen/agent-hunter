@@ -1,3 +1,33 @@
+## 2026-06-09 03:14 第 112 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——ClaudeCode/Cline/Aider/Other/Hermes 全空（5/7 topics），OpenCode 仅 1 条，根本原因是 Dev.to 搜索 API 行为异常（q= 参数只改变排序不改变内容）
+
+### 根因分析
+**Dev.to 搜索 API 是假搜索**：测试 `q=claude code`、`q=cline coding agent`、`q=aider ai coding` 均返回完全相同的 3 篇 trending 文章（"TypeScript Developer"、"Cucumber"、"TanStack Start"），查询词只改变排序不改变内容。
+
+这导致 42 次 Dev.to 调用（7 topics × 6 results）全部返回相同 trending 内容，被 dedup 全部去重掉，OpenClaw 先到先得占满去重表，导致其他 5 个 topic 全空。
+
+### 改动
+- **news.py:118-138 — 新增 `_DEVTO_TAG_MAP`**：为每个 agent topic 映射 Dev.to tag（openclaw/claudecode/aider/cline/hermes/opencode/ai）
+- **news.py:141 — `fetch_devto` 增加 `topic` 参数**：当 topic 在映射表中时，加 `tag=` 参数过滤到对应社区
+- **news.py:387 — `combined_search` 增加 `topic` 参数**：透传 topic 给 `fetch_devto`
+- **news.py:577, 786 — 两处调用 `combined_search` 均传递 `topic=topic_name`**
+
+### 验证
+- `python3 -m py_compile news.py` → OK
+- `fetch_devto('claude code', topic=None)` → 3 篇 trending（TypeScript Developer/Cucumber/TanStack）
+- `fetch_devto('claude code', topic='ClaudeCode')` → 3 篇 Claude Code 相关（Anthropic 80% code/GitHub CI/agent loop）
+- `fetch_devto('aider', topic='Aider')` → 3 篇 Aider 相关（Cursor vs Aider/Code Docs/30-day test）
+- 清 cache 后完整生成：40 条唯一资讯，7/7 topics 全覆盖，最旧 28d
+- git push → 超时（WSL GitHub），跳过，下次重试
+
+### 待下次
+1. **【验证】** 下次 cron 确认 7 topics 全部有 >= 2 条，且最旧条目 < 30d
+2. **【数据缺口】** Hermes/Other 最旧条目 20d/28d，需确认 HN 是否能补充这些 topic 的更新内容
+3. **【UI 验证】** 尝试启动 Flask webui 验证 news 页面渲染（上次 localhost:5000 无法连接）
+
+---
+
 ## 2026-06-09 02:29 第 111 次迭代（Job ID: acc61aa9502c）
 
 ### 自省：不满意——Cline/Aider/Other全空，OpenCode/Hermes/ClaudeCode数据稀少（各0-1条），根本原因是 dedup 用 90d 阈值与 cache staleness 14d 不一致，导致跨 topic 交叉过滤后残留极少
