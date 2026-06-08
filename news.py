@@ -747,7 +747,18 @@ def get_cached_search(query: str, max_fresh_days: int = 14) -> list | None:
         if not fresh:
             # All cached results are stale — don't use cache
             return None
-        return results
+        # Filter to only fresh-ish results (<= 30d) to match dedup threshold.
+        # Cache was valid (had at least one fresh item), but old items (>30d) are
+        # excluded so they don't inflate topic counts or block new content.
+        max_age_days = 30
+        filtered = []
+        for r in results:
+            ta = r.get("time_ago", "")
+            m = re.search(r'(\d+)d', ta)
+            if m and int(m.group(1)) > max_age_days:
+                continue
+            filtered.append(r)
+        return filtered
     return None
 
 def cache_search(query: str, results: list):
