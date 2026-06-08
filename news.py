@@ -239,10 +239,10 @@ def combined_search(query: str, hn_limit: int = 6, devto_limit: int = 4, allowed
 _TOPICS = {
     "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   ["HN"]),
     "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     ["HN"]),
-    "OpenCode":   ("opencode-ai",              "🟣", "OpenCode 资讯",   ["HN"]),
+    "OpenCode":   ("opencode coding agent",    "🟣", "OpenCode 资讯",   None),
     "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", ["HN"]),
-    "Cline":      ("cline cli coding agent",   "🟤", "Cline 资讯",      ["HN"]),
-    "Aider":      ("aider ai coding assistant",   "🔴", "Aider 资讯",     ["HN"]),
+    "Cline":      ("cline coding agent",       "🟤", "Cline 资讯",      ["HN"]),
+    "Aider":      ("aider chat assistant OR aider-code", "🔴", "Aider 资讯", None),
     "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }
 
