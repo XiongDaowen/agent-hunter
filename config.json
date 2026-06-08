@@ -34,9 +34,19 @@
   },
   "llm": {
     "base_url": "https://api.scnet.cn/api/llm/v1",
-    "api_key": "sk-sp-4y0rzodgyqfxnbwc2lje5v5hpd3ms9a38m7b1dkozg",
+    "api_key": "sk-sp-...kozg",
     "model": "Qwen3-235B-A22B",
     "max_tokens": 4000,
     "note": "API 认证失败(401)时会写入 cache/llm_unavailable.flag 并跳过调用；flag 文件会在下次运行时自动清除并重试"
+  },
+  "news_summarize": {
+    "enabled": true,
+    "note": "AI 中文简评 + 每 topic 综述。失败时降级为原文 description，前端不报错。",
+    "cache_ttl_hours": 6,
+    "per_item_max_tokens": 256,
+    "per_topic_max_tokens": 1024,
+    "min_description_chars": 30,
+    "skip_if_cached_within_hours": 6,
+    "summary_temperature": 0.3
   }
 }

@@ -930,3 +930,16 @@
 2. 验证跨话题去重仍然有效（重叠率 0%）
 3. 确认 Dev.to/36kr 未引入重复内容
 
+
+## 2026-06-09 01:13 第 111 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意 + Aider 仅 1 条（68d），根因是搜索词 "aider chat assistant" 窄且 HN 命中稀疏；其他话题 6 个超过 30d 阈值
+
+### 改动：news.py _TOPICS — Aider 搜索词从 "aider chat assistant" 改为 "aider OR aiderai"，覆盖 GitHub repo 名 + 产品名，更宽；语法验证通过
+
+### 验证：python3 -m py_compile news.py → OK；git commit 7159350；刷新后 cache 尚未过期（6h 内），新查询会在 cache 失效后自动生效；git push 超时 skip
+
+### 待下次：
+1. 确认 Aider 条目在 cache 刷新后 ≥ 2 条
+2. 验证 "aider OR aiderai" 未引入重复或误匹配
+3. 检查其他话题最旧条目是否仍 > 30d（可能需要进一步调整搜索词）

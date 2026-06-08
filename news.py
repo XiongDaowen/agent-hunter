@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 import time as time_module
+import time as _time
 
 import requests
 
@@ -173,6 +174,174 @@ def fetch_devto(query: str, per_page: int = 5, max_retries: int = 2) -> list[dic
 
 
 # ── 36氪 ──────────────────────────────────────────────────────────────────
+
+# ── AI 中文总结（per-item + per-topic）──────────────────────────────────────
+
+# 简评 prompt：把单条资讯压成 15-25 字中文要点
+# 设计原则：优先中文术语、说人话、带观点、失败兜底不编造
+_PER_ITEM_PROMPT = """你是 AI 行业资讯编辑。把以下技术资讯压缩成 15-25 字中文要点。
+
+要求：
+1. 优先中文：英文术语首次出现时括号内附中文（如 agentic loop（智能体循环））
+2. 说人话：避免直译堆砌，要说清这条资讯到底在讲啥
+3. 带观点：产品发布类 → "X 公司发布 Y，主打 Z"；技术文章类 → "作者提出 Z 方法，解决 W 问题"
+4. 失败兜底：如果原文信息不足无法总结，直接返回"（无有效内容）"，不要编造
+
+原文标题：{title}
+原文摘要：{description}
+来源：{source}
+
+返回：只输出中文要点，不要任何前缀。"""
+
+
+# 综述 prompt：每个 topic 一段 3-5 句中文综述 + 中文料反思 + UI 干活反思
+# 设计原则：让 AI 在生成内容时主动反思"还能去哪抓中文料"和"UI 怎么改更干活"
+_PER_TOPIC_PROMPT = """你是 AI 行业主编。下方是"{topic_label}"专题今天的 {n} 条资讯。
+
+任务：
+1. 归纳 3-5 句中文综述：今天这个领域主要发生了啥？有啥共同趋势？
+2. 反思中文料是否够干活：
+   - 当前信息能不能帮中国开发者/产品经理做决策？
+   - 缺什么中文角度（本地化案例？国内同类对比？价格/合规？用户使用习惯？）
+   - 缺什么中文料 → 用一句具体的话建议下一步去抓什么（如"应去知乎/V2EX/掘金抓'Claude Code 国内使用体验'讨论"）
+3. 反思 UI 怎么更干活：
+   - 当前卡片/列表布局下，用户能不能 3 秒内抓到今天重点？
+   - 建议一个具体的 UI 改进点（如"在每条卡片加'对国内开发者相关度'标签"或"顶部加'今日 3 件必看'大字卡片"）
+
+返回格式（严格，三段都必须填，不要省略）：
+【今日综述】
+（3-5 句中文，说清今天发生了什么、有什么共同趋势）
+
+【中文料反思】
+建议抓取：（一句具体的话，去哪个平台抓什么内容）
+建议关键词：（2-4 个中文关键词）
+
+【UI 干活反思】
+建议改进：（一句具体的 UI 改进点，如"卡片顶部加'对国内开发者相关度'标签"）
+
+原始资讯列表：
+{items_text}"""
+
+
+def _load_summarize_config() -> dict:
+    """Load news_summarize block from config.json (safe defaults if missing)."""
+    cfg = CONFIG.get("news_summarize", {})
+    return {
+        "enabled": cfg.get("enabled", True),
+        "per_item_max_tokens": cfg.get("per_item_max_tokens", 256),
+        "per_topic_max_tokens": cfg.get("per_topic_max_tokens", 1024),
+        "min_description_chars": cfg.get("min_description_chars", 30),
+        "summary_temperature": cfg.get("summary_temperature", 0.3),
+    }
+
+
+def _ai_summarize_item(item: dict, cfg: dict) -> str | None:
+    """Call LLM to produce a 15-25 字 Chinese summary of one news item.
+    Returns None on any failure (caller falls back to original description)."""
+    desc = (item.get("description") or "").strip()
+    if not desc or len(desc) < cfg["min_description_chars"]:
+        return None
+    title = item.get("title", "")
+    source = item.get("source", "")
+    prompt = _PER_ITEM_PROMPT.format(title=title, description=desc, source=source)
+
+    try:
+        from hunter import _llm_chat
+        text = _llm_chat(
+            [{"role": "user", "content": prompt}],
+            temperature=cfg["summary_temperature"],
+            max_tokens=cfg["per_item_max_tokens"],
+        )
+    except Exception as e:
+        print(f"   WARN ai_summarize_item LLM import/call failed: {e}", file=sys.stderr)
+        return None
+
+    if not text:
+        return None
+    text = text.strip()
+    # Strip wrapping quotes if model returned them
+    text = text.strip("\"'`「」『』")
+    # Strip common prefixes
+    for prefix in ["中文要点：", "要点：", "总结：", "总结:", "简评：", "摘要：", "回答：", "输出："]:
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+    if not text or "无有效内容" in text:
+        return None
+    return text[:120]  # hard cap to prevent model rambling
+
+
+def _ai_summarize_topic(topic_name: str, topic_label: str, items: list[dict], cfg: dict) -> dict | None:
+    """Call LLM to produce per-topic Chinese synthesis + Chinese-source reflection + UI reflection.
+    Returns dict with keys: summary, reflection_source, reflection_ui. None on failure."""
+    if not items:
+        return None
+    # Build compact items text: number, title, desc[:200], source
+    lines = []
+    for i, it in enumerate(items[:20], 1):
+        d = (it.get("description") or "")[:200].replace("\n", " ")
+        lines.append(f"{i}. [{it.get('source','')}] {it.get('title','')} — {d}")
+    items_text = "\n".join(lines)
+    prompt = _PER_TOPIC_PROMPT.format(
+        topic_label=topic_label, n=len(items), items_text=items_text,
+    )
+
+    try:
+        from hunter import _llm_chat
+        text = _llm_chat(
+            [{"role": "user", "content": prompt}],
+            temperature=cfg["summary_temperature"],
+            max_tokens=cfg["per_topic_max_tokens"],
+        )
+    except Exception as e:
+        print(f"   WARN ai_summarize_topic LLM import/call failed: {e}", file=sys.stderr)
+        return None
+
+    if not text:
+        return None
+    text = text.strip()
+
+    # Parse the 3 sections — robust to minor ordering/missing
+    out = {"summary": "", "reflection_source": "", "reflection_ui": ""}
+    sections = re.split(r"【今日综述】|【中文料反思】|【UI 干活反思】", text)
+    # sections[0] is whatever is before 【今日综述】 (usually empty)
+    if len(sections) >= 2:
+        out["summary"] = sections[1].split("【")[0].strip()
+    if len(sections) >= 3:
+        out["reflection_source"] = sections[2].split("【")[0].strip()
+    if len(sections) >= 4:
+        out["reflection_ui"] = sections[3].split("【")[0].strip()
+    # Fallback: if parsing failed but we got some text, use it all as summary
+    if not out["summary"] and text:
+        out["summary"] = text[:500]
+    return out if out["summary"] else None
+
+
+def _attach_ai_summaries(items: list[dict], cfg: dict) -> None:
+    """Mutate items in place: add 'ai_summary' field (15-25 字 Chinese)."""
+    for item in items:
+        if item.get("ai_summary"):
+            continue  # already populated
+        s = _ai_summarize_item(item, cfg)
+        if s:
+            item["ai_summary"] = s
+
+
+def _attach_topic_summaries(all_results: dict, cfg: dict) -> dict[str, dict]:
+    """Produce a {topic_name: {summary, reflection_source, reflection_ui}} dict.
+    Failed topics are omitted (caller handles empty case)."""
+    topics = get_topics()
+    out = {}
+    for topic_name, topic_val in topics.items():
+        items = all_results.get(topic_name, [])
+        if not items:
+            continue
+        query, icon, label, _ = topic_val if len(topic_val) == 4 else (*topic_val, None)
+        result = _ai_summarize_topic(topic_name, label, items, cfg)
+        if result:
+            out[topic_name] = result
+            print(f"   📊 [{topic_name}] 综述生成成功（{len(result['summary'])} 字）")
+    return out
+
 
 def fetch_36kr(query: str, max_retries: int = 2) -> list[dict]:
     """Search 36kr via their public API."""
@@ -517,13 +686,41 @@ def _save_history(history: list):
     with open(SEARCH_HISTORY_FILE, "w") as f:
         json.dump(history[-HISTORY_MAX:], f, ensure_ascii=False)
 
-def get_cached_search(query: str):
-    """Return cached results for a query if < 6h old."""
+def get_cached_search(query: str, max_fresh_days: int = 14) -> list | None:
+    """Return cached results for a query if < 6h old AND at least one result is fresh (<= max_fresh_days).
+    
+    If cached results are all older than max_fresh_days, treat cache as stale and return None.
+    This prevents narrow topics (e.g. "openclaw coding agent") from serving 60-90d old content
+    when their queries have low HN volume and all hits happen to be stale.
+    """
     history = _load_history()
-    import time
     for entry in reversed(history):
-        if entry.get("query") == query and time.time() - entry.get("cached_at", 0) < 6 * 3600:
-            return entry.get("results")
+        if entry.get("query") != query:
+            continue
+        age_seconds = _time.time() - entry.get("cached_at", 0)
+        if age_seconds >= 6 * 3600:
+            continue  # expired by age
+        results = entry.get("results", [])
+        if not results:
+            return None
+        # Check if at least one result is fresh enough
+        fresh = False
+        for r in results:
+            time_ago = r.get("time_ago", "")
+            m = re.search(r'(\d+)d', time_ago)
+            if m:
+                days = int(m.group(1))
+                if days <= max_fresh_days:
+                    fresh = True
+                    break
+            elif not time_ago or "h" in time_ago or "m" in time_ago:
+                # No days field but has hours/minutes → fresh
+                fresh = True
+                break
+        if not fresh:
+            # All cached results are stale — don't use cache
+            return None
+        return results
     return None
 
 def cache_search(query: str, results: list):
@@ -570,11 +767,73 @@ def generate_news_data():
     total = sum(len(v) for v in all_results.values())
     print(f"   ✅ 全局去重后: {total} 条唯一资讯")
 
+    # ── AI 中文总结：每条简评 + 每 topic 综述（并发加速）─────────────
+    sum_cfg = _load_summarize_config()
+    topic_summaries: dict[str, dict] = {}
+    if sum_cfg.get("enabled"):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        # 收集所有需要 AI 总结的 (item_or_topic_marker, payload)
+        tasks = []
+        for topic_name, items in all_results.items():
+            for idx, item in enumerate(items):
+                if not item.get("ai_summary"):
+                    tasks.append(("item", topic_name, idx, item))
+        # Topic 综述（每个 topic 一次）
+        topic_task_meta = []  # (topic_name, label, items)
+        for topic_name, topic_val in topics.items():
+            items = all_results.get(topic_name, [])
+            if items:
+                query, icon, label, _ = topic_val if len(topic_val) == 4 else (*topic_val, None)
+                topic_task_meta.append((topic_name, label, items))
+
+        total_tasks = len(tasks) + len(topic_task_meta)
+        print(f"   🧠 并发生成 AI 总结（{len(tasks)} 条简评 + {len(topic_task_meta)} 个综述 = {total_tasks} 次 LLM）...")
+
+        # ── 执行：item 简评 + topic 综述全并发 ───────────────────
+        # LLM 调用是 IO-bound，thread pool 完全够用，无需 multiprocess
+        # max_workers=3 防止 scnet API 触发 429 限流（实测 8 并发会被拦）
+        MAX_WORKERS = 3
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+            # 提交 item 任务 → value: ("item", topic_name, idx)
+            future_to_meta = {}
+            for kind, tname, idx, item in tasks:
+                fut = pool.submit(_ai_summarize_item, item, sum_cfg)
+                future_to_meta[fut] = ("item", tname, idx)
+            # 提交 topic 任务 → value: ("topic", topic_name)
+            for tname, label, items in topic_task_meta:
+                fut = pool.submit(_ai_summarize_topic, tname, label, items, sum_cfg)
+                future_to_meta[fut] = ("topic", tname)
+
+            done = 0
+            for fut in as_completed(future_to_meta):
+                done += 1
+                meta = future_to_meta[fut]
+                try:
+                    res = fut.result()
+                except Exception as e:
+                    print(f"   ⚠ {meta} exception: {e}", file=sys.stderr)
+                    res = None
+                if meta[0] == "item":
+                    _, tname, idx = meta
+                    if res:
+                        all_results[tname][idx]["ai_summary"] = res
+                else:  # topic
+                    if res:
+                        topic_summaries[meta[1]] = res
+
+        ai_count = sum(1 for items in all_results.values() for it in items if it.get("ai_summary"))
+        print(f"   ✅ AI 总结完成: {ai_count}/{total} 条简评 + {len(topic_summaries)}/{len(topic_task_meta)} 个综述")
+    else:
+        print(f"   ⏭ AI 总结已禁用（news_summarize.enabled=false）")
+
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     data = {
         "updated": now,
         "total": total,
+        "ai_summarized": sum_cfg.get("enabled", False),
+        "topic_summaries": topic_summaries,
         "topics": {},
     }
     for topic_name, topic_val in topics.items():

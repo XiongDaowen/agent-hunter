@@ -152,7 +152,7 @@ def api_news():
     if NEWS_DATA_FILE.exists():
         with open(NEWS_DATA_FILE) as f:
             return jsonify(json.load(f))
-    return jsonify({"total": 0, "updated": "", "topics": {}})
+    return jsonify({"total": 0, "updated": "", "topics": {}, "topic_summaries": {}, "ai_summarized": False})
 
 
 @app.route("/api/news/refresh", methods=["POST"])

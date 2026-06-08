@@ -129,7 +129,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC
 .news-topic { margin-bottom:20px; }
 .news-topic-title { font-size:1.05rem; font-weight:600; margin-bottom:6px; padding-bottom:3px; border-bottom:2px solid var(--border); color:var(--accent); cursor:pointer; user-select:none; }
 .news-grid { display:none; grid-template-columns:repeat(auto-fill, minmax(340px,1fr)); gap:8px; }
-.news-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; transition:.15s; }
+.news-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; transition:.15s; position:relative; }
 .news-card:hover { border-color:var(--accent); }
 .news-title { font-size:0.88rem; font-weight:500; margin-bottom:4px; }
 .news-title a { color:var(--text); text-decoration:none; }
@@ -138,6 +138,45 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC
 .news-meta { font-size:0.7rem; color:var(--dim); }
 .src-hn { color:#ff6600; font-weight:600; }
 .src-devto { color:#3b49df; font-weight:600; }
+
+/* AI 中文简评（per-item）— 视觉上比原文更突出 */
+.news-ai-summary {
+  font-size:0.82rem; color:var(--text); margin:6px 0;
+  padding:6px 10px; background:linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.10));
+  border-left:3px solid var(--accent); border-radius:4px;
+  line-height:1.5; font-weight:500;
+}
+.news-ai-summary::before { content:"🧠 "; margin-right:2px; }
+/* 原文摘要：折叠到二级，点击展开 */
+.news-original { font-size:0.74rem; color:var(--dim); margin-top:6px; }
+.news-original-toggle {
+  display:inline-block; font-size:0.7rem; color:var(--dim); cursor:pointer;
+  margin-top:4px; text-decoration:underline dotted; user-select:none;
+}
+.news-original-toggle:hover { color:var(--accent); }
+.news-original-body { display:none; margin-top:4px; padding:6px 8px; background:rgba(255,255,255,0.02); border-radius:4px; line-height:1.5; }
+.news-original-body.open { display:block; }
+
+/* Topic 综述面板（per-topic）— 顶部彩色横条，默认展开 */
+.topic-synthesis {
+  margin:8px 0 12px 0; padding:10px 14px;
+  background:linear-gradient(135deg, rgba(52,211,153,0.10), rgba(99,102,241,0.08));
+  border:1px solid rgba(52,211,153,0.30); border-radius:8px;
+  font-size:0.82rem; line-height:1.7; color:var(--text);
+}
+.topic-synthesis-title { font-weight:600; color:#34d399; margin-bottom:6px; font-size:0.85rem; }
+.topic-synthesis-body { white-space:pre-wrap; }
+.topic-synthesis-reflect {
+  margin-top:8px; padding-top:8px; border-top:1px dashed rgba(52,211,153,0.20);
+  font-size:0.75rem; color:var(--dim); display:flex; gap:12px; flex-wrap:wrap;
+}
+.topic-synthesis-reflect > div { flex:1 1 220px; }
+.topic-synthesis-reflect b { color:#a78bfa; font-weight:600; }
+/* 综述失败/空态：让"反思"自己干活 */
+.topic-synthesis-empty {
+  margin:8px 0 12px 0; padding:8px 12px; background:var(--card);
+  border:1px dashed var(--border); border-radius:6px; font-size:0.78rem; color:var(--dim);
+}
 
 /* Compare */
 .compare-bar { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 14px; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
@@ -673,15 +712,24 @@ function renderNews() {
   updateStats();
 
   let html = '';
+  const topicSummaries = d.topic_summaries || {};
   for (const [name, topic] of Object.entries(d.topics || {})) {
     const items = topic.items || [];
     if (!items.length) {
-      // Show explicit empty state so users know data is missing, not broken
+      // Show explicit empty state so users know data is missing, not broken.
+      // 顺便展示该 topic 的"AI 反思"：即使无资讯，AI 也会建议去抓哪些中文料。
+      const synth = topicSummaries[name];
+      const emptyReflect = synth
+        ? `<div class="topic-synthesis-empty">
+             💡 <b>AI 反思：</b>${escapeHtml((synth.reflection_source || '') + (synth.reflection_ui ? ' | UI: ' + synth.reflection_ui : ''))}
+           </div>`
+        : `<div class="topic-synthesis-empty">⚠️ 当前 topic 无资讯，HN/Dev.to/36kr 均未抓到相关内容</div>`;
       html += `<div class="news-topic">
         <div class="news-topic-title">${topic.icon} ${topic.label} (0)</div>
+        ${emptyReflect}
         <div class="news-grid">
           <div class="news-card" style="color:var(--dim);font-size:0.82rem;padding:12px;opacity:0.7;">
-            暂无相关资讯（HN 无专门讨论，切换到「全部」话题查看社区讨论）
+            暂无相关资讯
           </div>
         </div>
       </div>`;
@@ -698,16 +746,43 @@ function renderNews() {
         else freshnessBadge = `<span style="font-size:0.72rem;margin-left:6px;color:#f87171;font-weight:600;">⚠️ ${days}天前</span>`;
       }
     }
+    // Topic 综述面板（per-topic AI 总结）
+    const synth = topicSummaries[name];
+    let synthHtml = '';
+    if (synth && synth.summary) {
+      const reflectParts = [];
+      if (synth.reflection_source) reflectParts.push(`<div><b>📚 中文料反思：</b>${escapeHtml(synth.reflection_source)}</div>`);
+      if (synth.reflection_ui) reflectParts.push(`<div><b>🎨 UI 干活反思：</b>${escapeHtml(synth.reflection_ui)}</div>`);
+      synthHtml = `<div class="topic-synthesis">
+        <div class="topic-synthesis-title">📊 今日 AI 总结</div>
+        <div class="topic-synthesis-body">${escapeHtml(synth.summary)}</div>
+        ${reflectParts.length ? `<div class="topic-synthesis-reflect">${reflectParts.join('')}</div>` : ''}
+      </div>`;
+    }
     html += `<div class="news-topic">
       <div class="news-topic-title" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'grid':'none'">${topic.icon} ${topic.label} (${items.length})${freshnessBadge}</div>
+      ${synthHtml}
       <div class="news-grid">`;
     items.forEach(item => {
       const srcClass = item.source === 'HN' ? 'src-hn' : item.source === 'Dev.to' ? 'src-devto' : '';
       const topicIcon = topic.icon ? `<span style="font-size:0.75rem;">${topic.icon}</span> ` : '';
+      // AI 简评：默认显示（你要求"放第一"）
+      const aiSummary = item.ai_summary
+        ? `<div class="news-ai-summary">${escapeHtml(item.ai_summary)}</div>`
+        : '';
+      // 原文摘要：折叠到二级（点击展开）
+      const originalId = `orig-${name}-${items.indexOf(item)}`;
+      const originalHtml = item.description
+        ? `<div class="news-original">
+             <span class="news-original-toggle" onclick="document.getElementById('${originalId}').classList.toggle('open')">📄 原文摘要 ▾</span>
+             <div class="news-original-body" id="${originalId}">${escapeHtml(item.description)}</div>
+           </div>`
+        : '';
       html += `<div class="news-card">
-        <div class="news-title">${topicIcon}<a href="${item.url}" target="_blank">${item.title}</a></div>
-        ${item.description ? `<div class="news-desc">${item.description.slice(0,100)}</div>` : ''}
-        <div class="news-meta"><span class="${srcClass}">${item.source}</span> ${item._meta||''} ${item.time_ago ? '· ⏱ '+item.time_ago : ''}</div>
+        <div class="news-title">${topicIcon}<a href="${item.url}" target="_blank">${escapeHtml(item.title)}</a></div>
+        ${aiSummary}
+        ${originalHtml}
+        <div class="news-meta"><span class="${srcClass}">${escapeHtml(item.source||'')}</span> ${escapeHtml(item._meta||'')} ${item.time_ago ? '· ⏱ '+escapeHtml(item.time_ago) : ''}</div>
       </div>`;
     });
     html += '</div></div>';
@@ -716,6 +791,17 @@ function renderNews() {
   // Auto-expand first topic
   const firstGrid = document.querySelector('#newsContent .news-grid');
   if (firstGrid) firstGrid.style.display = 'grid';
+}
+
+// Minimal HTML escaper for user-facing strings (titles / descriptions / AI summaries)
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 async function refreshNews() {
