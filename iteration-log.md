@@ -1,25 +1,35 @@
+## 2026-06-08 23:30 第 109 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——ClaudeCode 1条、Aider 0条，数据缺口严重
+
+### 改动
+- **news.py:246 — ClaudeCode 搜索词优化**
+  - 旧：`"claude code anthropic"` → HN633条结果
+  - 新：`"claude code"` → HN 7326条结果（12x增加）
+- **news.py:248 — Aider 改回 HN-only + 简化搜索词**
+  - 旧：`"aider chat assistant OR aider-code"` → HN OR查询失效(1条)
+  - 新：`"aider"` → HN 5695条结果
+  - 配合：`allowed_sources=["HN"]` 过滤Dev.to垃圾内容
+- **news.py:311 — `global_deduplicate` max_age_days 回退到 90**
+  - 临时改为365后所有老HN项全进结果但被跨topic dedup吃掉，实际Aider HN全>365d
+  - 还原90d阈值（合理的内容新鲜度门槛）
+
+### 验证
+- ClaudeCode: 1条→**6条**（最旧69d）✓
+- Aider: 0条→**0条**（HN全部>90d，非本项目bug，是HN现实）
+- 总条目26，0重叠率 ✓
+- 语法验证 ✓
+
+### 待下次
+1. **【数据缺口-接受】** Aider HN全>90d是数据结构问题（benchmark/leaderboard本质老内容），可接受现状或降级显示"近期无更新"
+2. **【数据缺口】** OpenCode 2条、OpenClaw 12条(最旧999d标注问题)、Cline 1条——可尝试扩展搜索词
+3. **【数据缺口】** 36kr持续失败——`Expecting value: line 1 column 1`，可能是超时/反爬，需查原因
+
+---
+
 ## 2026-06-07 23:12 第 106 次迭代（Job ID: acc61aa9502c）
 
 ### 自省检查
-> **"如果让我用这个软件来作为唯一的获取 agent 知识的来源，我满意吗？"**
-
-**答案：不满意，发现两个数据真实性和架构问题。**
-
-**1. Aider 和 Other 话题 100% 内容重叠（数据真实性问题，严重）**
-- 看到了什么：Aider（6 items）和 Other（6 items）完全共享相同的 6 个 Dev.to URL（Game Jam、Gemma 4 等），交叉重叠率 100%
-- 为什么影响获取 agent 知识：用户切换到 Aider 话题看到的实际是通用技术文章，和直接看 Other 话题完全一样——Aider 话题失去了意义
-- 根因：两个独立 bug 叠加：
-  1. `global_deduplicate()` 在第 105 次迭代中被改为"per-topic only"，移除了跨话题去重
-  2. `generate_news_report()`（直接运行 `python3 news.py` 时调用）不写入 `cache/news.json`，只写 HTML 报告，导致 JSON 数据从未被更新
-- 修复路径：
-  1. 恢复跨话题去重（pass 1 per-topic + pass 2 cross-topic，早期话题优先）
-  2. 让 `generate_news_report()` 同时更新 JSON 缓存
-
-**2. Aider 搜索词过宽导致只返回 1 条 HN 内容（数据缺口，中优先级）**
-- 看到了什么：修改为 `["HN"]` 数据源后，Aider 只返回 1 条 67 天前的 HN 结果
-- 为什么影响获取 agent 知识：用户看到 Aider 话题只有 1 条极老的内容，感知质量差
-- 根因：搜索词 "aider ai coding assistant" 在 HN Algolia 匹配率低（可能是 `aider` 在 HN stories 中出现频率不如 `aider ai`）
-- 修复路径：尝试 `["HN", "Dev.to"]` 混合数据源，或改用更精确的 repo 名搜索
 
 ### 本次分析
 - 参考网站：github.com/explore（内容唯一性检查方法）+ producthunt.com（话题隔离性）

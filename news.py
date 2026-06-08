@@ -243,9 +243,9 @@ _TOPICS = {
     "OpenClaw":   ("openclaw coding agent",   "🔵", "OpenClaw 资讯",   None),
     "Hermes":     ("nousresearch hermes-agent", "🟢", "Hermes 资讯",     None),
     "OpenCode":   ("opencode coding agent",    "🟣", "OpenCode 资讯",   None),
-    "ClaudeCode": ("claude code anthropic",    "🟠", "Claude Code 资讯", None),
+    "ClaudeCode": ("claude code", "🟠", "Claude Code 资讯", None),
     "Cline":      ("cline coding agent","🟤", "Cline 资讯",      None),
-    "Aider":      ("aider chat assistant OR aider-code", "🔴", "Aider 资讯", None),
+    "Aider":      ("aider", "🔴", "Aider 资讯", ["HN"]),
     "Other":      ("computer use agent OR autonomous coding OR LLM coding assistant", "🟡", "其他 AI Agent 资讯", None),
 }
 
