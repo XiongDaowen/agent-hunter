@@ -477,16 +477,18 @@ def _is_stale(item: dict, max_age_days: int = 30) -> bool:
         return False
 
 
-def global_deduplicate(all_results: dict, max_age_days: int = 90) -> dict:
+def global_deduplicate(all_results: dict, max_age_days: int = 30) -> dict:
     """Remove duplicate URLs and near-duplicate titles WITHIN each topic, then across topics.
 
     Deduplication strategy (two-pass):
     - Pass 1: Per-topic dedup (exact URL + normalized title within same topic)
-    - Pass 2: Cross-topic dedup — earlier-iterated topics get priority for shared URLs.
+    - Pass 2: Cross-topic dedup — earlier topics get priority for shared URLs.
       This means narrow topics (Aider, OpenClaw, etc.) that appear earlier in _TOPICS
       get to claim URLs before broad topics (Other) that appear later.
 
     Items older than max_age_days are excluded from results.
+    30 days = visual "stale" threshold in webui.py (line ~292).
+    Cache staleness check (get_cached_search, 14d) is independent — dedup just trims ancient items.
     """
     # Pass 1: Per-topic dedup
     deduped_per_topic = {}
