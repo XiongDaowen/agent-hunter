@@ -844,6 +844,7 @@ def generate_news_data():
                 future_to_meta[fut] = ("topic", tname)
 
             done = 0
+            consecutive_failures = 0
             for fut in as_completed(future_to_meta):
                 done += 1
                 meta = future_to_meta[fut]
@@ -852,6 +853,9 @@ def generate_news_data():
                 except Exception as e:
                     print(f"   ⚠ {meta} exception: {e}", file=sys.stderr)
                     res = None
+                    consecutive_failures += 1
+                else:
+                    consecutive_failures = 0
                 if meta[0] == "item":
                     _, tname, idx = meta
                     if res:
@@ -859,6 +863,12 @@ def generate_news_data():
                 else:  # topic
                     if res:
                         topic_summaries[meta[1]] = res
+                # If every single LLM call failed, give up on AI summaries entirely
+                # and fall back to raw data so the cron job doesn't die silently.
+                if consecutive_failures >= total_tasks:
+                    print(f"   ⚠ 所有 {total_tasks} 次 LLM 调用全部失败，跳过 AI 总结，保存原始数据", file=sys.stderr)
+                    topic_summaries.clear()
+                    break
 
         ai_count = sum(1 for items in all_results.values() for it in items if it.get("ai_summary"))
         print(f"   ✅ AI 总结完成: {ai_count}/{total} 条简评 + {len(topic_summaries)}/{len(topic_task_meta)} 个综述")
