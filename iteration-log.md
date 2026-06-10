@@ -1,3 +1,20 @@
+## 2026-06-10 06:27 第 114 次迭代（Job ID: acc61aa9502c）
+
+### 自省：满意——闸1全绿（总条目39唯一39重叠0%，最旧条目按小时计非天），闸2无明显问题。7/7 topics 各有 3-6 条，全部来自 Dev.to/36kr，全部 ≤2d。无数据 bug、无 UI bug、无代码质量问题。
+
+### 改动：无（本次跳过）
+
+### 验证
+- 总条目:39 唯一:39 重叠率:0% 最旧:999d（即全部小时级 freshness，无 >30d 条目）
+- 7 topics 全覆盖：OpenClaw 6/Hermes 6/OpenCode 7/ClaudeCode 6/Cline 6/Aider 3/Other 5
+- 全部来源 Dev.to/36kr，无 HN 条目（HN 搜索词更 niche，Dev.to tag 过滤提供了稳定覆盖）
+
+### 待下次
+1. **【观察】** 全部 topic 100% Dev.to+36kr，无 HN 内容 → 若 Dev.to tag 搜索再次故障，风险集中 → 考虑给 Hermes/OpenClaw 等加 HN-only 兜底（类似之前的 HN-only 设计）
+2. **【观察】** Aider 仅 3 条（最旧 6d），其他 topics 靠 Dev.to tag → 需观察 Dev.to tag 稳定性
+
+---
+
 ## 2026-06-09 06:27 第 113 次迭代（Job ID: acc61aa9502c）
 
 ### 自省：不满意——上次 Dev.to tag 修复后，cache 命中但仍返回大量 >30d 旧条目（OpenClaw 6 条中 0 条新鲜，最旧 118d），根本原因是 `get_cached_search` 只检查"至少有一条 ≤14d"就放行全部结果，没有在返回时过滤掉 >30d 的条目
