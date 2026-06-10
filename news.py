@@ -28,10 +28,12 @@ with open(CONFIG_FILE) as f:
 
 def relative_time(dt_str: str) -> str:
     """Convert ISO datetime string to human-friendly 'Nd Nh ago' format."""
+    if not dt_str or not dt_str.strip():
+        return "unknown"
     try:
         dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
     except Exception:
-        return dt_str
+        return "unknown"
     now = datetime.now(timezone.utc)
     diff = now - dt
     total_seconds = int(diff.total_seconds())
@@ -74,7 +76,7 @@ def fetch_hn(query: str, tags: str = "story", hits_per_page: int = 8, max_retrie
             results = []
             for hit in data.get("hits", []):
                 created_at = hit.get("created_at", "")
-                time_ago = relative_time(created_at) if created_at else ""
+                time_ago = relative_time(created_at)
                 story_text = hit.get("story_text") or ""
                 # Decode HTML entities in story_text (e.g. &amp;#x2F; → /)
                 story_text = html.unescape(story_text)
@@ -156,7 +158,7 @@ def fetch_devto(query: str, per_page: int = 5, topic: str | None = None, max_ret
             results = []
             for a in articles:
                 created_at = a.get("published_at", "") or a.get("created_at", "")
-                time_ago = relative_time(created_at) if created_at else ""
+                time_ago = relative_time(created_at)
                 raw_desc = a.get("description") or ""
                 # Strip HTML tags and decode entities
                 import re as re_module
@@ -378,7 +380,7 @@ def fetch_36kr(query: str, max_retries: int = 2) -> list[dict]:
         results = []
         for item in items:
             created = item.get("published_at", "") or item.get("created_at", "")
-            time_ago = relative_time(created) if created else ""
+            time_ago = relative_time(created)
             raw = item.get("intro") or item.get("summary") or item.get("description", "")[:200]
             desc = re.sub(r"<[^>]+>", "", raw).strip()
             desc = re.sub(r" Originally published at.*", "", desc).strip()

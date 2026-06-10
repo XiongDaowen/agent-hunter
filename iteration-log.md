@@ -1047,3 +1047,28 @@
 1. 确认 Aider 条目在 cache 刷新后 ≥ 2 条
 2. 验证 "aider OR aiderai" 未引入重复或误匹配
 3. 检查其他话题最旧条目是否仍 > 30d（可能需要进一步调整搜索词）
+
+## 2026-06-10 12:44 第 114 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——闸1检查发现 39 条数据中有 15 条 time_ago 字段为空（显示为空白），导致数据不完整、无法判断时效性。Browser UI 因 npm ENOTEMPTY 环境问题无法截图验证，但代码静态审查未发现死状态或显示错乱。
+
+### 根因分析
+relative_time("") 传入空字符串时：
+- 旧代码：if created_at else "" -> 空字符串为 False -> 返回 ""
+- except Exception: return dt_str -> 对 "invalid" 返回原字符串（不可控）
+- 最终 15 个条目 time_ago = ""，前端显示空白，无法判断时效
+
+### 改动
+news.py：relative_time 增加空输入保护，返回 "unknown"；3 处调用点删除冗余的 if created_at else "" 条件判断，简化代码。
+
+### 验证
+relative_time('')        -> 'unknown'  OK
+relative_time(' ')       -> 'unknown'  OK
+relative_time('invalid') -> 'unknown'  OK
+relative_time('2026-06-10T10:00:00Z') -> '2h ago'  OK
+python3 -m py_compile news.py -> syntax OK
+
+### 待下次
+1. 下次 cron 运行时确认 time_ago 字段无空值
+2. 解决 npm ENOTEMPTY 问题以支持 browser_vision 截图验证 UI
+3. 确认 unknown 条目在下一次缓存刷新后消失
