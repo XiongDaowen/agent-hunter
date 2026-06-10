@@ -501,6 +501,7 @@ def _is_stale(item: dict, max_age_days: int = 30) -> bool:
         days = int(time_ago.split("d")[0])
         return days > max_age_days
     except (ValueError, IndexError):
+        # "Xh ago" / "Xm ago" / unknown → not stale (fresh hour/minute values)
         return False
 
 
