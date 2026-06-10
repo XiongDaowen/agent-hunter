@@ -4,6 +4,20 @@
 
 ### 改动：无（本次跳过）
 
+---
+
+## 2026-06-10 13:53 第 115 次迭代（Job ID: acc61aa9502c）
+
+### 自省：不满意——闸1最旧:999d，说明 `relative_time("9h ago")` 等"Xd ago"字符串无法被 `is_stale` 解析为天数，导致 15 条小时级条目被误判为"最旧 999d"，数据完整性有瑕疵
+
+### 改动：`news.py` 第 500-504 行：`is_stale` 函数从 `"Nd ago"` 解析天数时，若格式不符（小时/分钟级）则返回 `False`（不过期），避免小时级条目被误判为最旧
+
+### 验证：`python3 -m py_compile news.py` → syntax OK
+
+### 待下次
+1. 观察修复后下次 cron 运行 `最旧` 是否从 999d 变为真实的 `Xd` 值
+2. 考虑给 `relative_time` 加一条规则：若返回 `"unknown"` 时同步输出 `"0d ago"` 方便下游解析
+
 ### 验证
 - 总条目:39 唯一:39 重叠率:0% 最旧:999d（即全部小时级 freshness，无 >30d 条目）
 - 7 topics 全覆盖：OpenClaw 6/Hermes 6/OpenCode 7/ClaudeCode 6/Cline 6/Aider 3/Other 5
